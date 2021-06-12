@@ -14,7 +14,7 @@ import numpy as np
 import mmwave.dsp as dsp
 import mmwave.clustering as clu
 from mmwave.dataloader import DCA1000
-from demo.Lab0008.lab0008_visualize import ellipse_visualize
+from demo.visualizer.visualize import ellipse_visualize
 
 import matplotlib.pyplot as plt
 
@@ -24,8 +24,8 @@ plt.close('all')
 loadData = True
 
 numFrames = 300
-numADCSamples = 128
-numTxAntennas = 3
+numADCSamples = 256
+numTxAntennas = 2
 numRxAntennas = 4
 numLoopsPerFrame = 128
 numChirpsPerFrame = numTxAntennas * numLoopsPerFrame
@@ -37,8 +37,8 @@ numAngleBins = 64
 range_resolution, bandwidth = dsp.range_resolution(numADCSamples)
 doppler_resolution = dsp.doppler_resolution(bandwidth)
 
-plotRangeDopp = False  
-plot2DscatterXY = True  
+plotRangeDopp = True
+plot2DscatterXY = False
 plot2DscatterXZ = False  
 plot3Dscatter = False  
 plotCustomPlt = False
@@ -77,7 +77,7 @@ if __name__ == '__main__':
         numChirpsPerFrame, numRxAntennas, numADCSamples), "[ERROR] Radar cube is not the correct shape!"
 
         # (3) Doppler Processing 
-        det_matrix, aoa_input = dsp.doppler_processing(radar_cube, num_tx_antennas=3, clutter_removal_enabled=True)
+        det_matrix, aoa_input = dsp.doppler_processing(radar_cube, num_tx_antennas=numTxAntennas, clutter_removal_enabled=True)
 
         # --- Show output
         if plotRangeDopp:
