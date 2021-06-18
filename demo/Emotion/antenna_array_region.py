@@ -171,15 +171,15 @@ adc_data_path = "C:/ti/mySavedData/Joy_2_Raw_0.bin"
 # adc_data_path = 'C:/ti/mySavedData/LipMotion_stereo_static_0.bin' # 200 cm
 
 
-plotRangeDopp = True
+plotRangeDopp = False
 plot2DscatterXY = False
 plot2DscatterXZ = False
-plot3Dscatter = False
+plot3Dscatter = True
 plotCustomPlt = False
 
 plotMakeMovie = True
 makeMovieTitle = ""
-makeMovieDirectory = "C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/visualizer/movie/test_plotRDM.mp4"
+makeMovieDirectory = "C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/visualizer/movie/test4_plotXYZ.mp4"
 
 antenna_order = [8, 10, 7, 9, 6, 4, 5, 3] if device_v else [5, 6, 7, 8, 3, 4, 9, 10]
 
@@ -470,6 +470,27 @@ def plot_virtual_antenna_point(range_data):
     fig.savefig("{}_scatter.pdf".format(os.path.join(figpath, fig_prefix)))
 
 
+def retain_range(xyzVector, range_resolution, min=5, max=9):
+    idx = []
+    for i in range(xyzVector.shape[1]):
+        if xyzVector[0, i] > min * range_resolution and xyzVector[0, i] < max * range_resolution:
+            idx.append(True)
+        else:
+            idx.append(False)
+    return xyzVector[:, idx]
+
+
+def plot_raw_detection(rawData, type='SNR'):
+    fig, ax = plt.subplots(1, 1, figsize=(120, 90))
+    y = rawData['rangeIdx']
+    x = rawData ['dopplerIdx']
+    cmax = np.max(rawData[type])
+    cscale = rawData[type] / cmax
+    ax.scatter(x,y,c=cscale, cmap='gray')
+    plt.show()
+
+
+
 if __name__ == '__main__':
     # num Antennas
     numTxAntennas = 3
@@ -617,7 +638,7 @@ if __name__ == '__main__':
         dataCube = np.zeros((1, numChirpsPerFrame, numRxAntennas, numADCSamples), dtype=complex)
         dataCube[0, :, :, :] = adc_data[80]
     else:
-        dataCube = adc_data
+        dataCube = adc_data[40:120]
 
     # dataCube = adc_data
     doppler_data = np.zeros((numFrames, numADCSamples, numChirpsPerFrame // numTxAntennas))
@@ -702,26 +723,43 @@ if __name__ == '__main__':
         detObj2DRaw['peakVal'] = peakVals.flatten()
         detObj2DRaw['SNR'] = snr.flatten()
 
+        # plot_raw_detection(detObj2DRaw, type='peakVal')
+        # plot_raw_detection(detObj2DRaw, type='SNR')
+
         # Further peak pruning. This increases the point cloud density but helps avoid having too many detections around one object.
         detObj2DRaw = dsp.prune_to_peaks(detObj2DRaw, det_matrix, numDopplerBins, reserve_neighbor=True)
+
 
         # --- Peak Grouping
         detObj2D = dsp.peak_grouping_along_doppler(detObj2DRaw, det_matrix, numDopplerBins)
         SNRThresholds2 = np.array([[2, 23], [10, 11.5], [35, 16.0]])
-        peakValThresholds2 = np.array([[4, 275], [1, 400], [500, 0]])
-        detObj2D = dsp.range_based_pruning(detObj2D, SNRThresholds2, peakValThresholds2, numRangeBins, 0.5,
-                                           range_resolution)
+
+        peakThreshold = np.mean(detObj2DRaw['peakVal']) - 1 * np.std(detObj2DRaw['peakVal'])
+        peakValThresholds2 = np.array([[1, peakThreshold],])
+
+        # detObj2D = dsp.range_based_pruning(detObj2D, SNRThresholds2, peakValThresholds2, numRangeBins, 0.5,
+        #                                    range_resolution)
+
+        detObj2D = dsp.range_based_pruning(detObj2D, SNRThresholds2, peakValThresholds2, max_range=9, min_range=5,
+                                           range_resolution=range_resolution)
 
         azimuthInput = aoa_input[detObj2D['rangeIdx'], :, detObj2D['dopplerIdx']]
 
         x, y, z = dsp.naive_xyz(azimuthInput.T, num_tx=numTxAntennas, num_rx=numRxAntennas, fft_size=numADCSamples)
+
         xyzVecN = np.zeros((3, x.shape[0]))
         xyzVecN[0] = x * range_resolution * detObj2D['rangeIdx']
         xyzVecN[1] = y * range_resolution * detObj2D['rangeIdx']
         xyzVecN[2] = z * range_resolution * detObj2D['rangeIdx']
 
+        # retain range bin from 6 to 8
+        # xyzVecN = retain_range(xyzVecN, range_resolution)
+
         Psi, Theta, Ranges, xyzVec = dsp.beamforming_naive_mixed_xyz(azimuthInput, detObj2D['rangeIdx'],
                                                                      range_resolution, method='Bartlett')
+
+        # retain range bin from 6 to 8
+        # xyzVec = retain_range(xyzVec, range_resolution)
 
         # (5) 3D-Clustering
         # detObj2D must be fully populated and completely accurate right here
@@ -777,14 +815,14 @@ if __name__ == '__main__':
                 axes[1].grid(b=True)
 
             elif plot2DscatterXZ:
-                axes[0].set_ylim(bottom=-5, top=5)
+                axes[0].set_ylim(bottom=-0.5, top=0.5)
                 axes[0].set_ylabel('Elevation')
-                axes[0].set_xlim(left=-4, right=4)
+                axes[0].set_xlim(left=-0.4, right=0.4)
                 axes[0].set_xlabel('Azimuth')
                 axes[0].grid(b=True)
 
-                axes[1].set_ylim(bottom=-5, top=5)
-                axes[1].set_xlim(left=-4, right=4)
+                axes[1].set_ylim(bottom=-0.5, top=0.5)
+                axes[1].set_xlim(left=-0.4, right=0.4)
                 axes[1].set_xlabel('Azimuth')
                 axes[1].grid(b=True)
 

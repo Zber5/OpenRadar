@@ -18,11 +18,12 @@ from sklearn.metrics import plot_confusion_matrix
 
 import matplotlib.pyplot as plt
 
-
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
 from copy import deepcopy
+
+antenna_order = [8, 10, 7, 9, 6, 4, 5, 3]
 
 
 class PCAForPandas(PCA):
@@ -81,12 +82,72 @@ class PCAForPandas(PCA):
 
         if self._X_columns is not None:
             if self._X_columns != list(X.columns):
-                raise AttributeError("The columns of the new X is not compatible with the columns from the previous X data")
+                raise AttributeError(
+                    "The columns of the new X is not compatible with the columns from the previous X data")
         else:
             self._X_columns = list(X.columns)
 
         return X
 
+
+def svd(sig):
+    import matplotlib._color_data as mcd
+    u, s, vh = np.linalg.svd(sig, full_matrices=False)
+    m = sig.shape[0]
+    n = sig.shape[1]
+
+    k = 5
+
+    # get Sigma/W
+    Sigma = np.zeros((m, n))
+    for i in range(m):
+        Sigma[i, i] = s[i]
+
+    # reconstruction
+    approx_sig = u @ Sigma[:, :k] @ vh[:k, :]
+
+    # transformed Data
+    trans = u @ Sigma
+
+    # 2D projection of transformed data
+    k1 = 2
+    trans_dd = trans[:, :k1]
+    trans_x = trans_dd[:, 0]
+    trans_y = trans_dd[:, 1]
+
+    # colors
+    tab_color = [mcd.TABLEAU_COLORS[name] for name in mcd.TABLEAU_COLORS]
+
+    fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+
+    ant_index = 0
+    for o, color in zip(antenna_order, tab_color):
+        axes[0][0].plot(sig[ant_index], c=color, label="VA_{}".format(o), lw=2)
+        axes[0][1].plot(trans[ant_index], c=color, lw=2)
+        axes[1][0].plot(approx_sig[ant_index], c=color, lw=2)
+        axes[1][1].scatter(trans_x[ant_index], trans_y[ant_index], c=color, s=15)
+        ant_index += 1
+    handles, labels = axes[0][0].get_legend_handles_labels()
+    plt.tight_layout()
+    plt.legend(handles, labels, bbox_to_anchor=(0.1, 2.13), ncol=8, loc='upper center', borderaxespad=0., fontsize=10)
+    plt.show()
+
+    return u, s, vh
+
+
+def select_channel(x, select_va):
+    m = len(select_va)
+    xs = x.shape
+    select_x = np.zeros((xs[0], m, xs[2]))
+
+    for i, va in enumerate(select_va):
+        p = antenna_order.index(va)
+        select_x[:, i, :] = x[:, p, :]
+
+    return select_x
+
+def select_data(label=[0,1,2]):
+    return 0
 
 if __name__ == '__main__':
     # df_ts, y = load_robot_execution_failures()
@@ -97,12 +158,16 @@ if __name__ == '__main__':
     # save_path = 'C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/Emotion/data/emotion_3s_7-9-6-4_{}.npy'
     # save_path = 'C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/Emotion/data/emotion_3s_{}.npy'
     # save_path = 'C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/Emotion/data/emotion_3s_diff_{}.npy'
-    # save_path = 'C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/Emotion/data/emotion_3s_diff1_segment_{}.npy'
-    # save_path = 'C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/Emotion/data/emotion_3s_diff_segment_7-9-6-4_{}.npy'
-    save_path = 'C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/Emotion/data/emotion_3s_diff_segment_8-10-5-3_{}.npy'
 
+    # segemented data
+    save_path = 'C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/Emotion/data/emotion_3s_diff1_segment_{}.npy'
+    # save_path = 'C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/Emotion/data/emotion_3s_diff_segment_7-9-6-4_{}.npy'
+    # save_path = 'C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/Emotion/data/emotion_3s_diff_segment_8-10-5-3_{}.npy'
+
+
+    # manually select
     # va_list = ['VA_{}'.format(i) for i in [8, 10, 7, 9, 6, 4, 5, 3]]
-    va_list = ['VA_{}'.format(i) for i in [7, 9, 6, 4]]
+    # va_list = ['VA_{}'.format(i) for i in [7, 9, 6, 4]]
     # va_list = ['VA_{}'.format(i) for i in [8, 10, 5, 3]]
 
     is_diff = True
@@ -111,9 +176,20 @@ if __name__ == '__main__':
     x = np.load(save_path.format('x'))
     y = np.load(save_path.format('y'))
 
+    # svd
+    # y[41]
+    # svd(x[42])
+
+    select_va = [5, 3, 7, 4, 6]
+    # select_va = [3, 7, 6, 9, 4]
+    va_list = ['VA_{}'.format(i) for i in select_va]
+
+    # select_x
+    x = select_channel(x, select_va)
+
     length = 150
     if is_diff:
-        length = length -1
+        length = length - 1
 
     if is_segment:
         length = 80
@@ -160,7 +236,8 @@ if __name__ == '__main__':
     #     "large_standard_deviation": [{"r": 0.05}, {"r": 0.1}]
     # }
 
-    extracted_features = extract_features(df_x, column_id="id", column_sort="time", impute_function=impute, default_fc_parameters=settings)
+    extracted_features = extract_features(df_x, column_id="id", column_sort="time", impute_function=impute,
+                                          default_fc_parameters=settings)
     # extracted_features = extract_features(df_x, column_id="id", column_sort="time", impute_function=impute)
     # print(extracted_features)
 

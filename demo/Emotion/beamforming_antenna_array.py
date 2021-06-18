@@ -143,7 +143,10 @@ device_v = True
 # adc_data_path = "C:/ti/mySavedData/LipMotion_happy_coverbyright_1.bin"
 
 # Test
-adc_data_path = "C:/ti/mySavedData/Joy_2_Raw_0.bin"
+# adc_data_path = "C:/ti/mySavedData/Joy_2_Raw_0.bin"
+
+# Beamforming
+adc_data_path = "C:/ti/mySavedData/beamforming_test_0_Raw_0.bin"
 
 # pad cover face h
 # device_v = False
@@ -250,7 +253,9 @@ def parseConfigFile(configFileName, numTxAnt=3):
             configParameters['numFrames'] = numFrames
 
     # Combine the read data to obtain the configuration parameters
-    numChirpsPerFrame = (chirpEndIdx - chirpStartIdx + 1) * numLoops
+    # numChirpsPerFrame = (chirpEndIdx - chirpStartIdx + 1) * numLoops
+    configParameters['numLoops'] = 16
+    numChirpsPerFrame = 16 * 4
     configParameters["numDopplerBins"] = numChirpsPerFrame / numTxAnt
     configParameters["numRangeBins"] = numAdcSamplesRoundTo2
     configParameters["rangeResolutionMeters"] = (3e8 * digOutSampleRate * 1e3) / (
@@ -473,7 +478,8 @@ if __name__ == '__main__':
     configParameters = parseConfigFile(configFileName)
 
     # mmWave radar settings
-    numFrames = configParameters['numFrames']
+    # numFrames = configParameters['numFrames']
+    numFrames = 150
     numADCSamples = configParameters['numAdcSamples']
 
     numLoopsPerFrame = configParameters['numLoops']
@@ -503,7 +509,7 @@ if __name__ == '__main__':
     if loadData:
         adc_data = np.fromfile(adc_data_path, dtype=np.int16)
         adc_data = adc_data.reshape(numFrames, -1)
-        adc_data = np.apply_along_axis(DCA1000.organize, 1, adc_data, num_chirps=numChirpsPerFrame,
+        adc_data = np.apply_along_axis(DCA1000.organize, 1, adc_data, num_chirps=16*4,
                                        num_rx=numRxAntennas, num_samples=numADCSamples)
         dataCube = np.copy(adc_data)
         print("Data Loaded!")
