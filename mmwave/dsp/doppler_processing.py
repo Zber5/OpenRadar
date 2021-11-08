@@ -109,7 +109,7 @@ def doppler_processing(radar_cube,
     else:
         fft2d_in = radar_cube
         
-    # (Optional) Static Clutter Removal
+    # (Optional) Static Clutter Removal = sig - mean
     if clutter_removal_enabled:
         fft2d_in = compensation.clutter_removal(fft2d_in, axis=0)
 

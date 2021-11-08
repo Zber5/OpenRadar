@@ -38,7 +38,7 @@ if not DebugMode:
 # QOL settings
 loadData = True
 
-figpath = "C:/ti/mySavedFig"
+figpath = "C:/Users/Zber/Desktop/SavedFigure"
 
 # Configure file
 # configFileName = "C:/Users/Zber/Desktop/Tx3_bestRangeResolution.cfg"
@@ -73,7 +73,15 @@ figpath = "C:/ti/mySavedFig"
 # tx3_rx4_bestRange 50fps 300frames
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx3_rx4_bestRange.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx3_rx4_bestRange_modify.cfg'
-configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx3_rx4_bestRange_beamforming.cfg'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx3_rx4_bestRange_modify3-velocity.cfg'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx3_rx4_bestRange_modify2.cfg'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx3_rx4_bestRange_beamforming.cfg'
+
+# mmWave studio configure
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx3_rx4_mmWaveStudio.cfg'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop.cfg'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_5s.cfg'
+configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_10s.cfg'
 
 # frame 300
 # adc_data_path = 'C:/ti/mySavedData/LipMotion_tx3_rx4_static_0.bin'
@@ -143,10 +151,10 @@ device_v = True
 # adc_data_path = "C:/ti/mySavedData/LipMotion_happy_coverbyright_1.bin"
 
 # Test
-# adc_data_path = "C:/ti/mySavedData/Joy_2_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/SavedData/Joy_2_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/SavedData_MIMO/Joy_0_Raw_0.bin"
 
-# Beamforming
-adc_data_path = "C:/ti/mySavedData/beamforming_test_0_Raw_0.bin"
+# adc_data_path = "C:/ti/mySavedData/hz100_test_0_Raw_0.bin"
 
 # pad cover face h
 # device_v = False
@@ -170,16 +178,37 @@ adc_data_path = "C:/ti/mySavedData/beamforming_test_0_Raw_0.bin"
 # adc_data_path = 'C:/ti/mySavedData/LipMotion_stereo_0.bin' # 200 cm
 # adc_data_path = 'C:/ti/mySavedData/LipMotion_stereo_static_0.bin' # 200 cm
 
+# eye tracking
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/down_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/up_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/right_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/left_0_Raw_0.bin'
 
-plotRangeDopp = True
+
+# pluse motion
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_4cm_10s_0_Raw_0.bin'
+adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_6cm_10s_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_7cm_10s_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_9cm_10s_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_14cm_10s_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_14cm_10s_1_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_pressure_7cm_10s_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_pressure_9cm_10s_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_pressure_14cm_10s_0_Raw_0.bin'
+
+
+
+
+plotRangeDopp = False
 plot2DscatterXY = False
 plot2DscatterXZ = False
+plot2DscatterYZ = False
 plot3Dscatter = False
 plotCustomPlt = False
 
-plotMakeMovie = True
+plotMakeMovie = False
 makeMovieTitle = ""
-makeMovieDirectory = "./test_plot3Dscatter.mp4"
+makeMovieDirectory = "C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/visualizer/movie/test_plotRDM.mp4"
 
 antenna_order = [8, 10, 7, 9, 6, 4, 5, 3] if device_v else [5, 6, 7, 8, 3, 4, 9, 10]
 
@@ -253,9 +282,7 @@ def parseConfigFile(configFileName, numTxAnt=3):
             configParameters['numFrames'] = numFrames
 
     # Combine the read data to obtain the configuration parameters
-    # numChirpsPerFrame = (chirpEndIdx - chirpStartIdx + 1) * numLoops
-    configParameters['numLoops'] = 16
-    numChirpsPerFrame = 16 * 4
+    numChirpsPerFrame = (chirpEndIdx - chirpStartIdx + 1) * numLoops
     configParameters["numDopplerBins"] = numChirpsPerFrame / numTxAnt
     configParameters["numRangeBins"] = numAdcSamplesRoundTo2
     configParameters["rangeResolutionMeters"] = (3e8 * digOutSampleRate * 1e3) / (
@@ -272,10 +299,12 @@ def parseConfigFile(configFileName, numTxAnt=3):
 
 def movieMaker(fig, ims, title, save_dir):
     import matplotlib.animation as animation
+    import matplotlib as mpl
+    mpl.rcParams['animation.ffmpeg_path'] = r"C:\\Users\\Zber\\Documents\\ffmpeg\\bin\\ffmpeg.exe"
 
     # Set up formatting for the Range Azimuth heatmap movies
-    Writer = animation.writers['ffmpeg']
-    writer = Writer(fps=10, metadata=dict(artist='Me'), bitrate=1800)
+    # Writer = animation.writers['ffmpeg']
+    writer = animation.FFMpegWriter(fps=10, metadata=dict(artist='Me'), bitrate=1800)
 
     plt.title(title)
     print('Done')
@@ -329,7 +358,75 @@ def butter_highpass_fs(sig, lowcut, fs, order=5, output='ba'):
     return filtered
 
 
-def plot_virtual_antenna(range_data, is_diff=True):
+def plot_amplitude_change(range_data, bin_index):
+    fig, axes = plt.subplots(1, 1, figsize=(12, 5))
+    sig = range_data.reshape((-1, numTxAntennas, numLoopsPerFrame, numRxAntennas))
+    sig = np.sum(np.abs(sig), axis=(1, 2, 3))
+    axes.plot(sig, linewidth=1.5, c='b')
+    fig.tight_layout()
+    plt.show() if DebugMode else None
+    fig.savefig("{}_amp_change_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
+
+
+def plot_amplitude_change_multi(range_data, bin_index, is_diff=True):
+    import matplotlib._color_data as mcd
+    if device_v:
+        fig, axes = plt.subplots(4, 2, figsize=(50, 90))
+    else:
+        fig, axes = plt.subplots(2, 4, figsize=(90, 50))
+    # v_order = [8, 10, 7, 9, 6, 4, 5, 3]
+    sig = range_data.reshape((-1, numTxAntennas, numLoopsPerFrame, numRxAntennas))
+    sig = sig[:, :, 5, :]
+
+    tab_color = [mcd.TABLEAU_COLORS[name] for name in mcd.TABLEAU_COLORS]
+
+    for ax, o, color in zip(fig.axes, antenna_order, tab_color):
+        va_order = o - 1
+        t, r = virtual_array[va_order]
+        t, r = tx_map[t], r - 1
+        va_sig = sig[:, t, r]
+        va_sum = np.abs(va_sig)
+        if is_diff:
+            va_sum = np.diff(va_sum)
+        ax.plot(va_sum, linewidth=15, c=color)
+        ax.set_title('Virtual Antenna {}'.format(o), fontdict={'fontsize': 80, 'fontweight': 25})
+        # ax.set_ylim([-4, 4])
+    fig.tight_layout()
+    fig.subplots_adjust(hspace=0.3, wspace=0.05, top=0.97, bottom=0.03, left=0.03)
+
+    plt.show() if DebugMode else None
+    fig.savefig("{}_amp_change_multi_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
+
+
+def plot_freq_change_multi(range_data, is_diff=True):
+    import matplotlib._color_data as mcd
+    if device_v:
+        fig, axes = plt.subplots(4, 2, figsize=(50, 90))
+    else:
+        fig, axes = plt.subplots(2, 4, figsize=(90, 50))
+    # v_order = [8, 10, 7, 9, 6, 4, 5, 3]
+    sig = range_data.reshape((-1, numTxAntennas, numLoopsPerFrame, numRxAntennas))
+    # sig = sig[:, :, 5, :]
+
+    tab_color = [mcd.TABLEAU_COLORS[name] for name in mcd.TABLEAU_COLORS]
+
+    for ax, o, color in zip(fig.axes, antenna_order, tab_color):
+        va_order = o - 1
+        t, r = virtual_array[va_order]
+        t, r = tx_map[t], r - 1
+        va_sig = sig[:, t, :, r]
+        va_freq = va_sig.reshape((-1))
+        ax.plot(va_freq, linewidth=15, c=color)
+        ax.set_title('Virtual Antenna {}'.format(o), fontdict={'fontsize': 80, 'fontweight': 25})
+        # ax.set_ylim([-4, 4])
+    fig.tight_layout()
+    fig.subplots_adjust(hspace=0.3, wspace=0.05, top=0.97, bottom=0.03, left=0.03)
+
+    plt.show() if DebugMode else None
+    fig.savefig("{}_freq_multi.pdf".format(os.path.join(figpath, fig_prefix)))
+
+
+def plot_virtual_antenna(range_data, bin_index, is_diff=True):
     import matplotlib._color_data as mcd
     if device_v:
         fig, axes = plt.subplots(4, 2, figsize=(50, 90))
@@ -363,9 +460,9 @@ def plot_virtual_antenna(range_data, is_diff=True):
     plt.show() if DebugMode else None
 
     if is_diff:
-        fig.savefig("{}_multiphase.pdf".format(os.path.join(figpath, fig_prefix)))
+        fig.savefig("{}_multiphase_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
     else:
-        fig.savefig("{}_multiphase_unwrap.pdf".format(os.path.join(figpath, fig_prefix)))
+        fig.savefig("{}_multiphase_unwrap_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
 
 
 def plot_virtual_antenna_in_one(range_data, bin_index=0, is_diff=True):
@@ -401,19 +498,19 @@ def plot_virtual_antenna_in_one(range_data, bin_index=0, is_diff=True):
         plot_max_x = np.arange(max_i, max_i + 1)
         plot_max_y = va_diff_phase[max_i:max_i + 1]
 
-        ax.plot(va_diff_phase, linewidth=1, c=color, label='Virtual Antenna {}'.format(o),zorder=5)
+        ax.plot(va_diff_phase, linewidth=1, c=color, label='Virtual Antenna {}'.format(o), zorder=5)
         ax.scatter(plot_max_x, plot_max_y, c=color, s=5, zorder=10)
         ax.set_ylim([-4, 4]) if is_diff else None
     plt.legend(bbox_to_anchor=(0.837, 1), loc='upper left', borderaxespad=0.)
     fig.tight_layout()
     plt.show() if DebugMode else None
     if is_diff:
-        fig.savefig("{}_multiphase_in_one_{}.pdf".format(os.path.join(figpath, fig_prefix),bin_index))
+        fig.savefig("{}_multiphase_in_one_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
     else:
         fig.savefig("{}_multiphase_in_one_{}_unwrap.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
 
 
-def plot_virtual_antenna_point(range_data):
+def plot_virtual_antenna_point(range_data, bin_index):
     import matplotlib._color_data as mcd
     if device_v:
         fig, axes = plt.subplots(4, 2, figsize=(50, 90))
@@ -467,7 +564,7 @@ def plot_virtual_antenna_point(range_data):
     fig.subplots_adjust(hspace=0.08, wspace=0.08)
 
     plt.show() if DebugMode else None
-    fig.savefig("{}_scatter.pdf".format(os.path.join(figpath, fig_prefix)))
+    fig.savefig("{}_scatter_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
 
 
 if __name__ == '__main__':
@@ -478,15 +575,17 @@ if __name__ == '__main__':
     configParameters = parseConfigFile(configFileName)
 
     # mmWave radar settings
-    # numFrames = configParameters['numFrames']
-    numFrames = 150
+    numFrames = configParameters['numFrames']
     numADCSamples = configParameters['numAdcSamples']
 
     numLoopsPerFrame = configParameters['numLoops']
     numChirpsPerFrame = numTxAntennas * numLoopsPerFrame
 
     numRangeBins = numADCSamples
+
+    # numDopplerBins = numLoopsPerFrame
     numDopplerBins = numLoopsPerFrame
+
     numAngleBins = 64
 
     # data processing parameter
@@ -509,7 +608,7 @@ if __name__ == '__main__':
     if loadData:
         adc_data = np.fromfile(adc_data_path, dtype=np.int16)
         adc_data = adc_data.reshape(numFrames, -1)
-        adc_data = np.apply_along_axis(DCA1000.organize, 1, adc_data, num_chirps=16*4,
+        adc_data = np.apply_along_axis(DCA1000.organize, 1, adc_data, num_chirps=numChirpsPerFrame,
                                        num_rx=numRxAntennas, num_samples=numADCSamples)
         dataCube = np.copy(adc_data)
         print("Data Loaded!")
@@ -537,7 +636,8 @@ if __name__ == '__main__':
     # bin_index = 3
     # bin_index = 4
     # bin_index = 4
-    bin_index = 7
+    # bin_index = 8
+    bin_index = 1
 
     # plot variance
     axes[0, 1].bar(np.arange(0, numDisplaySamples), var)
@@ -582,34 +682,44 @@ if __name__ == '__main__':
     axes[2, 1].plot(np.abs(filter_data[1]))
 
     plt.show() if DebugMode else None
-    plt.savefig("{}_phase.pdf".format(os.path.join(figpath, fig_prefix)))
+    plt.savefig("{}_phase_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
     print("")
 
-    # plot antenna array
-    plot_virtual_antenna_point(range_data_copy[..., bin_index])
-    plot_virtual_antenna(range_data_copy[..., bin_index])
-    plot_virtual_antenna_in_one(range_data_copy[..., bin_index], bin_index)
-    plot_virtual_antenna_in_one(range_data_copy[..., bin_index], bin_index,is_diff=False)
+    # plot change of amplitude
+    plot_amplitude_change(range_data[..., bin_index], bin_index)
+    plot_amplitude_change_multi(range_data[..., bin_index], bin_index)
 
+    # frequency
+    # plot_freq_change_multi()
+
+    # plot antenna array
+    plot_virtual_antenna_point(range_data_copy[..., bin_index], bin_index)
+    plot_virtual_antenna(range_data_copy[..., bin_index], bin_index)
+    plot_virtual_antenna_in_one(range_data_copy[..., bin_index], bin_index)
+    plot_virtual_antenna_in_one(range_data_copy[..., bin_index], bin_index, is_diff=False)
+
+    # sys.exit(0)
     # (1.5) Required Plot Declarations
-    #     if plot2DscatterXY or plot2DscatterXZ:
-    #         fig, axes = plt.subplots(1, 2)
-    #     elif plot3Dscatter and plotMakeMovie:
-    #         fig = plt.figure()
-    #         nice = Axes3D(fig)
-    #     elif plot3Dscatter:
-    #         fig = plt.figure()
-    #     elif plotRangeDopp:
-    #         fig = plt.figure()
-    #     elif plotCustomPlt:
-    #         print("Using Custom Plotting")
+    if plot2DscatterXY or plot2DscatterXZ:
+        fig, axes = plt.subplots(1, 2)
+    elif plot3Dscatter and plotMakeMovie:
+        fig = plt.figure()
+        nice = Axes3D(fig)
+    elif plot3Dscatter:
+        fig = plt.figure()
+    elif plotRangeDopp:
+        fig = plt.figure()
+    elif plotCustomPlt:
+        print("Using Custom Plotting")
+
+    # fig = plt.figure()
 
     # (1.6) Optional single frame view
-    # if singFrameView:
-    #     dataCube = np.zeros((1, numChirpsPerFrame, 8, numADCSamples), dtype=complex)
-    #     dataCube[0, :, :, :] = adc_data[299]
-    # else:
-    #     dataCube = adc_data
+    if singFrameView:
+        dataCube = np.zeros((1, numChirpsPerFrame, numRxAntennas, numADCSamples), dtype=complex)
+        dataCube[0, :, :, :] = adc_data[80]
+    else:
+        dataCube = adc_data
 
     # dataCube = adc_data
     doppler_data = np.zeros((numFrames, numADCSamples, numChirpsPerFrame // numTxAntennas))
@@ -620,11 +730,23 @@ if __name__ == '__main__':
         # (2) Range Processing
         from mmwave.dsp.utils import Window
 
+        cluster = None
+
+        # static clutter noise remove
+        # PCA noise remove
+        # low pass and high pass
+        # hampel bandpass filter
+
         radar_cube = dsp.range_processing(frame, window_type_1d=Window.BLACKMAN)
         assert radar_cube.shape == (
             numChirpsPerFrame, numRxAntennas, numADCSamples), "[ERROR] Radar cube is not the correct shape!"
 
         # (3) Doppler Processing
+        # det_matrix, aoa_input = dsp.doppler_processing(radar_cube, num_tx_antennas=numTxAntennas,
+        #                                                clutter_removal_enabled=True,
+        #                                                window_type_2d=Window.HAMMING,
+        #                                                interleaved=True, accumulate=True)
+
         det_matrix, aoa_input = dsp.doppler_processing(radar_cube, num_tx_antennas=numTxAntennas,
                                                        clutter_removal_enabled=True,
                                                        window_type_2d=Window.HAMMING,
@@ -633,19 +755,23 @@ if __name__ == '__main__':
         # --- Show output
         if plotRangeDopp:
             det_matrix_vis = np.fft.fftshift(det_matrix, axes=1)
-            doppler_data[i] = det_matrix_vis
+            # doppler_data[i] = det_matrix_vis
             if plotMakeMovie:
-                ims.append((plt.imshow(det_matrix_vis / det_matrix_vis.max()),))
+                ims.append((plt.imshow(det_matrix_vis / det_matrix_vis.max(), interpolation='nearest', aspect='auto'),))
             else:
-                plt.imshow(det_matrix_vis / det_matrix_vis.max())
+                plt.imshow(det_matrix_vis / det_matrix_vis.max(), interpolation='nearest', aspect='auto')
                 plt.title("Range-Doppler plot " + str(i))
-                # plt.pause(0.05)
-                # plt.clf()
+                plt.pause(0.05)
+                plt.clf()
                 plt.show()
 
         # (4) Object Detection
         # --- CFAR, SNR is calculated as well.
         fft2d_sum = det_matrix.astype(np.int64)
+
+        # plt.imshow(fft2d_sum / fft2d_sum.max(), interpolation='nearest', aspect='auto')
+        # plt.show()
+
         thresholdDoppler, noiseFloorDoppler = np.apply_along_axis(func1d=dsp.ca_,
                                                                   axis=0,
                                                                   arr=fft2d_sum.T,
@@ -672,7 +798,7 @@ if __name__ == '__main__':
         peakVals = fft2d_sum[det_peaks_indices[:, 0], det_peaks_indices[:, 1]]
         snr = peakVals - noiseFloorRange[det_peaks_indices[:, 0], det_peaks_indices[:, 1]]
 
-        snr_data[i] = fft2d_sum - noiseFloorDoppler
+        # snr_data[i] = fft2d_sum - noiseFloorDoppler
 
         dtype_location = '(' + str(numTxAntennas) + ',)<f4'
         dtype_detObj2D = np.dtype({'names': ['rangeIdx', 'dopplerIdx', 'peakVal', 'location', 'SNR'],
@@ -692,50 +818,51 @@ if __name__ == '__main__':
         peakValThresholds2 = np.array([[4, 275], [1, 400], [500, 0]])
         detObj2D = dsp.range_based_pruning(detObj2D, SNRThresholds2, peakValThresholds2, numRangeBins, 0.5,
                                            range_resolution)
-        #
-        # azimuthInput = aoa_input[detObj2D['rangeIdx'], :, detObj2D['dopplerIdx']]
-        #
-        # x, y, z = dsp.naive_xyz(azimuthInput.T, fft_size=16)
-        # xyzVecN = np.zeros((3, x.shape[0]))
-        # xyzVecN[0] = x * range_resolution * detObj2D['rangeIdx']
-        # xyzVecN[1] = y * range_resolution * detObj2D['rangeIdx']
-        # xyzVecN[2] = z * range_resolution * detObj2D['rangeIdx']
-        #
-        # Psi, Theta, Ranges, xyzVec = dsp.beamforming_naive_mixed_xyz(azimuthInput, detObj2D['rangeIdx'],
-        #                                                              range_resolution, method='Bartlett')
-        #
-        # # (5) 3D-Clustering
-        # # detObj2D must be fully populated and completely accurate right here
-        # numDetObjs = detObj2D.shape[0]
-        # dtf = np.dtype({'names': ['rangeIdx', 'dopplerIdx', 'peakVal', 'location', 'SNR'],
-        #                 'formats': ['<f4', '<f4', '<f4', dtype_location, '<f4']})
-        # detObj2D_f = detObj2D.astype(dtf)
-        # detObj2D_f = detObj2D_f.view(np.float32).reshape(-1, 7)
-        #
-        # # Fully populate detObj2D_f with correct info
-        # for i, currRange in enumerate(Ranges):
-        #     if i >= (detObj2D_f.shape[0]):
-        #         # copy last row
-        #         detObj2D_f = np.insert(detObj2D_f, i, detObj2D_f[i - 1], axis=0)
-        #     if currRange == detObj2D_f[i][0]:
-        #         detObj2D_f[i][3] = xyzVec[0][i]
-        #         detObj2D_f[i][4] = xyzVec[1][i]
-        #         detObj2D_f[i][5] = xyzVec[2][i]
-        #     else:  # Copy then populate
-        #         detObj2D_f = np.insert(detObj2D_f, i, detObj2D_f[i - 1], axis=0)
-        #         detObj2D_f[i][3] = xyzVec[0][i]
-        #         detObj2D_f[i][4] = xyzVec[1][i]
-        #         detObj2D_f[i][5] = xyzVec[2][i]
-        #
-        #         # radar_dbscan(epsilon, vfactor, weight, numPoints)
-        # #        cluster = radar_dbscan(detObj2D_f, 1.7, 3.0, 1.69 * 1.7, 3, useElevation=True)
-        # if len(detObj2D_f) > 0:
-        #     cluster = clu.radar_dbscan(detObj2D_f, 0, doppler_resolution, use_elevation=True)
-        #
-        #     cluster_np = np.array(cluster['size']).flatten()
-        #     if cluster_np.size != 0:
-        #         if max(cluster_np) > max_size:
-        #             max_size = max(cluster_np)
+
+        azimuthInput = aoa_input[detObj2D['rangeIdx'], :, detObj2D['dopplerIdx']]
+
+        x, y, z = dsp.naive_xyz(azimuthInput.T, num_tx=numTxAntennas, num_rx=numRxAntennas, fft_size=numADCSamples)
+        xyzVecN = np.zeros((3, x.shape[0]))
+        xyzVecN[0] = x * range_resolution * detObj2D['rangeIdx']
+        xyzVecN[1] = y * range_resolution * detObj2D['rangeIdx']
+        xyzVecN[2] = z * range_resolution * detObj2D['rangeIdx']
+
+        Psi, Theta, Ranges, xyzVec = dsp.beamforming_naive_mixed_xyz(azimuthInput, detObj2D['rangeIdx'],
+                                                                     range_resolution, method='Bartlett')  # Capon
+
+        # (5) 3D-Clustering
+        # detObj2D must be fully populated and completely accurate right here
+        numDetObjs = detObj2D.shape[0]
+        dtf = np.dtype({'names': ['rangeIdx', 'dopplerIdx', 'peakVal', 'location', 'SNR'],
+                        'formats': ['<f4', '<f4', '<f4', dtype_location, '<f4']})
+        detObj2D_f = detObj2D.astype(dtf)
+        detObj2D_f = detObj2D_f.view(np.float32).reshape(-1, 7)
+
+        # Fully populate detObj2D_f with correct info
+        for i, currRange in enumerate(Ranges):
+            if i >= (detObj2D_f.shape[0]):
+                # copy last row
+                detObj2D_f = np.insert(detObj2D_f, i, detObj2D_f[i - 1], axis=0)
+            if currRange == detObj2D_f[i][0]:
+                detObj2D_f[i][3] = xyzVec[0][i]
+                detObj2D_f[i][4] = xyzVec[1][i]
+                detObj2D_f[i][5] = xyzVec[2][i]
+            else:  # Copy then populate
+                detObj2D_f = np.insert(detObj2D_f, i, detObj2D_f[i - 1], axis=0)
+                detObj2D_f[i][3] = xyzVec[0][i]
+                detObj2D_f[i][4] = xyzVec[1][i]
+                detObj2D_f[i][5] = xyzVec[2][i]
+
+                # radar_dbscan(epsilon, vfactor, weight, numPoints)
+                # cluster = radar_dbscan(detObj2D_f, 1.7, 3.0, 1.69 * 1.7, 3, useElevation=True)
+
+        if len(detObj2D_f) > 0:
+            cluster = clu.radar_dbscan(detObj2D_f, 0, doppler_resolution, use_elevation=True)
+
+            cluster_np = np.array(cluster['size']).flatten()
+            if cluster_np.size != 0:
+                if max(cluster_np) > max_size:
+                    max_size = max(cluster_np)
 
         # (6) Visualization
         if plotRangeDopp:
@@ -786,6 +913,13 @@ if __name__ == '__main__':
                 plt.pause(0.1)
                 axes[0].clear()
                 axes[1].clear()
+            elif plot2DscatterYZ:
+                axes[0].scatter(xyzVec[1], xyzVec[2], c='r', marker='o', s=3)
+                axes[1].scatter(xyzVecN[1], xyzVecN[2], c='b', marker='o', s=3)
+                plt.pause(0.1)
+                axes[0].clear()
+                axes[1].clear()
+
         elif plot3Dscatter and plotMakeMovie:
             nice.set_zlim3d(bottom=-5, top=5)
             nice.set_ylim(bottom=0, top=10)
@@ -796,266 +930,59 @@ if __name__ == '__main__':
 
             ims.append((nice.scatter(xyzVec[0], xyzVec[1], xyzVec[2], c='r', marker='o', s=2),))
 
-        # elif plot3Dscatter:
-        #     if singFrameView:
-        #         ellipse_visualize(fig, cluster, detObj2D_f[:, 3:6])
-        #     else:
-        #         ellipse_visualize(fig, cluster, detObj2D_f[:, 3:6])
-        #         plt.pause(0.1)
-        #         plt.clf()
-        # else:
-        #     sys.exit("Unknown plot options.")
+        elif plot3Dscatter and cluster is not None:
+            if singFrameView:
+                ellipse_visualize(fig, cluster, detObj2D_f[:, 3:6])
+            else:
+                ellipse_visualize(fig, cluster, detObj2D_f[:, 3:6])
+                plt.pause(0.1)
+                plt.clf()
+        else:
+            # sys.exit("Unknown plot options.")
+            print("Unknown plot options.")
+
+    if visTrigger and plotMakeMovie:
+        movieMaker(fig, ims, makeMovieTitle, makeMovieDirectory)
 
     # plot doppler
-    fig, ax = plt.subplots(1, 1, figsize=(45, 30))
-    ax.imshow(doppler_data[:, :, 13].T)
-    # ax.imshow(doppler_data[:, bin_index, :].T)
-    plt.show() if DebugMode else None
-    fig.savefig("{}_doppler.pdf".format(os.path.join(figpath, fig_prefix)))
-
-    # plot doppler variance
-    fig, ax = plt.subplots(1, 1, figsize=(45, 30))
-    # doppler_var = np.std(doppler_data[:, :, bin_index], axis=1)
-    doppler_var = np.std(doppler_data[:, bin_index, :], axis=1)
-    # doppler_var = np.std(doppler_data[:, :, 13], axis=1)
-    # plt.plot(doppler_var)
-    # plt.savefig("{}_dopplervar.pdf".format(os.path.join(figpath, fig_prefix)))
-
-    # find doppler variance peaks
-    peaks, _ = signal.find_peaks(doppler_var, height=7.5)
-    ax.plot(doppler_var)
-    ax.plot(peaks, doppler_var[peaks], "x", markersize=20)
-    plt.show() if DebugMode else None
-    fig.savefig("{}_dopplervar.pdf".format(os.path.join(figpath, fig_prefix)))
-    # plt.show()
-
-    # plot snr
-    fig, ax = plt.subplots(1, 1, figsize=(45, 30))
-    # ax.imshow(snr_data[:, :, 13].T)
-    ax.imshow(snr_data[:, bin_index, :].T)
-    plt.show() if DebugMode else None
-    fig.savefig("{}_snr.pdf".format(os.path.join(figpath, fig_prefix)))
-    # plt.show()
-
-    # plos snr line
-    fig, ax = plt.subplots(1, 1, figsize=(45, 30))
-    # var = np.std(snr_data[:, bin_index, 5], axis=1)
-    # avg = np.mean(snr_data[:, bin_index, :], axis=1)
-    avg = snr_data[:, bin_index, 5]
-    # bin_index = np.argmax(var, axis=0)
-    # ax.plot(var)
-    ax.plot(avg)
-    # plt.show()
-    fig.savefig("{}_snravg.pdf".format(os.path.join(figpath, fig_prefix)))
-
-    print("")
-"""
-
-        # (1.5) Required Plot Declarations
-        if plot2DscatterXY or plot2DscatterXZ:
-            fig, axes = plt.subplots(1, 2)
-        elif plot3Dscatter and plotMakeMovie:
-            fig = plt.figure()
-            nice = Axes3D(fig)
-        elif plot3Dscatter:
-            fig = plt.figure()
-        elif plotRangeDopp:
-            fig = plt.figure()
-        elif plotCustomPlt:
-            print("Using Custom Plotting")
-
-        # (1.6) Optional single frame view
-        if singFrameView:
-            dataCube = np.zeros((1, numChirpsPerFrame, 8, numADCSamples), dtype=complex)
-            dataCube[0, :, :, :] = adc_data[299]
-        else:
-            dataCube = adc_data
-
-        for i, frame in enumerate(dataCube):
-            #        print(i,end=',') # Frame tracker
-            # (2) Range Processing
-            from mmwave.dsp.utils import Window
-
-            radar_cube = dsp.range_processing(frame, window_type_1d=Window.BLACKMAN)
-            assert radar_cube.shape == (
-                numChirpsPerFrame, numRxAntennas, numADCSamples), "[ERROR] Radar cube is not the correct shape!"
-
-            # (3) Doppler Processing
-            det_matrix, aoa_input = dsp.doppler_processing(radar_cube, num_tx_antennas=2, clutter_removal_enabled=True,
-                                                           window_type_2d=Window.HAMMING)
-
-            # --- Show output
-            if plotRangeDopp:
-                det_matrix_vis = np.fft.fftshift(det_matrix, axes=1)
-                if plotMakeMovie:
-                    ims.append((plt.imshow(det_matrix_vis / det_matrix_vis.max()),))
-                else:
-                    plt.imshow(det_matrix_vis / det_matrix_vis.max())
-                    plt.title("Range-Doppler plot " + str(i))
-                    plt.pause(0.05)
-                    plt.clf()
-
-            # (4) Object Detection
-            # --- CFAR, SNR is calculated as well.
-            fft2d_sum = det_matrix.astype(np.int64)
-            thresholdDoppler, noiseFloorDoppler = np.apply_along_axis(func1d=dsp.ca_,
-                                                                      axis=0,
-                                                                      arr=fft2d_sum.T,
-                                                                      l_bound=1.5,
-                                                                      guard_len=4,
-                                                                      noise_len=16)
-
-            thresholdRange, noiseFloorRange = np.apply_along_axis(func1d=dsp.ca_,
-                                                                  axis=0,
-                                                                  arr=fft2d_sum,
-                                                                  l_bound=2.5,
-                                                                  guard_len=4,
-                                                                  noise_len=16)
-
-            thresholdDoppler, noiseFloorDoppler = thresholdDoppler.T, noiseFloorDoppler.T
-            det_doppler_mask = (det_matrix > thresholdDoppler)
-            det_range_mask = (det_matrix > thresholdRange)
-
-            # Get indices of detected peaks
-            full_mask = (det_doppler_mask & det_range_mask)
-            det_peaks_indices = np.argwhere(full_mask == True)
-
-            # peakVals and SNR calculation
-            peakVals = fft2d_sum[det_peaks_indices[:, 0], det_peaks_indices[:, 1]]
-            snr = peakVals - noiseFloorRange[det_peaks_indices[:, 0], det_peaks_indices[:, 1]]
-
-            dtype_location = '(' + str(numTxAntennas) + ',)<f4'
-            dtype_detObj2D = np.dtype({'names': ['rangeIdx', 'dopplerIdx', 'peakVal', 'location', 'SNR'],
-                                       'formats': ['<i4', '<i4', '<f4', dtype_location, '<f4']})
-            detObj2DRaw = np.zeros((det_peaks_indices.shape[0],), dtype=dtype_detObj2D)
-            detObj2DRaw['rangeIdx'] = det_peaks_indices[:, 0].squeeze()
-            detObj2DRaw['dopplerIdx'] = det_peaks_indices[:, 1].squeeze()
-            detObj2DRaw['peakVal'] = peakVals.flatten()
-            detObj2DRaw['SNR'] = snr.flatten()
-
-            # Further peak pruning. This increases the point cloud density but helps avoid having too many detections around one object.
-            detObj2DRaw = dsp.prune_to_peaks(detObj2DRaw, det_matrix, numDopplerBins, reserve_neighbor=True)
-
-            # --- Peak Grouping
-            # detObj2D = dsp.peak_grouping_along_doppler(detObj2DRaw, det_matrix, numDopplerBins)
-            # SNRThresholds2 = np.array([[2, 23], [10, 11.5], [35, 16.0]])
-            # peakValThresholds2 = np.array([[4, 275], [1, 400], [500, 0]])
-            # detObj2D = dsp.range_based_pruning(detObj2D, SNRThresholds2, peakValThresholds2, numRangeBins, 0.5, range_resolution)
-            #
-            # azimuthInput = aoa_input[detObj2D['rangeIdx'], :, detObj2D['dopplerIdx']]
-            #
-            # x, y, z = dsp.naive_xyz(azimuthInput.T, fft_size=16)
-            # xyzVecN = np.zeros((3, x.shape[0]))
-            # xyzVecN[0] = x * range_resolution * detObj2D['rangeIdx']
-            # xyzVecN[1] = y * range_resolution * detObj2D['rangeIdx']
-            # xyzVecN[2] = z * range_resolution * detObj2D['rangeIdx']
-            #
-            # Psi, Theta, Ranges, xyzVec = dsp.beamforming_naive_mixed_xyz(azimuthInput, detObj2D['rangeIdx'],
-            #                                                              range_resolution, method='Bartlett')
-            #
-            # # (5) 3D-Clustering
-            # # detObj2D must be fully populated and completely accurate right here
-            # numDetObjs = detObj2D.shape[0]
-            # dtf = np.dtype({'names': ['rangeIdx', 'dopplerIdx', 'peakVal', 'location', 'SNR'],
-            #                 'formats': ['<f4', '<f4', '<f4', dtype_location, '<f4']})
-            # detObj2D_f = detObj2D.astype(dtf)
-            # detObj2D_f = detObj2D_f.view(np.float32).reshape(-1, 7)
-            #
-            # # Fully populate detObj2D_f with correct info
-            # for i, currRange in enumerate(Ranges):
-            #     if i >= (detObj2D_f.shape[0]):
-            #         # copy last row
-            #         detObj2D_f = np.insert(detObj2D_f, i, detObj2D_f[i - 1], axis=0)
-            #     if currRange == detObj2D_f[i][0]:
-            #         detObj2D_f[i][3] = xyzVec[0][i]
-            #         detObj2D_f[i][4] = xyzVec[1][i]
-            #         detObj2D_f[i][5] = xyzVec[2][i]
-            #     else:  # Copy then populate
-            #         detObj2D_f = np.insert(detObj2D_f, i, detObj2D_f[i - 1], axis=0)
-            #         detObj2D_f[i][3] = xyzVec[0][i]
-            #         detObj2D_f[i][4] = xyzVec[1][i]
-            #         detObj2D_f[i][5] = xyzVec[2][i]
-            #
-            #         # radar_dbscan(epsilon, vfactor, weight, numPoints)
-            # #        cluster = radar_dbscan(detObj2D_f, 1.7, 3.0, 1.69 * 1.7, 3, useElevation=True)
-            # if len(detObj2D_f) > 0:
-            #     cluster = clu.radar_dbscan(detObj2D_f, 0, doppler_resolution, use_elevation=True)
-            #
-            #     cluster_np = np.array(cluster['size']).flatten()
-            #     if cluster_np.size != 0:
-            #         if max(cluster_np) > max_size:
-            #             max_size = max(cluster_np)
-
-            # (6) Visualization
-            if plotRangeDopp:
-                continue
-            if plot2DscatterXY or plot2DscatterXZ:
-
-                if plot2DscatterXY:
-                    xyzVec = xyzVec[:, (np.abs(xyzVec[2]) < 1.5)]
-                    xyzVecN = xyzVecN[:, (np.abs(xyzVecN[2]) < 1.5)]
-                    axes[0].set_ylim(bottom=0, top=10)
-                    axes[0].set_ylabel('Range')
-                    axes[0].set_xlim(left=-4, right=4)
-                    axes[0].set_xlabel('Azimuth')
-                    axes[0].grid(b=True)
-
-                    axes[1].set_ylim(bottom=0, top=10)
-                    axes[1].set_xlim(left=-4, right=4)
-                    axes[1].set_xlabel('Azimuth')
-                    axes[1].grid(b=True)
-
-                elif plot2DscatterXZ:
-                    axes[0].set_ylim(bottom=-5, top=5)
-                    axes[0].set_ylabel('Elevation')
-                    axes[0].set_xlim(left=-4, right=4)
-                    axes[0].set_xlabel('Azimuth')
-                    axes[0].grid(b=True)
-
-                    axes[1].set_ylim(bottom=-5, top=5)
-                    axes[1].set_xlim(left=-4, right=4)
-                    axes[1].set_xlabel('Azimuth')
-                    axes[1].grid(b=True)
-
-                if plotMakeMovie and plot2DscatterXY:
-                    ims.append((axes[0].scatter(xyzVec[0], xyzVec[1], c='r', marker='o', s=2),
-                                axes[1].scatter(xyzVecN[0], xyzVecN[1], c='b', marker='o', s=2)))
-                elif plotMakeMovie and plot2DscatterXZ:
-                    ims.append((axes[0].scatter(xyzVec[0], xyzVec[2], c='r', marker='o', s=2),
-                                axes[1].scatter(xyzVecN[0], xyzVecN[2], c='b', marker='o', s=2)))
-                elif plot2DscatterXY:
-                    axes[0].scatter(xyzVec[0], xyzVec[1], c='r', marker='o', s=3)
-                    axes[1].scatter(xyzVecN[0], xyzVecN[1], c='b', marker='o', s=3)
-                    plt.pause(0.1)
-                    axes[0].clear()
-                    axes[1].clear()
-                elif plot2DscatterXZ:
-                    axes[0].scatter(xyzVec[0], xyzVec[2], c='r', marker='o', s=3)
-                    axes[1].scatter(xyzVecN[0], xyzVecN[2], c='b', marker='o', s=3)
-                    plt.pause(0.1)
-                    axes[0].clear()
-                    axes[1].clear()
-            elif plot3Dscatter and plotMakeMovie:
-                nice.set_zlim3d(bottom=-5, top=5)
-                nice.set_ylim(bottom=0, top=10)
-                nice.set_xlim(left=-4, right=4)
-                nice.set_xlabel('X Label')
-                nice.set_ylabel('Y Label')
-                nice.set_zlabel('Z Label')
-
-                ims.append((nice.scatter(xyzVec[0], xyzVec[1], xyzVec[2], c='r', marker='o', s=2),))
-
-            # elif plot3Dscatter:
-            #     if singFrameView:
-            #         ellipse_visualize(fig, cluster, detObj2D_f[:, 3:6])
-            #     else:
-            #         ellipse_visualize(fig, cluster, detObj2D_f[:, 3:6])
-            #         plt.pause(0.1)
-            #         plt.clf()
-            else:
-                sys.exit("Unknown plot options.")
-
-        if visTrigger and plotMakeMovie:
-            movieMaker(fig, ims, makeMovieTitle, makeMovieDirectory)
-    
-"""
+    # fig, ax = plt.subplots(1, 1, figsize=(45, 30))
+    # ax.imshow(doppler_data[:, :, 8].T)
+    # # ax.imshow(doppler_data[:, bin_index, :].T)
+    # plt.show() if DebugMode else None
+    # fig.savefig("{}_doppler.pdf".format(os.path.join(figpath, fig_prefix)))
+    #
+    # # plot doppler variance
+    # fig, ax = plt.subplots(1, 1, figsize=(45, 30))
+    # # doppler_var = np.std(doppler_data[:, :, bin_index], axis=1)
+    # doppler_var = np.std(doppler_data[:, bin_index, :], axis=1)
+    # # doppler_var = np.std(doppler_data[:, :, 13], axis=1)
+    # # plt.plot(doppler_var)
+    # # plt.savefig("{}_dopplervar.pdf".format(os.path.join(figpath, fig_prefix)))
+    #
+    # # find doppler variance peaks
+    # peaks, _ = signal.find_peaks(doppler_var, height=7.5)
+    # ax.plot(doppler_var)
+    # ax.plot(peaks, doppler_var[peaks], "x", markersize=20)
+    # plt.show() if DebugMode else None
+    # fig.savefig("{}_dopplervar.pdf".format(os.path.join(figpath, fig_prefix)))
+    # # plt.show()
+    #
+    # # plot snr
+    # fig, ax = plt.subplots(1, 1, figsize=(45, 30))
+    # # ax.imshow(snr_data[:, :, 13].T)
+    # ax.imshow(snr_data[:, bin_index, :].T)
+    # plt.show() if DebugMode else None
+    # fig.savefig("{}_snr.pdf".format(os.path.join(figpath, fig_prefix)))
+    # # plt.show()
+    #
+    # # plos snr line
+    # fig, ax = plt.subplots(1, 1, figsize=(45, 30))
+    # # var = np.std(snr_data[:, bin_index, 5], axis=1)
+    # # avg = np.mean(snr_data[:, bin_index, :], axis=1)
+    # avg = snr_data[:, bin_index, 5]
+    # # bin_index = np.argmax(var, axis=0)
+    # # ax.plot(var)
+    # ax.plot(avg)
+    # # plt.show()
+    # fig.savefig("{}_snravg.pdf".format(os.path.join(figpath, fig_prefix)))
+    # print("")

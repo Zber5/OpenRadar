@@ -12,6 +12,11 @@
 
 import sys
 import numpy as np
+import sys
+# insert at 1, 0 is the script path (or '' in REPL)
+sys.path.append('C://Users//Zber//Documents//Dev_program//OpenRadar')
+# sys.path.insert(1, 'C://Users//Zber//Documents//Dev_program//OpenRadar//mmwave')
+
 import mmwave.dsp as dsp
 import mmwave.clustering as clu
 from mmwave.dataloader import DCA1000
@@ -41,13 +46,14 @@ doppler_resolution = dsp.doppler_resolution(bandwidth)
 
 plotRangeDopp = False
 plot2DscatterXY = False
-plot2DscatterXZ = True
-plot3Dscatter = False
+plot2DscatterXZ = False
+plot3Dscatter = True
 plotCustomPlt = False
 
 plotMakeMovie = False
-makeMovieTitle = ""
-makeMovieDirectory = ".\\movie.mp4"
+makeMovieTitle = "3dscatter"
+makeMovieDirectory = r"c://Users//Zber//Desktop//mymovie.mp4"
+
 
 visTrigger = plot2DscatterXY + plot2DscatterXZ + plot3Dscatter + plotRangeDopp + plotCustomPlt
 assert visTrigger < 2, "Can only choose to plot one type of plot at once"
@@ -56,6 +62,8 @@ singFrameView = False
 
 def movieMaker(fig, ims, title, save_dir):
     import matplotlib.animation as animation
+    import matplotlib as mpl
+    mpl.rcParams['animation.ffmpeg_path'] = r"C:\\Users\\Zber\\Documents\\ffmpeg\\bin\\ffmpeg.exe"
 
     # Set up formatting for the Range Azimuth heatmap movies
     # Writer = animation.writers['ffmpeg']
@@ -105,6 +113,7 @@ if __name__ == '__main__':
 #        print(i,end=',') # Frame tracker
         # (2) Range Processing
         from mmwave.dsp.utils import Window
+        cluster = None
 
         radar_cube = dsp.range_processing(frame, window_type_1d=Window.BLACKMAN)
         assert radar_cube.shape == (
@@ -274,15 +283,17 @@ if __name__ == '__main__':
 
             ims.append((nice.scatter(xyzVec[0], xyzVec[1], xyzVec[2], c='r', marker='o', s=2),))
 
-        elif plot3Dscatter:
+        elif plot3Dscatter and cluster is not None:
             if singFrameView:
                 ellipse_visualize(fig, cluster, detObj2D_f[:, 3:6])
+                print("")
             else:
                 ellipse_visualize(fig, cluster, detObj2D_f[:, 3:6])
                 plt.pause(0.1)
                 plt.clf()
         else:
-            sys.exit("Unknown plot options.")
+            print("Unknown plot options.")
+            # sys.exit("Unknown plot options.")
 
     if visTrigger and plotMakeMovie:
         movieMaker(fig, ims, makeMovieTitle, makeMovieDirectory)

@@ -28,7 +28,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 plt.close('all')
 
-DebugMode = True
+DebugMode = False
 
 if not DebugMode:
     import matplotlib
@@ -38,150 +38,53 @@ if not DebugMode:
 # QOL settings
 loadData = True
 
-figpath = "C:/ti/mySavedFig"
+figpath = "C:/Users/Zber/Desktop/SavedFigure"
 
 # Configure file
-# configFileName = "C:/Users/Zber/Desktop/Tx3_bestRangeResolution.cfg"
-# configFileName = "C:/Users/Zber/Desktop/bestRangeResolution.cfg"
-# configFileName = 'C:/Users/Zber/Desktop/vod_vs_18xx_10fps.cfg'
-# configFileName ='C:/Users/Zber/Desktop/profile_2021_04_04T06_04_18_277.cfg'
-
-
-# range resolution 0.8cm, tx1 and rx1
-# adc_data = np.fromfile('C:/ti/mySavedData/LipMotion_12345_r8_0.bin', dtype=np.int16)
-# adc_data = np.fromfile('C:/ti/mySavedData/LipMotion_static_r8_0.bin', dtype=np.int16)
-# adc_data = np.fromfile('C:/ti/mySavedData/LipMotion_12345_r8_1.bin', dtype=np.int16)
-# adc_data = np.fromfile('C:/ti/mySavedData/LipMotion_123_r8_0.bin', dtype=np.int16)
-# adc_data = np.fromfile('C:/ti/mySavedData/LipMotion_123_r8_1.bin', dtype=np.int16)
-# adc_data = np.fromfile('C:/ti/mySavedData/LipMotion_1234_r8_1.bin', dtype=np.int16)
-# adc_data = np.fromfile('C:/ti/mySavedData/LipMotion_1_r8_0.bin', dtype=np.int16)
-# adc_data = np.fromfile('C:/ti/mySavedData/LipMotion_static_r8_0.bin', dtype=np.int16)
-# adc_data = np.fromfile('C:/ti/mySavedData/LipMotion_static_r8_1.bin', dtype=np.int16)
-# configFileName ='C:/Users/Zber/Desktop/mmWave Configuration/tx1_rx4_1.cfg'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_1234_r8_0.bin'
-
-# 100 fps
-# configFileName ='C:/Users/Zber/Desktop/mmWave Configuration/100fps_estimator.cfg'
-# configFileName ='C:/Users/Zber/Desktop/mmWave Configuration/tx3_rx4_bestRange.cfg'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_12_0.bin'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_12345_Raw_0.bin'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_1_Raw_0.bin'
-
-# npy data
-# npy_data_path = 'C:/ti/parser_scripts/adcdata.npy'
-
-# tx3_rx4_bestRange 50fps 300frames
-# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx3_rx4_bestRange.cfg'
-configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx3_rx4_bestRange_modify.cfg'
-# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx3_rx4_bestRange_modify3-velocity.cfg'
-# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx3_rx4_bestRange_modify2.cfg'
-# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx3_rx4_bestRange_beamforming.cfg'
-
-# frame 300
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_tx3_rx4_static_0.bin'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_tx3_rx4_1234_0.bin'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_tx3_rx4_1234_1.bin'
-# frame 150
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_flame_0.bin'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_ear_sound_0.bin'
-
-# frame 600
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_ear_sound_600_0.bin' #1.5m
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_ear_sound_600_1.bin' #1m
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_ear_sound_600_2.bin' #30cm
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_ear_sound_600_3.bin' #10cm
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_eardrum_10cm.bin' #10cm
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_ear_sound_static_0.bin' # static
-
-# vocal cord
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_vocalcord.bin' # 20cm
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_vocalcord_2m.bin' # 200 cm
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_vocalcord_3m.bin' # 300 cm
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_vcv_2m.bin' # 300 cm
-
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_lipmotion_2m.bin'  # 200 cm
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_lipmotion_3m.bin' # 200 cm
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_2m.bin' # 200 cm
-
-# long distance
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_vcv_4m_1.bin' # 200 cm
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_lipmotion_4m_0.bin'  # 200 cm
-
-# emotion
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_emotion.bin'
-
-
-# happy
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_emotion_happy_0.bin'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_emotion_happy_1.bin'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_emotion_happy_v_0.bin'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_emotion_happy_v_1.bin'
-
-# anger
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_emotion_anger_0.bin'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_emotion_anger_1.bin'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_emotion_anger_v_0.bin'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_emotion_anger_v_1.bin'
-
-# superise
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_emotion_suprise_0.bin'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_emotion_suprise_1.bin'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_emotion_surprise_v_0.bin'
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_emotion_surprise_v_1.bin'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_10s.cfg'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx1_rx4_2.cfg'
+configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_5s.cfg'
 
 # pad cover face v
 device_v = True
-# adc_data_path = "C:/ti/mySavedData/LipMotion_happy_coverbypad_0.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_happy_converbottom_0.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_happy_coverbybottom_1.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_happy_converbybottom_2.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_happy_converbytop_0.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_happy_converbytop_1.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_happy_nocover_0.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_happy_coverbybottom_3.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_happy_coverbyleft_0.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_happy_coverbyleft_1.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_happy_coverbyright_0.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_happy_coverbyright_1.bin"
 
-# Test
-adc_data_path = "C:/ti/mySavedData/Joy_2_Raw_0.bin"
-# adc_data_path = "C:/ti/mySavedData/hz100_test_0_Raw_0.bin"
+# bin index
+bin_index = 9
 
-# pad cover face h
-# device_v = False
-# adc_data_path = "C:/ti/mySavedData/LipMotion_happy_h_coverleft_0.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_30cm_happy_h_coverleft_0.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_30cm_happy_h_coverright_0.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_50cm_happy_h_coverleft_0.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_10cm_happy_h_coverleft_0.bin"
-# adc_data_path = "C:/ti/mySavedData/LipMotion_50cm_happy_h_coverleft_1.bin"
+# pluse motion 1 tx
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_test_10s_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_7cm_10s_1tx_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_9cm_10s_1tx_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_6cm_10s_1tx_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_6cm_10s_1tx_press_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/Block_ipad_0_Raw_0.bin'
+adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/Block_mirror_0_Raw_0.bin'
 
-# fans
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_fan_0.bin' # 200 cm
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_fan_static.bin' # 200 cm
-
-# disk
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_disk_0.bin' # 200 cm
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_disk_static.bin' # 200 cm
+# pluse motion
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_4cm_10s_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_6cm_10s_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_7cm_10s_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_9cm_10s_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_14cm_10s_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_14cm_10s_1_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_pressure_7cm_10s_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_pressure_9cm_10s_0_Raw_0.bin'
+# adc_data_path = 'C:/Users/Zber/Desktop/SavedData_Eyes/pulse_pressure_14cm_10s_0_Raw_0.bin'
 
 
-# stereo
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_stereo_0.bin' # 200 cm
-# adc_data_path = 'C:/ti/mySavedData/LipMotion_stereo_static_0.bin' # 200 cm
-
-
-plotRangeDopp = True
+plotRangeDopp = False
 plot2DscatterXY = False
 plot2DscatterXZ = False
+plot2DscatterYZ = False
 plot3Dscatter = False
 plotCustomPlt = False
 
-plotMakeMovie = True
+plotMakeMovie = False
 makeMovieTitle = ""
 makeMovieDirectory = "C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/visualizer/movie/test_plotRDM.mp4"
 
-antenna_order = [8, 10, 7, 9, 6, 4, 5, 3] if device_v else [5, 6, 7, 8, 3, 4, 9, 10]
+# antenna_order = [8, 10, 7, 9, 6, 4, 5, 3] if device_v else [5, 6, 7, 8, 3, 4, 9, 10]
+antenna_order = [i for i in range(1, 13)]
 
 visTrigger = plot2DscatterXY + plot2DscatterXZ + plot3Dscatter + plotRangeDopp + plotCustomPlt
 assert visTrigger < 2, "Can only choose to plot one type of plot at once"
@@ -329,7 +232,104 @@ def butter_highpass_fs(sig, lowcut, fs, order=5, output='ba'):
     return filtered
 
 
-def plot_virtual_antenna(range_data, is_diff=True):
+def plot_amplitude_change(range_data, bin_index):
+    fig, axes = plt.subplots(1, 1, figsize=(12, 5))
+    sig = range_data.reshape((-1, numTxAntennas, numLoopsPerFrame, numRxAntennas))
+    sig = np.sum(np.abs(sig), axis=(1, 2, 3))
+    axes.plot(sig, linewidth=1.5, c='b')
+    fig.tight_layout()
+    plt.show() if DebugMode else None
+    fig.savefig("{}_amp_change_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
+
+
+def plot_amplitude_change_multi(range_data, bin_index, is_diff=True):
+    import matplotlib._color_data as mcd
+    if device_v:
+        fig, axes = plt.subplots(4, 2, figsize=(50, 90))
+    else:
+        fig, axes = plt.subplots(2, 4, figsize=(90, 50))
+    # v_order = [8, 10, 7, 9, 6, 4, 5, 3]
+    sig = range_data.reshape((-1, numTxAntennas, numLoopsPerFrame, numRxAntennas))
+    sig = sig[:, :, 5, :]
+
+    tab_color = [mcd.TABLEAU_COLORS[name] for name in mcd.TABLEAU_COLORS]
+
+    for ax, o, color in zip(fig.axes, antenna_order, tab_color):
+        va_order = o - 1
+        t, r = virtual_array[va_order]
+        t, r = tx_map[t], r - 1
+        va_sig = sig[:, t, r]
+        va_sum = np.abs(va_sig)
+        if is_diff:
+            va_sum = np.diff(va_sum)
+        ax.plot(va_sum, linewidth=15, c=color)
+        ax.set_title('Virtual Antenna {}'.format(o), fontdict={'fontsize': 80, 'fontweight': 25})
+        # ax.set_ylim([-4, 4])
+    fig.tight_layout()
+    fig.subplots_adjust(hspace=0.3, wspace=0.05, top=0.97, bottom=0.03, left=0.03)
+
+    plt.show() if DebugMode else None
+    fig.savefig("{}_amp_change_multi_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
+
+
+def plot_amplitude_change_multi_in_one(range_data, bin_index, is_diff=True):
+    import matplotlib._color_data as mcd
+    fig, axes = plt.subplots(1, 1, figsize=(12, 5))
+    sig = range_data.reshape((-1, numTxAntennas, numLoopsPerFrame, numRxAntennas))
+    sig = sig[:, :, 5, :]
+
+    tab_color = [mcd.TABLEAU_COLORS[name] for name in mcd.TABLEAU_COLORS]
+
+    for o, color in zip(antenna_order, tab_color):
+        va_order = o - 1
+        t, r = virtual_array[va_order]
+        t, r = tx_map[t], r - 1
+        va_sig = sig[:, t, r]
+        va_sum = np.abs(va_sig)
+        if is_diff:
+            va_sum = np.diff(va_sum)
+        axes.plot(va_sum, linewidth=2, c=color)
+        axes.set_title('Virtual Antenna {}'.format(o), fontdict={'fontsize': 80, 'fontweight': 25})
+        # ax.set_ylim([-4, 4])
+    fig.tight_layout()
+    fig.subplots_adjust(hspace=0.3, wspace=0.05, top=0.97, bottom=0.03, left=0.03)
+
+    plt.show() if DebugMode else None
+    if is_diff:
+        fig.savefig("{}_amp_change_multi_in_one_diff{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
+    else:
+        fig.savefig("{}_amp_change_multi_in_one_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
+
+
+def plot_freq_change_multi(range_data, is_diff=True):
+    import matplotlib._color_data as mcd
+    if device_v:
+        fig, axes = plt.subplots(4, 2, figsize=(50, 90))
+    else:
+        fig, axes = plt.subplots(2, 4, figsize=(90, 50))
+    # v_order = [8, 10, 7, 9, 6, 4, 5, 3]
+    sig = range_data.reshape((-1, numTxAntennas, numLoopsPerFrame, numRxAntennas))
+    # sig = sig[:, :, 5, :]
+
+    tab_color = [mcd.TABLEAU_COLORS[name] for name in mcd.TABLEAU_COLORS]
+
+    for ax, o, color in zip(fig.axes, antenna_order, tab_color):
+        va_order = o - 1
+        t, r = virtual_array[va_order]
+        t, r = tx_map[t], r - 1
+        va_sig = sig[:, t, :, r]
+        va_freq = va_sig.reshape((-1))
+        ax.plot(va_freq, linewidth=15, c=color)
+        ax.set_title('Virtual Antenna {}'.format(o), fontdict={'fontsize': 80, 'fontweight': 25})
+        # ax.set_ylim([-4, 4])
+    fig.tight_layout()
+    fig.subplots_adjust(hspace=0.3, wspace=0.05, top=0.97, bottom=0.03, left=0.03)
+
+    plt.show() if DebugMode else None
+    fig.savefig("{}_freq_multi.pdf".format(os.path.join(figpath, fig_prefix)))
+
+
+def plot_virtual_antenna(range_data, bin_index, is_diff=True):
     import matplotlib._color_data as mcd
     if device_v:
         fig, axes = plt.subplots(4, 2, figsize=(50, 90))
@@ -363,9 +363,9 @@ def plot_virtual_antenna(range_data, is_diff=True):
     plt.show() if DebugMode else None
 
     if is_diff:
-        fig.savefig("{}_multiphase.pdf".format(os.path.join(figpath, fig_prefix)))
+        fig.savefig("{}_multiphase_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
     else:
-        fig.savefig("{}_multiphase_unwrap.pdf".format(os.path.join(figpath, fig_prefix)))
+        fig.savefig("{}_multiphase_unwrap_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
 
 
 def plot_virtual_antenna_in_one(range_data, bin_index=0, is_diff=True):
@@ -401,7 +401,7 @@ def plot_virtual_antenna_in_one(range_data, bin_index=0, is_diff=True):
         plot_max_x = np.arange(max_i, max_i + 1)
         plot_max_y = va_diff_phase[max_i:max_i + 1]
 
-        ax.plot(va_diff_phase, linewidth=1, c=color, label='Virtual Antenna {}'.format(o), zorder=5)
+        ax.plot(va_diff_phase, linewidth=2, c=color, label='Virtual Antenna {}'.format(o), zorder=5)
         ax.scatter(plot_max_x, plot_max_y, c=color, s=5, zorder=10)
         ax.set_ylim([-4, 4]) if is_diff else None
     plt.legend(bbox_to_anchor=(0.837, 1), loc='upper left', borderaxespad=0.)
@@ -413,7 +413,7 @@ def plot_virtual_antenna_in_one(range_data, bin_index=0, is_diff=True):
         fig.savefig("{}_multiphase_in_one_{}_unwrap.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
 
 
-def plot_virtual_antenna_point(range_data):
+def plot_virtual_antenna_point(range_data, bin_index):
     import matplotlib._color_data as mcd
     if device_v:
         fig, axes = plt.subplots(4, 2, figsize=(50, 90))
@@ -467,7 +467,7 @@ def plot_virtual_antenna_point(range_data):
     fig.subplots_adjust(hspace=0.08, wspace=0.08)
 
     plt.show() if DebugMode else None
-    fig.savefig("{}_scatter.pdf".format(os.path.join(figpath, fig_prefix)))
+    fig.savefig("{}_scatter_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
 
 
 if __name__ == '__main__':
@@ -518,7 +518,6 @@ if __name__ == '__main__':
 
     from mmwave.dsp.utils import Window
 
-    """ 
     # figure preparation
     fig, axes = plt.subplots(3, 2, figsize=(120, 60))
 
@@ -534,13 +533,8 @@ if __name__ == '__main__':
 
     # (2) variance magnitude determine argmax
     var = np.var(np.abs(selected_range_data), axis=(0, 1))
-    bin_index = np.argmax(var, axis=0)
-    # bin_index = 103
-    # bin_index = 5
-    # bin_index = 3
-    # bin_index = 4
-    # bin_index = 4
-    bin_index = 7
+    # bin_index = np.argmax(var, axis=0)
+
 
     # plot variance
     axes[0, 1].bar(np.arange(0, numDisplaySamples), var)
@@ -585,18 +579,25 @@ if __name__ == '__main__':
     axes[2, 1].plot(np.abs(filter_data[1]))
 
     plt.show() if DebugMode else None
-    plt.savefig("{}_phase.pdf".format(os.path.join(figpath, fig_prefix)))
+    plt.savefig("{}_phase_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
     print("")
 
+    # plot change of amplitude
+    # plot_amplitude_change(range_data[..., bin_index], bin_index)
+    # plot_amplitude_change_multi(range_data[..., bin_index], bin_index)
+    plot_amplitude_change_multi_in_one(range_data[..., bin_index], bin_index)
+    plot_amplitude_change_multi_in_one(range_data[..., bin_index], bin_index, is_diff=False)
+
+    # frequency
+    # plot_freq_change_multi()
+
     # plot antenna array
-    plot_virtual_antenna_point(range_data_copy[..., bin_index])
-    plot_virtual_antenna(range_data_copy[..., bin_index])
+    # plot_virtual_antenna_point(range_data_copy[..., bin_index], bin_index)
+    # plot_virtual_antenna(range_data_copy[..., bin_index], bin_index)
     plot_virtual_antenna_in_one(range_data_copy[..., bin_index], bin_index)
     plot_virtual_antenna_in_one(range_data_copy[..., bin_index], bin_index, is_diff=False)
-    
-    
-    """
 
+    sys.exit(0)
     # (1.5) Required Plot Declarations
     if plot2DscatterXY or plot2DscatterXZ:
         fig, axes = plt.subplots(1, 2)
@@ -629,6 +630,11 @@ if __name__ == '__main__':
         from mmwave.dsp.utils import Window
 
         cluster = None
+
+        # static clutter noise remove
+        # PCA noise remove
+        # low pass and high pass
+        # hampel bandpass filter
 
         radar_cube = dsp.range_processing(frame, window_type_1d=Window.BLACKMAN)
         assert radar_cube.shape == (
@@ -721,7 +727,7 @@ if __name__ == '__main__':
         xyzVecN[2] = z * range_resolution * detObj2D['rangeIdx']
 
         Psi, Theta, Ranges, xyzVec = dsp.beamforming_naive_mixed_xyz(azimuthInput, detObj2D['rangeIdx'],
-                                                                     range_resolution, method='Bartlett')
+                                                                     range_resolution, method='Bartlett')  # Capon
 
         # (5) 3D-Clustering
         # detObj2D must be fully populated and completely accurate right here
@@ -806,6 +812,13 @@ if __name__ == '__main__':
                 plt.pause(0.1)
                 axes[0].clear()
                 axes[1].clear()
+            elif plot2DscatterYZ:
+                axes[0].scatter(xyzVec[1], xyzVec[2], c='r', marker='o', s=3)
+                axes[1].scatter(xyzVecN[1], xyzVecN[2], c='b', marker='o', s=3)
+                plt.pause(0.1)
+                axes[0].clear()
+                axes[1].clear()
+
         elif plot3Dscatter and plotMakeMovie:
             nice.set_zlim3d(bottom=-5, top=5)
             nice.set_ylim(bottom=0, top=10)

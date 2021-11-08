@@ -48,7 +48,9 @@ if load_data:
 
 # Start DSP processing
 range_azimuth = np.zeros((ANGLE_BINS, BINS_PROCESSED))
-num_vec, steering_vec = dsp.gen_steering_vec(ANGLE_RANGE, ANGLE_RES, VIRT_ANT)
+num_vec, steering_vec = dsp.gen_steering_vec(ANGLE_RANGE, ANGLE_RES,
+
+                                             )
 tracker = EKF()
     
 for frame in all_data:    

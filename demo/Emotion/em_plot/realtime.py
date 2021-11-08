@@ -15,6 +15,7 @@ import mmwave.dsp as dsp
 import mmwave.clustering as clu
 from mmwave.dataloader import DCA1000
 from demo.visualizer.visualize import ellipse_visualize
+from demo.Emotion.utils import parseConfigFile
 
 import matplotlib.pyplot as plt
 
@@ -23,24 +24,40 @@ plt.close('all')
 # QOL settings
 loadData = True
 
-numFrames = 300
-numADCSamples = 256
-numTxAntennas = 2
-numRxAntennas = 4
-numLoopsPerFrame = 128
-numChirpsPerFrame = numTxAntennas * numLoopsPerFrame
+# path
+configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx3_rx4_bestRange_modify2_realtime.cfg'
 
+# configure setting
+
+# num Antennas
+numTxAntennas = 3
+numRxAntennas = 4
+
+# load configure parameters
+configParameters = parseConfigFile(configFileName)
+
+numFrames = configParameters['numFrames']
+numADCSamples = configParameters['numAdcSamples']
+numLoopsPerFrame = configParameters['numLoops']
+numChirpsPerFrame = numTxAntennas * numLoopsPerFrame
 numRangeBins = numADCSamples
 numDopplerBins = numLoopsPerFrame
 numAngleBins = 64
+range_resolution, bandwidth = dsp.range_resolution(numADCSamples,
+                                                   dig_out_sample_rate=configParameters['digOutSampleRate'],
+                                                   freq_slope_const=configParameters['freqSlopeConst'])
 
-range_resolution, bandwidth = dsp.range_resolution(numADCSamples)
-doppler_resolution = dsp.doppler_resolution(bandwidth)
+doppler_resolution = dsp.doppler_resolution(bandwidth, start_freq_const=configParameters['startFreq'],
+                                            ramp_end_time=configParameters['rampEndTime'],
+                                            idle_time_const=configParameters['idleTime'],
+                                            num_loops_per_frame=configParameters['numLoops'],
+                                            num_tx_antennas=numTxAntennas)
 
-plotRangeDopp = True
+# plot setting
+plotRangeDopp = False
 plot2DscatterXY = False
-plot2DscatterXZ = False  
-plot3Dscatter = False  
+plot2DscatterXZ = False
+plot3Dscatter = True
 plotCustomPlt = False
 
 visTrigger = plot2DscatterXY + plot2DscatterXZ + plot3Dscatter + plotRangeDopp + plotCustomPlt
@@ -52,7 +69,7 @@ if __name__ == '__main__':
     ims = []
     max_size = 0
     dca = DCA1000()
-    
+
     # (1.5) Required Plot Declarations
     if plot2DscatterXY or plot2DscatterXZ:
         fig, axes = plt.subplots(1, 2)
@@ -63,26 +80,30 @@ if __name__ == '__main__':
     elif plotCustomPlt:
         print("Using Custom Plotting")
 
-
+    # print info
+    print(f'Range Resolution: {range_resolution}, Bandwidth: {bandwidth}, Doppler Resolution: {doppler_resolution}')
 
     while True:
+        cluster = None
         # (1) Reading in adc data
         adc_data = dca.read()
         frame = dca.organize(adc_data, num_chirps=numChirpsPerFrame, num_rx=numRxAntennas, num_samples=numADCSamples)
 
         # (2) Range Processing
         from mmwave.dsp.utils import Window
+
         radar_cube = dsp.range_processing(frame, window_type_1d=Window.BLACKMAN)
         assert radar_cube.shape == (
-        numChirpsPerFrame, numRxAntennas, numADCSamples), "[ERROR] Radar cube is not the correct shape!"
+            numChirpsPerFrame, numRxAntennas, numADCSamples), "[ERROR] Radar cube is not the correct shape!"
 
         # (3) Doppler Processing 
-        det_matrix, aoa_input = dsp.doppler_processing(radar_cube, num_tx_antennas=numTxAntennas, clutter_removal_enabled=True)
+        det_matrix, aoa_input = dsp.doppler_processing(radar_cube, num_tx_antennas=numTxAntennas,
+                                                       clutter_removal_enabled=True)
 
         # --- Show output
         if plotRangeDopp:
             det_matrix_vis = np.fft.fftshift(det_matrix, axes=1)
-            plt.imshow(det_matrix_vis / det_matrix_vis.max())
+            plt.imshow(det_matrix_vis / det_matrix_vis.max(), interpolation='nearest', aspect='auto')
             plt.pause(0.05)
             plt.clf()
 
@@ -131,19 +152,19 @@ if __name__ == '__main__':
         detObj2D = dsp.peak_grouping_along_doppler(detObj2DRaw, det_matrix, numDopplerBins)
         SNRThresholds2 = np.array([[2, 23], [10, 11.5], [35, 16.0]])
         peakValThresholds2 = np.array([[4, 275], [1, 400], [500, 0]])
-        detObj2D = dsp.range_based_pruning(detObj2D, SNRThresholds2, peakValThresholds2, numRangeBins, 0.5, range_resolution)
-
+        detObj2D = dsp.range_based_pruning(detObj2D, SNRThresholds2, peakValThresholds2, numRangeBins, 0.5,
+                                           range_resolution)
 
         azimuthInput = aoa_input[detObj2D['rangeIdx'], :, detObj2D['dopplerIdx']]
 
-        x, y, z = dsp.naive_xyz(azimuthInput.T)
+        x, y, z = dsp.naive_xyz(azimuthInput.T, num_tx=numTxAntennas, num_rx=numRxAntennas, fft_size=numADCSamples)
         xyzVecN = np.zeros((3, x.shape[0]))
         xyzVecN[0] = x * range_resolution * detObj2D['rangeIdx']
         xyzVecN[1] = y * range_resolution * detObj2D['rangeIdx']
         xyzVecN[2] = z * range_resolution * detObj2D['rangeIdx']
 
         Psi, Theta, Ranges, xyzVec = dsp.beamforming_naive_mixed_xyz(azimuthInput, detObj2D['rangeIdx'],
-                                                                     range_resolution, method='Capon')
+                                                                     range_resolution, method='Bartlett')
 
         # (5) 3D-Clustering
         # detObj2D must be fully populated and completely accurate right here
@@ -170,12 +191,21 @@ if __name__ == '__main__':
 
                 # radar_dbscan(__, epsilon, vfactor, weight)
         #        cluster = radar_dbscan(detObj2D_f, 1.7, 3.0, 1.69 * 1.7, 3, useElevation=True)
-        cluster = clu.radar_dbscan(detObj2D_f, 0, doppler_resolution, use_elevation=True)
 
-        cluster_np = np.array(cluster['size']).flatten()
-        if cluster_np.size != 0:
-            if max(cluster_np) > max_size:
-                max_size = max(cluster_np)
+        if len(detObj2D_f) > 0:
+            cluster = clu.radar_dbscan(detObj2D_f, 0, doppler_resolution, use_elevation=True)
+
+            cluster_np = np.array(cluster['size']).flatten()
+            if cluster_np.size != 0:
+                if max(cluster_np) > max_size:
+                    max_size = max(cluster_np)
+
+        # cluster = clu.radar_dbscan(detObj2D_f, 0, doppler_resolution, use_elevation=True)
+        #
+        # cluster_np = np.array(cluster['size']).flatten()
+        # if cluster_np.size != 0:
+        #     if max(cluster_np) > max_size:
+        #         max_size = max(cluster_np)
 
         # (6) Visualization
         if plot2DscatterXY or plot2DscatterXZ:
@@ -219,8 +249,7 @@ if __name__ == '__main__':
                 axes[0].clear()
                 axes[1].clear()
 
-
-        elif plot3Dscatter:
+        elif plot3Dscatter and cluster is not None:
             if singFrameView:
                 ellipse_visualize(fig, cluster, detObj2D_f[:, 3:6])
             else:

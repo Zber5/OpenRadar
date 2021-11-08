@@ -8,6 +8,7 @@ from tsfresh.examples import load_robot_execution_failures
 from tsfresh.transformers import RelevantFeatureAugmenter
 import pandas as pd
 from tsfresh import select_features
+import tsfresh
 from tsfresh.utilities.dataframe_functions import impute
 from sklearn.metrics import classification_report
 from tsfresh.feature_extraction import ComprehensiveFCParameters, MinimalFCParameters, settings
@@ -93,44 +94,44 @@ class PCAForPandas(PCA):
 def svd(sig):
     import matplotlib._color_data as mcd
     u, s, vh = np.linalg.svd(sig, full_matrices=False)
-    m = sig.shape[0]
-    n = sig.shape[1]
-
-    k = 5
-
-    # get Sigma/W
-    Sigma = np.zeros((m, n))
-    for i in range(m):
-        Sigma[i, i] = s[i]
-
-    # reconstruction
-    approx_sig = u @ Sigma[:, :k] @ vh[:k, :]
-
-    # transformed Data
-    trans = u @ Sigma
-
-    # 2D projection of transformed data
-    k1 = 2
-    trans_dd = trans[:, :k1]
-    trans_x = trans_dd[:, 0]
-    trans_y = trans_dd[:, 1]
-
-    # colors
-    tab_color = [mcd.TABLEAU_COLORS[name] for name in mcd.TABLEAU_COLORS]
-
-    fig, axes = plt.subplots(2, 2, figsize=(16, 10))
-
-    ant_index = 0
-    for o, color in zip(antenna_order, tab_color):
-        axes[0][0].plot(sig[ant_index], c=color, label="VA_{}".format(o), lw=2)
-        axes[0][1].plot(trans[ant_index], c=color, lw=2)
-        axes[1][0].plot(approx_sig[ant_index], c=color, lw=2)
-        axes[1][1].scatter(trans_x[ant_index], trans_y[ant_index], c=color, s=15)
-        ant_index += 1
-    handles, labels = axes[0][0].get_legend_handles_labels()
-    plt.tight_layout()
-    plt.legend(handles, labels, bbox_to_anchor=(0.1, 2.13), ncol=8, loc='upper center', borderaxespad=0., fontsize=10)
-    plt.show()
+    # m = sig.shape[0]
+    # n = sig.shape[1]
+    #
+    # k = 5
+    #
+    # # get Sigma/W
+    # Sigma = np.zeros((m, n))
+    # for i in range(m):
+    #     Sigma[i, i] = s[i]
+    #
+    # # reconstruction
+    # approx_sig = u @ Sigma[:, :k] @ vh[:k, :]
+    #
+    # # transformed Data
+    # trans = u @ Sigma
+    #
+    # # 2D projection of transformed data
+    # k1 = 2
+    # trans_dd = trans[:, :k1]
+    # trans_x = trans_dd[:, 0]
+    # trans_y = trans_dd[:, 1]
+    #
+    # # colors
+    # tab_color = [mcd.TABLEAU_COLORS[name] for name in mcd.TABLEAU_COLORS]
+    #
+    # fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+    #
+    # ant_index = 0
+    # for o, color in zip(antenna_order, tab_color):
+    #     axes[0][0].plot(sig[ant_index], c=color, label="VA_{}".format(o), lw=2)
+    #     axes[0][1].plot(trans[ant_index], c=color, lw=2)
+    #     axes[1][0].plot(approx_sig[ant_index], c=color, lw=2)
+    #     axes[1][1].scatter(trans_x[ant_index], trans_y[ant_index], c=color, s=15)
+    #     ant_index += 1
+    # handles, labels = axes[0][0].get_legend_handles_labels()
+    # plt.tight_layout()
+    # plt.legend(handles, labels, bbox_to_anchor=(0.1, 2.13), ncol=8, loc='upper center', borderaxespad=0., fontsize=10)
+    # plt.show()
 
     return u, s, vh
 
@@ -146,8 +147,10 @@ def select_channel(x, select_va):
 
     return select_x
 
-def select_data(label=[0,1,2]):
+
+def select_data(label=[0, 1, 2]):
     return 0
+
 
 if __name__ == '__main__':
     # df_ts, y = load_robot_execution_failures()
@@ -164,9 +167,8 @@ if __name__ == '__main__':
     # save_path = 'C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/Emotion/data/emotion_3s_diff_segment_7-9-6-4_{}.npy'
     # save_path = 'C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/Emotion/data/emotion_3s_diff_segment_8-10-5-3_{}.npy'
 
-
     # manually select
-    # va_list = ['VA_{}'.format(i) for i in [8, 10, 7, 9, 6, 4, 5, 3]]
+    va_list = ['VA_{}'.format(i) for i in [8, 10, 7, 9, 6, 4, 5, 3]]
     # va_list = ['VA_{}'.format(i) for i in [7, 9, 6, 4]]
     # va_list = ['VA_{}'.format(i) for i in [8, 10, 5, 3]]
 
@@ -178,14 +180,13 @@ if __name__ == '__main__':
 
     # svd
     # y[41]
-    # svd(x[42])
 
-    select_va = [5, 3, 7, 4, 6]
+    # select_va = [5, 3, 7, 4, 6]
     # select_va = [3, 7, 6, 9, 4]
-    va_list = ['VA_{}'.format(i) for i in select_va]
+    # va_list = ['VA_{}'.format(i) for i in select_va]
 
     # select_x
-    x = select_channel(x, select_va)
+    # x = select_channel(x, select_va)
 
     length = 150
     if is_diff:
@@ -197,6 +198,14 @@ if __name__ == '__main__':
     num_data = 140
     num_rows = num_data * length
     num_colums = len(va_list) + 2
+
+    # svd feature calculation
+    svd_feature = np.zeros((num_data, len(va_list)))
+    for index, ix in enumerate(x):
+        u, s, vh = svd(ix)
+        svd_feature[index] = s
+
+    svd_feature = pd.DataFrame(svd_feature, columns=['svd_{}'.format(i) for i in range(8)])
 
     data = np.zeros((num_rows, num_colums))
     label = np.zeros((num_data, 2))
@@ -238,10 +247,41 @@ if __name__ == '__main__':
 
     extracted_features = extract_features(df_x, column_id="id", column_sort="time", impute_function=impute,
                                           default_fc_parameters=settings)
+
+    # extracted_features = pd.merge(extracted_features, svd_feature, left_index=True, right_index=True)
+
     # extracted_features = extract_features(df_x, column_id="id", column_sort="time", impute_function=impute)
     # print(extracted_features)
 
+    # features_filtered = select_features(extracted_features, y, ml_task='classification', multiclass=True,
+    #                                     n_significant=3)
+    #
     features_filtered = select_features(extracted_features, y)
+
+    # we can easily construct the corresponding settings object
+    kind_to_fc_parameters = tsfresh.feature_extraction.settings.from_columns(features_filtered)
+
+
+    # save feature dictionary
+    # import pickle
+    # a_file = open("setting/feature_dic.pkl", "wb")
+    # pickle.dump(kind_to_fc_parameters, a_file)
+    # a_file.close()
+
+    # load
+    # a_file = open("setting/feature_dic.pkl", "rb")
+    # output = pickle.load(a_file)
+    # print(output)
+    # a_file.close()
+
+    # import json
+    # a_file = open("setting/feature_dic.json", "w")
+    # json.dump(kind_to_fc_parameters, a_file, indent=4)
+    # a_file.close()
+
+
+    # features_filtered = pd.merge(features_filtered, svd_feature, left_index=True, right_index=True)
+
     print(features_filtered.head(1).to_string)
 
     X_train, X_test, y_train, y_test = train_test_split(features_filtered, y, random_state=0, test_size=0.2)
