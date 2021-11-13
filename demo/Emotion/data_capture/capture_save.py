@@ -41,7 +41,8 @@ import keyboard
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/100fps_estimator.cfg'
 
 # AOP 3s
-configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_5s.cfg'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_5s.cfg'
+configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_10s.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx1_rx4_2.cfg'
 
@@ -111,7 +112,7 @@ def send_stop():
 # ------------------------------------------------------------------
 
 # Function to parse the data inside the configuration file
-def parseConfigFile(configFileName):
+def parseConfigFile(configFileName, numTxAnt=3):
     configParameters = {}  # Initialize an empty dictionary to store the configuration parameters
 
     # Read the configuration file and send it to the board
@@ -122,13 +123,14 @@ def parseConfigFile(configFileName):
         splitWords = i.split(" ")
 
         # Hard code the number of antennas, change if other configuration is used
-        numRxAnt = 4
-        numTxAnt = 3
+        # numRxAnt = numRxAntennas
+        # numTxAnt = numTxAntennas
 
         # Get the information about the profile configuration
         if "profileCfg" in splitWords[0]:
             startFreq = int(float(splitWords[2]))
             idleTime = int(splitWords[3])
+            adcStartTime = float(splitWords[4])
             rampEndTime = float(splitWords[5])
             freqSlopeConst = float(splitWords[8])
             numAdcSamples = int(splitWords[10])
@@ -139,6 +141,14 @@ def parseConfigFile(configFileName):
 
             digOutSampleRate = int(splitWords[11])
 
+            configParameters['startFreq'] = startFreq
+            configParameters['idleTime'] = idleTime
+            configParameters['adcStartTime'] = adcStartTime
+            configParameters['rampEndTime'] = rampEndTime
+            configParameters['numAdcSamples'] = numAdcSamples
+            configParameters['digOutSampleRate'] = digOutSampleRate
+            configParameters['freqSlopeConst'] = freqSlopeConst
+
         # Get the information about the frame configuration
         elif "frameCfg" in splitWords[0]:
 
@@ -146,8 +156,11 @@ def parseConfigFile(configFileName):
             chirpEndIdx = int(splitWords[2])
             numLoops = int(splitWords[3])
             numFrames = int(splitWords[4])
-            configParameters['numFrames'] = numFrames
             framePeriodicity = float(splitWords[5])
+
+            configParameters['numLoops'] = numLoops
+            configParameters['numFrames'] = numFrames
+            configParameters['framePeriodicity'] = framePeriodicity
 
     # Combine the read data to obtain the configuration parameters
     numChirpsPerFrame = (chirpEndIdx - chirpStartIdx + 1) * numLoops
@@ -389,9 +402,13 @@ def send_cli():
 if __name__ == "__main__":
     el = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust', 'Neutral']
     file_basepath = "C:\\Users\\Zber\\Desktop\\SavedData_Eyes"
-    prefix = "move_yellow_{}"
+    prefix = "test1_{}"
     # prefix = "pulse_14cm_10s_{}"
-    record_time = 5
+
+    config = parseConfigFile(configFileName)
+
+    record_time = config['numFrames'] / (1000 / config['framePeriodicity'])
+
     interval = 5
     start_record_index = 0
     end_record_index = 1
@@ -410,8 +427,8 @@ if __name__ == "__main__":
     mat = sl.Mat()
     # print_camera_information(cam)
 
-    WindowName="ZED Camera"
-    view_window = cv2.namedWindow(WindowName,cv2.WINDOW_KEEPRATIO)
+    WindowName = "ZED Camera"
+    view_window = cv2.namedWindow(WindowName, cv2.WINDOW_KEEPRATIO)
     cv2.moveWindow(WindowName, 300, 150)
     # cv2.setWindowProperty(WindowName, cv2.WND_PROP_TOPMOST, 1)
 
@@ -449,7 +466,6 @@ if __name__ == "__main__":
         # sensor stop
         # CLIport.write(('sensorStop\n').encode())
         print("Send sensor stop command")
-
 
         # camera stop
         cam.disable_recording()

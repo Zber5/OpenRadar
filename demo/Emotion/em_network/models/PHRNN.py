@@ -32,52 +32,52 @@ class BRNN(nn.RNN):
 
 class PHRNN(nn.Module):
     def __init__(self, eye_size, eyebrow_size, nose_size, mouth_size, h1_size, h2_size, h3_size, h4_size, h5_size,
-                 h6_size, total_length=30, bidirectional=True, num_classes=6):
+                 h6_size, total_length=30, bidirectional=True, bias=False, num_classes=6):
         super(PHRNN, self).__init__()
 
         self.length = total_length
 
-        self.rnn1_1 = nn.RNN(input_size=eye_size, hidden_size=h1_size, bias=True, batch_first=True,
+        self.rnn1_1 = nn.RNN(input_size=eye_size, hidden_size=h1_size, bias=bias, batch_first=True,
                              bidirectional=True)
-        self.rnn1_2 = nn.RNN(input_size=eyebrow_size, hidden_size=h1_size, bias=True, batch_first=True,
+        self.rnn1_2 = nn.RNN(input_size=eyebrow_size, hidden_size=h1_size, bias=bias, batch_first=True,
                              bidirectional=True)
-        self.rnn1_3 = nn.RNN(input_size=nose_size, hidden_size=h1_size, bias=True, batch_first=True,
+        self.rnn1_3 = nn.RNN(input_size=nose_size, hidden_size=h1_size, bias=bias, batch_first=True,
                              bidirectional=True)
-        self.rnn1_4 = nn.RNN(input_size=mouth_size, hidden_size=h1_size, bias=True, batch_first=True,
+        self.rnn1_4 = nn.RNN(input_size=mouth_size, hidden_size=h1_size, bias=bias, batch_first=True,
                              bidirectional=True)
         if bidirectional:
             h1_size = h1_size * 2
 
-        self.rnn2_1 = nn.RNN(input_size=h1_size * 2, hidden_size=h2_size, bias=True, batch_first=True,
+        self.rnn2_1 = nn.RNN(input_size=h1_size * 2, hidden_size=h2_size, bias=bias, batch_first=True,
                              bidirectional=True)
-        self.rnn2_2 = nn.RNN(input_size=h1_size, hidden_size=h2_size, bias=True, batch_first=True, bidirectional=True)
-        self.rnn2_3 = nn.RNN(input_size=h1_size, hidden_size=h2_size, bias=True, batch_first=True, bidirectional=True)
+        self.rnn2_2 = nn.RNN(input_size=h1_size, hidden_size=h2_size, bias=bias, batch_first=True, bidirectional=True)
+        self.rnn2_3 = nn.RNN(input_size=h1_size, hidden_size=h2_size, bias=bias, batch_first=True, bidirectional=True)
 
         if bidirectional:
             h2_size = h2_size * 2
 
-        self.rnn3_1 = nn.RNN(input_size=h2_size, hidden_size=h3_size, bias=True, batch_first=True, bidirectional=True)
-        self.rnn3_2 = nn.RNN(input_size=h2_size, hidden_size=h3_size, bias=True, batch_first=True, bidirectional=True)
-        self.rnn3_3 = nn.RNN(input_size=h2_size, hidden_size=h3_size, bias=True, batch_first=True, bidirectional=True)
+        self.rnn3_1 = nn.RNN(input_size=h2_size, hidden_size=h3_size, bias=bias, batch_first=True, bidirectional=True)
+        self.rnn3_2 = nn.RNN(input_size=h2_size, hidden_size=h3_size, bias=bias, batch_first=True, bidirectional=True)
+        self.rnn3_3 = nn.RNN(input_size=h2_size, hidden_size=h3_size, bias=bias, batch_first=True, bidirectional=True)
 
         if bidirectional:
             h3_size = h3_size * 2
 
-        self.rnn4_1 = nn.RNN(input_size=h3_size * 2, hidden_size=h4_size, bias=True, batch_first=True,
+        self.rnn4_1 = nn.RNN(input_size=h3_size * 2, hidden_size=h4_size, bias=bias, batch_first=True,
                              bidirectional=True)
-        self.rnn4_2 = nn.RNN(input_size=h3_size * 2, hidden_size=h4_size, bias=True, batch_first=True,
+        self.rnn4_2 = nn.RNN(input_size=h3_size * 2, hidden_size=h4_size, bias=bias, batch_first=True,
                              bidirectional=True)
 
         if bidirectional:
             h4_size = h4_size * 2
 
-        self.rnn5_1 = nn.RNN(input_size=h4_size, hidden_size=h5_size, bias=True, batch_first=True, bidirectional=True)
-        self.rnn5_2 = nn.RNN(input_size=h4_size, hidden_size=h5_size, bias=True, batch_first=True, bidirectional=True)
+        self.rnn5_1 = nn.RNN(input_size=h4_size, hidden_size=h5_size, bias=bias, batch_first=True, bidirectional=True)
+        self.rnn5_2 = nn.RNN(input_size=h4_size, hidden_size=h5_size, bias=bias, batch_first=True, bidirectional=True)
 
         if bidirectional:
             h5_size = h5_size * 2
 
-        self.lstm = nn.LSTM(input_size=h5_size * 2, hidden_size=h6_size, bias=True, batch_first=True,
+        self.lstm = nn.LSTM(input_size=h5_size * 2, hidden_size=h6_size, bias=bias, batch_first=True,
                             bidirectional=True)
 
         if bidirectional:

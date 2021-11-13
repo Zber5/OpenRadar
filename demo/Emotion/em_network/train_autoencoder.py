@@ -292,8 +292,8 @@ if __name__ == "__main__":
 
     # SELECTED_AU = ['AU01', 'AU02', 'AU04', 'AU06', 'AU07', 'AU10', 'AU12', 'AU14', 'AU15', 'AU17', 'AU23', 'AU24']
     # SELECTED_AU = ['AU05', 'AU06', 'AU09', 'AU17', 'AU20', 'AU25', 'AU26']
-    SELECTED_AU = ['AU01', 'AU02', 'AU04', 'AU06', 'AU12', 'AU15', 'AU20', 'AU25']
-    # SELECTED_AU = ['AU06', 'AU07', 'AU12']
+    # SELECTED_AU = ['AU01', 'AU02', 'AU04', 'AU06', 'AU12', 'AU15', 'AU20', 'AU25']
+    SELECTED_AU = ['AU06', 'AU07', 'AU12']
 
     au_index=[]
     for sau in SELECTED_AU:
@@ -314,16 +314,16 @@ if __name__ == "__main__":
     # }
 
     # results dir
-    result_dir = "/results"
+    result_dir = "../results"
 
     # load data
-    sensor_data_path = '/data/sensor_b8r3_c5_x.npy'
-    flm_score_path = '/data/aus_rf.npy'
-    label_path = '/data/sensor_b8r3_c5_y.npy'
+    sensor_data_path = '../data/sensor_b8r3_c5_x.npy'
+    flm_score_path = '../data/aus_rf.npy'
+    label_path = '../data/sensor_b8r3_c5_y.npy'
 
-    sensor_data_path_1 = '/data/sensor_b8r3_c5_x_s40_e80.npy'
-    flm_score_path_1 = '/data/aus_rf_s40_e80.npy'
-    label_path_1 = '/data/sensor_b8r3_c5_y_s40_e80.npy'
+    sensor_data_path_1 = '../data/sensor_b8r3_c5_x_s40_e80.npy'
+    flm_score_path_1 = '../data/aus_rf_s40_e80.npy'
+    label_path_1 = '../data/sensor_b8r3_c5_y_s40_e80.npy'
     sensor = np.load(sensor_data_path)
     imag = np.load(flm_score_path)
     label = np.load(label_path)

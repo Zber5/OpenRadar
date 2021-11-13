@@ -190,7 +190,8 @@ if __name__ == "__main__":
     BATCH_SIZE = 32
     num_classes = 6
     num_data = 327
-    num_frames = 20
+    num_frames = 30
+    # num_frames = 20
     num_landmarks = 68
     n_dim = 2
 
@@ -201,8 +202,8 @@ if __name__ == "__main__":
     # results dir
     result_dir = "demo/Emotion/results"
     # landmark_dir = "G:/My Drive/mmWave/mmWave-Emotion/mmWave Vision Datasets/CK+/CK+/emotion_images"
-    # landmark_dir = "G:/My Drive/mmWave/mmWave-Emotion/mmWave Vision Datasets/CK+/CK+/alignment_landmarks_L30/"
-    landmark_dir = "G:/My Drive/mmWave/mmWave-Emotion/mmWave Vision Datasets/CK+/CK+/alignment_landmarks_L20/"
+    landmark_dir = "G:/My Drive/mmWave/mmWave-Emotion/mmWave Vision Datasets/CK+/CK+/alignment_landmarks_L30/"
+    # landmark_dir = "G:/My Drive/mmWave/mmWave-Emotion/mmWave Vision Datasets/CK+/CK+/alignment_landmarks_L20/"
 
     # model configure
     model_config = {
@@ -240,7 +241,7 @@ if __name__ == "__main__":
     test_loader = sensor_imag_data_loader(x_test, y_test, batch_size=np.shape(x_test)[0])
 
     # log path
-    path = dir_path("vision_landmark_PHRNN_alignment_landmark_normalized", result_dir)
+    path = dir_path("vision_landmark_PHRNN_alignment_landmark_normalized_nobias", result_dir)
 
     # create model
     model = PHRNN(**model_config)
