@@ -1,0 +1,500 @@
+Epoch: [0][0/19]	Time 0.666 (0.666)	Data 0.001 (0.001)	Loss 88.2316	precision 53.19%	recall 78.12%	
+Epoch: [0][5/19]	Time 0.008 (0.118)	Data 0.000 (0.001)	Loss 87.2621	precision 60.94%	recall 60.94%	
+Epoch: [0][10/19]	Time 0.008 (0.068)	Data 0.001 (0.001)	Loss 88.6335	precision 53.12%	recall 53.12%	
+Epoch: [0][15/19]	Time 0.008 (0.049)	Data 0.001 (0.001)	Loss 81.0029	precision 71.88%	recall 71.88%	
+Test set: Average loss: 169.5010, precision: 64.34%, recall: 64.34%
+Epoch: [1][0/19]	Time 0.007 (0.007)	Data 0.000 (0.000)	Loss 74.2562	precision 78.12%	recall 78.12%	
+Epoch: [1][5/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 74.9695	precision 70.31%	recall 70.31%	
+Epoch: [1][10/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 66.5362	precision 75.00%	recall 75.00%	
+Epoch: [1][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 74.3701	precision 67.19%	recall 67.19%	
+Test set: Average loss: 180.4853, precision: 64.34%, recall: 64.34%
+Epoch: [2][0/19]	Time 0.007 (0.007)	Data 0.000 (0.000)	Loss 63.1035	precision 73.77%	recall 70.31%	
+Epoch: [2][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 62.7032	precision 77.42%	recall 75.00%	
+Epoch: [2][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 57.9750	precision 76.56%	recall 76.56%	
+Epoch: [2][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 58.5885	precision 75.41%	recall 71.88%	
+Test set: Average loss: 132.9242, precision: 73.23%, recall: 72.09%
+Epoch: [3][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 65.7446	precision 73.44%	recall 73.44%	
+Epoch: [3][5/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 63.4961	precision 71.43%	recall 70.31%	
+Epoch: [3][10/19]	Time 0.007 (0.008)	Data 0.000 (0.000)	Loss 65.7037	precision 78.12%	recall 78.12%	
+Epoch: [3][15/19]	Time 0.007 (0.008)	Data 0.000 (0.001)	Loss 47.4913	precision 85.94%	recall 85.94%	
+Test set: Average loss: 158.6445, precision: 71.09%, recall: 70.54%
+Epoch: [4][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 47.5428	precision 82.54%	recall 81.25%	
+Epoch: [4][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 32.3531	precision 93.75%	recall 93.75%	
+Epoch: [4][10/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 28.3865	precision 90.62%	recall 90.62%	
+Epoch: [4][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 28.5086	precision 90.48%	recall 89.06%	
+Test set: Average loss: 164.6624, precision: 70.54%, recall: 70.54%
+Epoch: [5][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 30.2555	precision 93.65%	recall 92.19%	
+Epoch: [5][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 41.8674	precision 89.06%	recall 89.06%	
+Epoch: [5][10/19]	Time 0.010 (0.008)	Data 0.001 (0.001)	Loss 63.0131	precision 80.00%	recall 81.25%	
+Epoch: [5][15/19]	Time 0.007 (0.008)	Data 0.000 (0.001)	Loss 36.5061	precision 85.71%	recall 84.38%	
+Test set: Average loss: 138.9352, precision: 74.81%, recall: 75.97%
+Epoch: [6][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 36.8399	precision 85.94%	recall 85.94%	
+Epoch: [6][5/19]	Time 0.007 (0.008)	Data 0.000 (0.001)	Loss 31.3617	precision 92.19%	recall 92.19%	
+Epoch: [6][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 26.0667	precision 92.19%	recall 92.19%	
+Epoch: [6][15/19]	Time 0.007 (0.008)	Data 0.000 (0.001)	Loss 24.3730	precision 93.75%	recall 93.75%	
+Test set: Average loss: 172.2755, precision: 78.12%, recall: 77.52%
+Epoch: [7][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 40.2153	precision 87.50%	recall 87.50%	
+Epoch: [7][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 25.9420	precision 92.19%	recall 92.19%	
+Epoch: [7][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 14.8531	precision 96.88%	recall 96.88%	
+Epoch: [7][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 18.8328	precision 95.31%	recall 95.31%	
+Test set: Average loss: 225.3323, precision: 72.31%, recall: 72.87%
+Epoch: [8][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 11.0622	precision 98.44%	recall 98.44%	
+Epoch: [8][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 18.9451	precision 93.75%	recall 93.75%	
+Epoch: [8][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 11.2617	precision 96.88%	recall 96.88%	
+Epoch: [8][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 14.4808	precision 96.83%	recall 95.31%	
+Test set: Average loss: 216.6226, precision: 75.97%, recall: 75.97%
+Epoch: [9][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 9.7312	precision 98.44%	recall 98.44%	
+Epoch: [9][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 17.2006	precision 95.31%	recall 95.31%	
+Epoch: [9][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 9.0664	precision 98.44%	recall 98.44%	
+Epoch: [9][15/19]	Time 0.007 (0.008)	Data 0.000 (0.001)	Loss 9.0073	precision 98.44%	recall 98.44%	
+Test set: Average loss: 225.7516, precision: 70.31%, recall: 69.77%
+Epoch: [10][0/19]	Time 0.007 (0.007)	Data 0.000 (0.000)	Loss 7.4788	precision 98.44%	recall 98.44%	
+Epoch: [10][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 17.2180	precision 96.88%	recall 96.88%	
+Epoch: [10][10/19]	Time 0.007 (0.008)	Data 0.000 (0.001)	Loss 35.0882	precision 90.62%	recall 90.62%	
+Epoch: [10][15/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 5.5785	precision 100.00%	recall 100.00%	
+Test set: Average loss: 209.3004, precision: 77.34%, recall: 76.74%
+Epoch: [11][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 10.2931	precision 96.88%	recall 96.88%	
+Epoch: [11][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 7.8286	precision 98.44%	recall 98.44%	
+Epoch: [11][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 13.4221	precision 95.31%	recall 95.31%	
+Epoch: [11][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 16.2539	precision 95.31%	recall 95.31%	
+Test set: Average loss: 215.8656, precision: 80.62%, recall: 80.62%
+Epoch: [12][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 16.7733	precision 95.31%	recall 95.31%	
+Epoch: [12][5/19]	Time 0.008 (0.009)	Data 0.001 (0.001)	Loss 7.1074	precision 100.00%	recall 100.00%	
+Epoch: [12][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 12.8998	precision 96.88%	recall 96.88%	
+Epoch: [12][15/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 23.2489	precision 92.19%	recall 92.19%	
+Test set: Average loss: 409.3535, precision: 71.88%, recall: 71.32%
+Epoch: [13][0/19]	Time 0.009 (0.009)	Data 0.000 (0.000)	Loss 8.6959	precision 98.44%	recall 98.44%	
+Epoch: [13][5/19]	Time 0.008 (0.009)	Data 0.000 (0.000)	Loss 10.0426	precision 98.44%	recall 98.44%	
+Epoch: [13][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 9.9445	precision 96.88%	recall 96.88%	
+Epoch: [13][15/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 2.1347	precision 100.00%	recall 100.00%	
+Test set: Average loss: 271.4760, precision: 73.64%, recall: 73.64%
+Epoch: [14][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 8.8528	precision 98.44%	recall 98.44%	
+Epoch: [14][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 5.3956	precision 98.44%	recall 98.44%	
+Epoch: [14][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 7.5217	precision 100.00%	recall 100.00%	
+Epoch: [14][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.7435	precision 100.00%	recall 100.00%	
+Test set: Average loss: 584.6065, precision: 72.87%, recall: 72.87%
+Epoch: [15][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 11.0951	precision 96.88%	recall 96.88%	
+Epoch: [15][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 13.7808	precision 96.88%	recall 96.88%	
+Epoch: [15][10/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 14.8389	precision 96.88%	recall 96.88%	
+Epoch: [15][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.4787	precision 100.00%	recall 100.00%	
+Test set: Average loss: 673.9365, precision: 68.99%, recall: 68.99%
+Epoch: [16][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 9.1169	precision 96.88%	recall 96.88%	
+Epoch: [16][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.8332	precision 100.00%	recall 100.00%	
+Epoch: [16][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 5.8563	precision 98.44%	recall 98.44%	
+Epoch: [16][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 9.4859	precision 96.88%	recall 96.88%	
+Test set: Average loss: 877.8082, precision: 70.54%, recall: 70.54%
+Epoch: [17][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 12.6160	precision 96.83%	recall 95.31%	
+Epoch: [17][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 13.1066	precision 95.31%	recall 95.31%	
+Epoch: [17][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 13.5611	precision 96.88%	recall 96.88%	
+Epoch: [17][15/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 5.2845	precision 98.44%	recall 98.44%	
+Test set: Average loss: 539.8768, precision: 71.32%, recall: 71.32%
+Epoch: [18][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 9.8901	precision 96.88%	recall 96.88%	
+Epoch: [18][5/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 3.5560	precision 100.00%	recall 100.00%	
+Epoch: [18][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 7.6432	precision 96.88%	recall 96.88%	
+Epoch: [18][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 7.2771	precision 96.88%	recall 96.88%	
+Test set: Average loss: 704.4111, precision: 71.09%, recall: 70.54%
+Epoch: [19][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 6.8309	precision 98.44%	recall 98.44%	
+Epoch: [19][5/19]	Time 0.009 (0.009)	Data 0.000 (0.001)	Loss 7.8859	precision 96.88%	recall 96.88%	
+Epoch: [19][10/19]	Time 0.009 (0.009)	Data 0.001 (0.000)	Loss 14.1653	precision 93.75%	recall 93.75%	
+Epoch: [19][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 14.9744	precision 96.88%	recall 96.88%	
+Test set: Average loss: 278.2331, precision: 72.31%, recall: 72.87%
+Epoch: [20][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 6.1466	precision 98.44%	recall 98.44%	
+Epoch: [20][5/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 10.1821	precision 98.44%	recall 98.44%	
+Epoch: [20][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.8723	precision 100.00%	recall 100.00%	
+Epoch: [20][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 21.3815	precision 93.75%	recall 93.75%	
+Test set: Average loss: 510.4705, precision: 69.77%, recall: 69.77%
+Epoch: [21][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 3.0713	precision 100.00%	recall 100.00%	
+Epoch: [21][5/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 2.3624	precision 100.00%	recall 100.00%	
+Epoch: [21][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.8873	precision 100.00%	recall 100.00%	
+Epoch: [21][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.3670	precision 100.00%	recall 100.00%	
+Test set: Average loss: 550.4291, precision: 67.44%, recall: 67.44%
+Epoch: [22][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 3.0738	precision 98.44%	recall 98.44%	
+Epoch: [22][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 4.1825	precision 100.00%	recall 100.00%	
+Epoch: [22][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 10.9755	precision 95.31%	recall 95.31%	
+Epoch: [22][15/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 2.2539	precision 100.00%	recall 100.00%	
+Test set: Average loss: 428.8592, precision: 69.77%, recall: 69.77%
+Epoch: [23][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 12.3186	precision 96.88%	recall 96.88%	
+Epoch: [23][5/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 18.1050	precision 93.75%	recall 93.75%	
+Epoch: [23][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 3.7440	precision 100.00%	recall 100.00%	
+Epoch: [23][15/19]	Time 0.009 (0.009)	Data 0.000 (0.001)	Loss 20.6500	precision 95.31%	recall 95.31%	
+Test set: Average loss: 455.2942, precision: 75.38%, recall: 75.97%
+Epoch: [24][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 3.5731	precision 100.00%	recall 100.00%	
+Epoch: [24][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.9921	precision 100.00%	recall 100.00%	
+Epoch: [24][10/19]	Time 0.008 (0.009)	Data 0.001 (0.001)	Loss 3.7979	precision 100.00%	recall 100.00%	
+Epoch: [24][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.4347	precision 100.00%	recall 100.00%	
+Test set: Average loss: 489.9592, precision: 71.09%, recall: 70.54%
+Epoch: [25][0/19]	Time 0.009 (0.009)	Data 0.000 (0.000)	Loss 1.1073	precision 100.00%	recall 100.00%	
+Epoch: [25][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 4.7613	precision 100.00%	recall 100.00%	
+Epoch: [25][10/19]	Time 0.008 (0.009)	Data 0.001 (0.001)	Loss 4.5310	precision 100.00%	recall 100.00%	
+Epoch: [25][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.4233	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1047.2739, precision: 69.77%, recall: 69.77%
+Epoch: [26][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 3.3490	precision 100.00%	recall 100.00%	
+Epoch: [26][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.2023	precision 100.00%	recall 100.00%	
+Epoch: [26][10/19]	Time 0.010 (0.009)	Data 0.001 (0.001)	Loss 3.6352	precision 100.00%	recall 100.00%	
+Epoch: [26][15/19]	Time 0.009 (0.009)	Data 0.000 (0.001)	Loss 2.4784	precision 100.00%	recall 100.00%	
+Test set: Average loss: 661.0082, precision: 75.19%, recall: 75.19%
+Epoch: [27][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 15.1270	precision 96.88%	recall 96.88%	
+Epoch: [27][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 3.2718	precision 98.44%	recall 98.44%	
+Epoch: [27][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.2054	precision 100.00%	recall 100.00%	
+Epoch: [27][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 8.1386	precision 96.88%	recall 96.88%	
+Test set: Average loss: 1910.4839, precision: 72.87%, recall: 72.87%
+Epoch: [28][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.5171	precision 100.00%	recall 100.00%	
+Epoch: [28][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.3503	precision 100.00%	recall 100.00%	
+Epoch: [28][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.1796	precision 100.00%	recall 100.00%	
+Epoch: [28][15/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 4.9988	precision 98.44%	recall 98.44%	
+Test set: Average loss: 922.9138, precision: 64.34%, recall: 64.34%
+Epoch: [29][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.2004	precision 100.00%	recall 100.00%	
+Epoch: [29][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 6.1219	precision 98.44%	recall 98.44%	
+Epoch: [29][10/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 0.8957	precision 100.00%	recall 100.00%	
+Epoch: [29][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.1008	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1375.0159, precision: 53.49%, recall: 53.49%
+Epoch: [30][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 7.1377	precision 98.44%	recall 98.44%	
+Epoch: [30][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 6.0938	precision 96.88%	recall 96.88%	
+Epoch: [30][10/19]	Time 0.009 (0.009)	Data 0.000 (0.001)	Loss 14.0928	precision 95.31%	recall 95.31%	
+Epoch: [30][15/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 3.7872	precision 100.00%	recall 100.00%	
+Test set: Average loss: 759.3278, precision: 76.74%, recall: 76.74%
+Epoch: [31][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 5.2246	precision 100.00%	recall 100.00%	
+Epoch: [31][5/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 7.4641	precision 98.44%	recall 98.44%	
+Epoch: [31][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 3.9880	precision 98.44%	recall 98.44%	
+Epoch: [31][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.7835	precision 100.00%	recall 100.00%	
+Test set: Average loss: 771.3292, precision: 75.19%, recall: 75.19%
+Epoch: [32][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 13.3904	precision 96.88%	recall 96.88%	
+Epoch: [32][5/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 1.1192	precision 100.00%	recall 100.00%	
+Epoch: [32][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 4.3775	precision 98.44%	recall 98.44%	
+Epoch: [32][15/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 3.1385	precision 100.00%	recall 100.00%	
+Test set: Average loss: 826.6985, precision: 69.77%, recall: 69.77%
+Epoch: [33][0/19]	Time 0.009 (0.009)	Data 0.000 (0.000)	Loss 13.1022	precision 96.88%	recall 96.88%	
+Epoch: [33][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 3.7872	precision 100.00%	recall 100.00%	
+Epoch: [33][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 10.4740	precision 96.88%	recall 96.88%	
+Epoch: [33][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.3531	precision 100.00%	recall 100.00%	
+Test set: Average loss: 644.8759, precision: 65.89%, recall: 65.89%
+Epoch: [34][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.9391	precision 100.00%	recall 100.00%	
+Epoch: [34][5/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 1.3348	precision 100.00%	recall 100.00%	
+Epoch: [34][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.0848	precision 100.00%	recall 100.00%	
+Epoch: [34][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.4469	precision 100.00%	recall 100.00%	
+Test set: Average loss: 569.8989, precision: 75.97%, recall: 75.97%
+Epoch: [35][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 5.3943	precision 96.88%	recall 96.88%	
+Epoch: [35][5/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 2.1052	precision 100.00%	recall 100.00%	
+Epoch: [35][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.4033	precision 100.00%	recall 100.00%	
+Epoch: [35][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.7196	precision 100.00%	recall 100.00%	
+Test set: Average loss: 617.8423, precision: 75.97%, recall: 75.97%
+Epoch: [36][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.6589	precision 100.00%	recall 100.00%	
+Epoch: [36][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.4578	precision 100.00%	recall 100.00%	
+Epoch: [36][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.2126	precision 100.00%	recall 100.00%	
+Epoch: [36][15/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 1.6179	precision 100.00%	recall 100.00%	
+Test set: Average loss: 513.7880, precision: 70.77%, recall: 71.32%
+Epoch: [37][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 2.8930	precision 100.00%	recall 100.00%	
+Epoch: [37][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.8054	precision 100.00%	recall 100.00%	
+Epoch: [37][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.0129	precision 100.00%	recall 100.00%	
+Epoch: [37][15/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 7.4043	precision 98.44%	recall 98.44%	
+Test set: Average loss: 465.3890, precision: 70.00%, recall: 70.54%
+Epoch: [38][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.7412	precision 100.00%	recall 100.00%	
+Epoch: [38][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.7055	precision 100.00%	recall 100.00%	
+Epoch: [38][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.8725	precision 100.00%	recall 100.00%	
+Epoch: [38][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.5647	precision 100.00%	recall 100.00%	
+Test set: Average loss: 389.2072, precision: 78.29%, recall: 78.29%
+Epoch: [39][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 5.2148	precision 98.44%	recall 98.44%	
+Epoch: [39][5/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 1.4203	precision 100.00%	recall 100.00%	
+Epoch: [39][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.3951	precision 100.00%	recall 100.00%	
+Epoch: [39][15/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 1.1363	precision 100.00%	recall 100.00%	
+Test set: Average loss: 598.5690, precision: 76.74%, recall: 76.74%
+Epoch: [40][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 1.5903	precision 100.00%	recall 100.00%	
+Epoch: [40][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.7601	precision 100.00%	recall 100.00%	
+Epoch: [40][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.3047	precision 100.00%	recall 100.00%	
+Epoch: [40][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 3.3032	precision 98.44%	recall 98.44%	
+Test set: Average loss: 705.8247, precision: 77.52%, recall: 77.52%
+Epoch: [41][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.3428	precision 100.00%	recall 100.00%	
+Epoch: [41][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.4005	precision 100.00%	recall 100.00%	
+Epoch: [41][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.8879	precision 100.00%	recall 100.00%	
+Epoch: [41][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.8909	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1058.3961, precision: 74.42%, recall: 74.42%
+Epoch: [42][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 3.3357	precision 98.44%	recall 98.44%	
+Epoch: [42][5/19]	Time 0.009 (0.009)	Data 0.000 (0.001)	Loss 0.8645	precision 100.00%	recall 100.00%	
+Epoch: [42][10/19]	Time 0.009 (0.009)	Data 0.000 (0.001)	Loss 0.9014	precision 100.00%	recall 100.00%	
+Epoch: [42][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.8772	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1171.4666, precision: 69.77%, recall: 69.77%
+Epoch: [43][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.0090	precision 100.00%	recall 100.00%	
+Epoch: [43][5/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 1.1945	precision 100.00%	recall 100.00%	
+Epoch: [43][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.7702	precision 100.00%	recall 100.00%	
+Epoch: [43][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.9094	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1459.4734, precision: 73.64%, recall: 73.64%
+Epoch: [44][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.1346	precision 100.00%	recall 100.00%	
+Epoch: [44][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.9138	precision 100.00%	recall 100.00%	
+Epoch: [44][10/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 2.6312	precision 98.44%	recall 98.44%	
+Epoch: [44][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 9.6488	precision 98.44%	recall 98.44%	
+Test set: Average loss: 726.3599, precision: 68.22%, recall: 68.22%
+Epoch: [45][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 17.8232	precision 96.88%	recall 96.88%	
+Epoch: [45][5/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 2.5122	precision 100.00%	recall 100.00%	
+Epoch: [45][10/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 1.0520	precision 100.00%	recall 100.00%	
+Epoch: [45][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.9961	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1185.2814, precision: 72.87%, recall: 72.87%
+Epoch: [46][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 8.7678	precision 96.88%	recall 96.88%	
+Epoch: [46][5/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 3.4503	precision 100.00%	recall 100.00%	
+Epoch: [46][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.2330	precision 100.00%	recall 100.00%	
+Epoch: [46][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.1657	precision 100.00%	recall 100.00%	
+Test set: Average loss: 686.0760, precision: 72.09%, recall: 72.09%
+Epoch: [47][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 8.4784	precision 98.44%	recall 98.44%	
+Epoch: [47][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 3.9445	precision 98.44%	recall 98.44%	
+Epoch: [47][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.8764	precision 100.00%	recall 100.00%	
+Epoch: [47][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 8.3323	precision 96.88%	recall 96.88%	
+Test set: Average loss: 647.1555, precision: 65.12%, recall: 65.12%
+Epoch: [48][0/19]	Time 0.009 (0.009)	Data 0.000 (0.000)	Loss 2.8075	precision 100.00%	recall 100.00%	
+Epoch: [48][5/19]	Time 0.008 (0.009)	Data 0.000 (0.000)	Loss 15.0146	precision 96.88%	recall 96.88%	
+Epoch: [48][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.5594	precision 100.00%	recall 100.00%	
+Epoch: [48][15/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 4.0015	precision 98.44%	recall 98.44%	
+Test set: Average loss: 510.1660, precision: 68.22%, recall: 68.22%
+Epoch: [49][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.6428	precision 100.00%	recall 100.00%	
+Epoch: [49][5/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 4.3712	precision 98.44%	recall 98.44%	
+Epoch: [49][10/19]	Time 0.008 (0.009)	Data 0.001 (0.001)	Loss 1.7841	precision 100.00%	recall 100.00%	
+Epoch: [49][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.4895	precision 100.00%	recall 100.00%	
+Test set: Average loss: 598.3860, precision: 75.19%, recall: 75.19%
+Epoch: [50][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.9053	precision 100.00%	recall 100.00%	
+Epoch: [50][5/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.0685	precision 100.00%	recall 100.00%	
+Epoch: [50][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 4.0693	precision 98.44%	recall 98.44%	
+Epoch: [50][15/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.8614	precision 100.00%	recall 100.00%	
+Test set: Average loss: 786.6935, precision: 74.42%, recall: 74.42%
+Epoch: [51][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 0.8769	precision 100.00%	recall 100.00%	
+Epoch: [51][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.3725	precision 100.00%	recall 100.00%	
+Epoch: [51][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.6444	precision 100.00%	recall 100.00%	
+Epoch: [51][15/19]	Time 0.009 (0.009)	Data 0.000 (0.001)	Loss 1.2194	precision 100.00%	recall 100.00%	
+Test set: Average loss: 730.5317, precision: 75.97%, recall: 75.97%
+Epoch: [52][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 2.6937	precision 100.00%	recall 100.00%	
+Epoch: [52][5/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 1.0717	precision 100.00%	recall 100.00%	
+Epoch: [52][10/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.4252	precision 100.00%	recall 100.00%	
+Epoch: [52][15/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 1.2543	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1122.0593, precision: 77.52%, recall: 77.52%
+Epoch: [53][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 2.4878	precision 98.44%	recall 98.44%	
+Epoch: [53][5/19]	Time 0.008 (0.009)	Data 0.000 (0.001)	Loss 0.9079	precision 100.00%	recall 100.00%	
+Epoch: [53][10/19]	Time 0.008 (0.009)	Data 0.001 (0.001)	Loss 3.5694	precision 98.44%	recall 98.44%	
+Epoch: [53][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 5.0468	precision 98.44%	recall 98.44%	
+Test set: Average loss: 679.5060, precision: 71.88%, recall: 71.32%
+Epoch: [54][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 2.0629	precision 100.00%	recall 100.00%	
+Epoch: [54][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.9951	precision 100.00%	recall 100.00%	
+Epoch: [54][10/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 1.2559	precision 100.00%	recall 100.00%	
+Epoch: [54][15/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.9018	precision 100.00%	recall 100.00%	
+Test set: Average loss: 617.4296, precision: 76.74%, recall: 76.74%
+Epoch: [55][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.5751	precision 100.00%	recall 100.00%	
+Epoch: [55][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7825	precision 100.00%	recall 100.00%	
+Epoch: [55][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7958	precision 100.00%	recall 100.00%	
+Epoch: [55][15/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.7461	precision 100.00%	recall 100.00%	
+Test set: Average loss: 736.4920, precision: 78.29%, recall: 78.29%
+Epoch: [56][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 0.8120	precision 100.00%	recall 100.00%	
+Epoch: [56][5/19]	Time 0.007 (0.008)	Data 0.000 (0.001)	Loss 6.4646	precision 96.88%	recall 96.88%	
+Epoch: [56][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.2624	precision 100.00%	recall 100.00%	
+Epoch: [56][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 5.6251	precision 98.44%	recall 98.44%	
+Test set: Average loss: 833.3309, precision: 78.29%, recall: 78.29%
+Epoch: [57][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.8933	precision 100.00%	recall 100.00%	
+Epoch: [57][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7930	precision 100.00%	recall 100.00%	
+Epoch: [57][10/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 3.1357	precision 98.44%	recall 98.44%	
+Epoch: [57][15/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 4.7668	precision 98.44%	recall 98.44%	
+Test set: Average loss: 1121.9749, precision: 78.29%, recall: 78.29%
+Epoch: [58][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.8313	precision 100.00%	recall 100.00%	
+Epoch: [58][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.8310	precision 100.00%	recall 100.00%	
+Epoch: [58][10/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.7458	precision 100.00%	recall 100.00%	
+Epoch: [58][15/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.8079	precision 100.00%	recall 100.00%	
+Test set: Average loss: 968.5754, precision: 79.07%, recall: 79.07%
+Epoch: [59][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 1.1142	precision 100.00%	recall 100.00%	
+Epoch: [59][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.9025	precision 100.00%	recall 100.00%	
+Epoch: [59][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.9035	precision 100.00%	recall 100.00%	
+Epoch: [59][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.8729	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1082.8762, precision: 76.15%, recall: 76.74%
+Epoch: [60][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7824	precision 100.00%	recall 100.00%	
+Epoch: [60][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6784	precision 100.00%	recall 100.00%	
+Epoch: [60][10/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.9212	precision 100.00%	recall 100.00%	
+Epoch: [60][15/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.6995	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1179.4304, precision: 65.12%, recall: 65.12%
+Epoch: [61][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6823	precision 100.00%	recall 100.00%	
+Epoch: [61][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 6.9727	precision 98.44%	recall 98.44%	
+Epoch: [61][10/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 1.0139	precision 100.00%	recall 100.00%	
+Epoch: [61][15/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 1.2599	precision 100.00%	recall 100.00%	
+Test set: Average loss: 755.3464, precision: 73.64%, recall: 73.64%
+Epoch: [62][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 2.0012	precision 100.00%	recall 100.00%	
+Epoch: [62][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7209	precision 100.00%	recall 100.00%	
+Epoch: [62][10/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 0.6967	precision 100.00%	recall 100.00%	
+Epoch: [62][15/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.6962	precision 100.00%	recall 100.00%	
+Test set: Average loss: 847.6696, precision: 77.52%, recall: 77.52%
+Epoch: [63][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7650	precision 100.00%	recall 100.00%	
+Epoch: [63][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7645	precision 100.00%	recall 100.00%	
+Epoch: [63][10/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 0.6591	precision 100.00%	recall 100.00%	
+Epoch: [63][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.4137	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1137.2852, precision: 78.29%, recall: 78.29%
+Epoch: [64][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.7517	precision 100.00%	recall 100.00%	
+Epoch: [64][5/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.6707	precision 100.00%	recall 100.00%	
+Epoch: [64][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.8233	precision 100.00%	recall 100.00%	
+Epoch: [64][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7596	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1185.8303, precision: 75.97%, recall: 75.97%
+Epoch: [65][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7554	precision 100.00%	recall 100.00%	
+Epoch: [65][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.9501	precision 100.00%	recall 100.00%	
+Epoch: [65][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.7882	precision 100.00%	recall 100.00%	
+Epoch: [65][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 2.0614	precision 100.00%	recall 100.00%	
+Test set: Average loss: 458.0164, precision: 73.08%, recall: 73.64%
+Epoch: [66][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 2.2180	precision 100.00%	recall 100.00%	
+Epoch: [66][5/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 5.5556	precision 98.44%	recall 98.44%	
+Epoch: [66][10/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 0.9381	precision 100.00%	recall 100.00%	
+Epoch: [66][15/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 6.5939	precision 98.44%	recall 98.44%	
+Test set: Average loss: 1029.4489, precision: 75.19%, recall: 75.19%
+Epoch: [67][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.6550	precision 100.00%	recall 100.00%	
+Epoch: [67][5/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 1.1686	precision 100.00%	recall 100.00%	
+Epoch: [67][10/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 1.2909	precision 100.00%	recall 100.00%	
+Epoch: [67][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.1586	precision 100.00%	recall 100.00%	
+Test set: Average loss: 394.5659, precision: 79.07%, recall: 79.07%
+Epoch: [68][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.9767	precision 100.00%	recall 100.00%	
+Epoch: [68][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.9693	precision 100.00%	recall 100.00%	
+Epoch: [68][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.9732	precision 100.00%	recall 100.00%	
+Epoch: [68][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7067	precision 100.00%	recall 100.00%	
+Test set: Average loss: 387.7876, precision: 81.40%, recall: 81.40%
+Epoch: [69][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.0546	precision 100.00%	recall 100.00%	
+Epoch: [69][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6326	precision 100.00%	recall 100.00%	
+Epoch: [69][10/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.6605	precision 100.00%	recall 100.00%	
+Epoch: [69][15/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 9.1390	precision 98.44%	recall 98.44%	
+Test set: Average loss: 775.5608, precision: 75.97%, recall: 75.97%
+Epoch: [70][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 0.6608	precision 100.00%	recall 100.00%	
+Epoch: [70][5/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.6812	precision 100.00%	recall 100.00%	
+Epoch: [70][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7406	precision 100.00%	recall 100.00%	
+Epoch: [70][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.0608	precision 100.00%	recall 100.00%	
+Test set: Average loss: 704.0255, precision: 75.97%, recall: 75.97%
+Epoch: [71][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 3.0398	precision 98.44%	recall 98.44%	
+Epoch: [71][5/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.6571	precision 100.00%	recall 100.00%	
+Epoch: [71][10/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 2.8160	precision 100.00%	recall 100.00%	
+Epoch: [71][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 8.4466	precision 96.88%	recall 96.88%	
+Test set: Average loss: 976.9041, precision: 66.67%, recall: 66.67%
+Epoch: [72][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 0.6643	precision 100.00%	recall 100.00%	
+Epoch: [72][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 7.0189	precision 98.44%	recall 98.44%	
+Epoch: [72][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6839	precision 100.00%	recall 100.00%	
+Epoch: [72][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 2.0155	precision 100.00%	recall 100.00%	
+Test set: Average loss: 370.1812, precision: 72.09%, recall: 72.09%
+Epoch: [73][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.7132	precision 100.00%	recall 100.00%	
+Epoch: [73][5/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 1.8952	precision 100.00%	recall 100.00%	
+Epoch: [73][10/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 1.5685	precision 100.00%	recall 100.00%	
+Epoch: [73][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 6.9031	precision 98.44%	recall 98.44%	
+Test set: Average loss: 293.7707, precision: 82.17%, recall: 82.17%
+Epoch: [74][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 0.8632	precision 100.00%	recall 100.00%	
+Epoch: [74][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.8253	precision 100.00%	recall 100.00%	
+Epoch: [74][10/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 1.1916	precision 100.00%	recall 100.00%	
+Epoch: [74][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7653	precision 100.00%	recall 100.00%	
+Test set: Average loss: 511.9469, precision: 78.29%, recall: 78.29%
+Epoch: [75][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.8014	precision 100.00%	recall 100.00%	
+Epoch: [75][5/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.9065	precision 100.00%	recall 100.00%	
+Epoch: [75][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.1135	precision 100.00%	recall 100.00%	
+Epoch: [75][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.8389	precision 100.00%	recall 100.00%	
+Test set: Average loss: 492.2798, precision: 78.29%, recall: 78.29%
+Epoch: [76][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 7.0890	precision 98.44%	recall 98.44%	
+Epoch: [76][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7635	precision 100.00%	recall 100.00%	
+Epoch: [76][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7971	precision 100.00%	recall 100.00%	
+Epoch: [76][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.0451	precision 100.00%	recall 100.00%	
+Test set: Average loss: 612.7433, precision: 79.69%, recall: 79.07%
+Epoch: [77][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7064	precision 100.00%	recall 100.00%	
+Epoch: [77][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 2.4412	precision 98.44%	recall 98.44%	
+Epoch: [77][10/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.6395	precision 100.00%	recall 100.00%	
+Epoch: [77][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6926	precision 100.00%	recall 100.00%	
+Test set: Average loss: 718.3121, precision: 77.52%, recall: 77.52%
+Epoch: [78][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.3924	precision 100.00%	recall 100.00%	
+Epoch: [78][5/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.7031	precision 100.00%	recall 100.00%	
+Epoch: [78][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6788	precision 100.00%	recall 100.00%	
+Epoch: [78][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 2.9233	precision 98.44%	recall 98.44%	
+Test set: Average loss: 3094.8254, precision: 70.54%, recall: 70.54%
+Epoch: [79][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7068	precision 100.00%	recall 100.00%	
+Epoch: [79][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.1475	precision 100.00%	recall 100.00%	
+Epoch: [79][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.8332	precision 100.00%	recall 100.00%	
+Epoch: [79][15/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 1.1426	precision 100.00%	recall 100.00%	
+Test set: Average loss: 893.2891, precision: 77.52%, recall: 77.52%
+Epoch: [80][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6994	precision 100.00%	recall 100.00%	
+Epoch: [80][5/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 1.2199	precision 100.00%	recall 100.00%	
+Epoch: [80][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6265	precision 100.00%	recall 100.00%	
+Epoch: [80][15/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 0.6811	precision 100.00%	recall 100.00%	
+Test set: Average loss: 585.9308, precision: 76.74%, recall: 76.74%
+Epoch: [81][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.8193	precision 100.00%	recall 100.00%	
+Epoch: [81][5/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 1.9112	precision 100.00%	recall 100.00%	
+Epoch: [81][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.8234	precision 100.00%	recall 100.00%	
+Epoch: [81][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.9956	precision 100.00%	recall 100.00%	
+Test set: Average loss: 688.4124, precision: 80.62%, recall: 80.62%
+Epoch: [82][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 5.0173	precision 98.44%	recall 98.44%	
+Epoch: [82][5/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 0.7610	precision 100.00%	recall 100.00%	
+Epoch: [82][10/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 4.2477	precision 98.44%	recall 98.44%	
+Epoch: [82][15/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 1.2384	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1262.8314, precision: 72.87%, recall: 72.87%
+Epoch: [83][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.8430	precision 100.00%	recall 100.00%	
+Epoch: [83][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.8948	precision 100.00%	recall 100.00%	
+Epoch: [83][10/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.9804	precision 100.00%	recall 100.00%	
+Epoch: [83][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.8860	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1052.8031, precision: 68.22%, recall: 68.22%
+Epoch: [84][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7057	precision 100.00%	recall 100.00%	
+Epoch: [84][5/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 1.1846	precision 100.00%	recall 100.00%	
+Epoch: [84][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 10.1267	precision 95.31%	recall 95.31%	
+Epoch: [84][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.6289	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1149.6890, precision: 72.09%, recall: 72.09%
+Epoch: [85][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.7929	precision 100.00%	recall 100.00%	
+Epoch: [85][5/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.7392	precision 100.00%	recall 100.00%	
+Epoch: [85][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 8.3325	precision 95.31%	recall 95.31%	
+Epoch: [85][15/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.9400	precision 100.00%	recall 100.00%	
+Test set: Average loss: 385.9160, precision: 75.19%, recall: 75.19%
+Epoch: [86][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 2.2200	precision 100.00%	recall 100.00%	
+Epoch: [86][5/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.6963	precision 100.00%	recall 100.00%	
+Epoch: [86][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.9037	precision 100.00%	recall 100.00%	
+Epoch: [86][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 5.9226	precision 96.88%	recall 96.88%	
+Test set: Average loss: 686.5401, precision: 79.84%, recall: 79.84%
+Epoch: [87][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 1.4874	precision 100.00%	recall 100.00%	
+Epoch: [87][5/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 1.4505	precision 100.00%	recall 100.00%	
+Epoch: [87][10/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 0.8954	precision 100.00%	recall 100.00%	
+Epoch: [87][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 5.2565	precision 98.44%	recall 98.44%	
+Test set: Average loss: 791.4776, precision: 71.54%, recall: 72.09%
+Epoch: [88][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.7939	precision 100.00%	recall 100.00%	
+Epoch: [88][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.9646	precision 100.00%	recall 100.00%	
+Epoch: [88][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.7026	precision 100.00%	recall 100.00%	
+Epoch: [88][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 1.2359	precision 100.00%	recall 100.00%	
+Test set: Average loss: 970.5411, precision: 73.64%, recall: 73.64%
+Epoch: [89][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 2.2370	precision 98.44%	recall 98.44%	
+Epoch: [89][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 2.6730	precision 100.00%	recall 100.00%	
+Epoch: [89][10/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 0.9425	precision 100.00%	recall 100.00%	
+Epoch: [89][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.8233	precision 100.00%	recall 100.00%	
+Test set: Average loss: 619.8253, precision: 80.62%, recall: 80.62%
+Epoch: [90][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 0.9508	precision 100.00%	recall 100.00%	
+Epoch: [90][5/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 1.7078	precision 100.00%	recall 100.00%	
+Epoch: [90][10/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 1.0754	precision 100.00%	recall 100.00%	
+Epoch: [90][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7863	precision 100.00%	recall 100.00%	
+Test set: Average loss: 539.3643, precision: 75.97%, recall: 75.97%
+Epoch: [91][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6597	precision 100.00%	recall 100.00%	
+Epoch: [91][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7287	precision 100.00%	recall 100.00%	
+Epoch: [91][10/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 0.7542	precision 100.00%	recall 100.00%	
+Epoch: [91][15/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.6519	precision 100.00%	recall 100.00%	
+Test set: Average loss: 758.4789, precision: 77.52%, recall: 77.52%
+Epoch: [92][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 0.6091	precision 100.00%	recall 100.00%	
+Epoch: [92][5/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 0.8611	precision 100.00%	recall 100.00%	
+Epoch: [92][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.8358	precision 100.00%	recall 100.00%	
+Epoch: [92][15/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 0.6427	precision 100.00%	recall 100.00%	
+Test set: Average loss: 927.6169, precision: 76.56%, recall: 75.97%
+Epoch: [93][0/19]	Time 0.009 (0.009)	Data 0.001 (0.001)	Loss 0.7411	precision 100.00%	recall 100.00%	
+Epoch: [93][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6198	precision 100.00%	recall 100.00%	
+Epoch: [93][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6399	precision 100.00%	recall 100.00%	
+Epoch: [93][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6312	precision 100.00%	recall 100.00%	
+Test set: Average loss: 936.6420, precision: 80.62%, recall: 80.62%
+Epoch: [94][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6393	precision 100.00%	recall 100.00%	
+Epoch: [94][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6011	precision 100.00%	recall 100.00%	
+Epoch: [94][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6813	precision 100.00%	recall 100.00%	
+Epoch: [94][15/19]	Time 0.007 (0.008)	Data 0.000 (0.001)	Loss 0.6015	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1078.7312, precision: 75.97%, recall: 75.97%
+Epoch: [95][0/19]	Time 0.007 (0.007)	Data 0.000 (0.000)	Loss 0.5697	precision 100.00%	recall 100.00%	
+Epoch: [95][5/19]	Time 0.007 (0.007)	Data 0.000 (0.001)	Loss 0.7197	precision 100.00%	recall 100.00%	
+Epoch: [95][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7733	precision 100.00%	recall 100.00%	
+Epoch: [95][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.5779	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1361.4902, precision: 69.77%, recall: 69.77%
+Epoch: [96][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6845	precision 100.00%	recall 100.00%	
+Epoch: [96][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7718	precision 100.00%	recall 100.00%	
+Epoch: [96][10/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 1.3167	precision 100.00%	recall 100.00%	
+Epoch: [96][15/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 2.3196	precision 100.00%	recall 100.00%	
+Test set: Average loss: 1078.0885, precision: 79.84%, recall: 79.84%
+Epoch: [97][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6272	precision 100.00%	recall 100.00%	
+Epoch: [97][5/19]	Time 0.008 (0.008)	Data 0.000 (0.001)	Loss 0.6326	precision 100.00%	recall 100.00%	
+Epoch: [97][10/19]	Time 0.007 (0.008)	Data 0.000 (0.001)	Loss 1.5772	precision 100.00%	recall 100.00%	
+Epoch: [97][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6667	precision 100.00%	recall 100.00%	
+Test set: Average loss: 686.8481, precision: 75.97%, recall: 75.97%
+Epoch: [98][0/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.7350	precision 100.00%	recall 100.00%	
+Epoch: [98][5/19]	Time 0.007 (0.008)	Data 0.000 (0.001)	Loss 1.3305	precision 100.00%	recall 100.00%	
+Epoch: [98][10/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6882	precision 100.00%	recall 100.00%	
+Epoch: [98][15/19]	Time 0.009 (0.008)	Data 0.001 (0.001)	Loss 0.9668	precision 100.00%	recall 100.00%	
+Test set: Average loss: 827.1484, precision: 73.64%, recall: 73.64%
+Epoch: [99][0/19]	Time 0.008 (0.008)	Data 0.000 (0.000)	Loss 0.6736	precision 100.00%	recall 100.00%	
+Epoch: [99][5/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6166	precision 100.00%	recall 100.00%	
+Epoch: [99][10/19]	Time 0.007 (0.008)	Data 0.000 (0.001)	Loss 0.7491	precision 100.00%	recall 100.00%	
+Epoch: [99][15/19]	Time 0.008 (0.008)	Data 0.001 (0.001)	Loss 0.6163	precision 100.00%	recall 100.00%	
+Test set: Average loss: 849.0356, precision: 74.42%, recall: 74.42%
