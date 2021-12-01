@@ -5,6 +5,7 @@ from PIL import Image
 from torchvision import transforms
 import torch
 
+
 class VideoRecord(object):
     """
     Helper class for class VideoFrameDataset. This class
@@ -48,6 +49,7 @@ class VideoRecord(object):
         # sample associated with multiple labels
         else:
             return [int(label_id) for label_id in self._data[3:]]
+
 
 class VideoFrameDataset(torch.utils.data.Dataset):
     r"""
@@ -262,6 +264,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.video_list)
+
 
 class ImglistToTensor(torch.nn.Module):
     """

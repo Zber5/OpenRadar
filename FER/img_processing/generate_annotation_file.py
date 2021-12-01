@@ -10,8 +10,6 @@ random.seed(SEED)
 np.random.seed(SEED)
 
 
-
-
 def get_label(name):
     labels = {'Joy': 1, 'Surprise': 2, 'Anger': 3, 'Sadness': 4, 'Fear': 5, 'Disgust': 6, 'Neutral': 0}
     for key in labels.keys():

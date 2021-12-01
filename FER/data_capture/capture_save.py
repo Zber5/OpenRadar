@@ -401,9 +401,7 @@ def send_cli():
 # -------------------------    MAIN   -----------------------------------------
 if __name__ == "__main__":
     el = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust', 'Neutral']
-    # file_basepath = "C:\\Users\\Zber\\Desktop\\SavedData_Eyes"
-    # file_basepath = "C:\\Users\\Zber\\Desktop\\mmWave_plot"
-    # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S3_Nancy"
+
     # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Test"
 
     # Subjects
@@ -411,7 +409,8 @@ if __name__ == "__main__":
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S2"
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S3"
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S4"
-    file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S5"
+    ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S5"
+    file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S6"
 
     prefix = "Neutral_{}"
 
@@ -419,9 +418,9 @@ if __name__ == "__main__":
 
     record_time = config['numFrames'] / (1000 / config['framePeriodicity'])
 
-    interval = 2
-    start_record_index = 20
-    end_record_index = 40
+    interval = 5
+    start_record_index = 0
+    end_record_index = 1
 
     # preparing camera
     init = sl.InitParameters()

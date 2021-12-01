@@ -1,0 +1,189 @@
+import torch
+import torch.nn as nn
+from sklearn.model_selection import train_test_split
+import numpy as np
+import random
+import time
+
+from utils import device, AverageMeter, dir_path, write_log, senor_heatmap_label_data_loader, \
+    accuracy, normalise_data, save_dict_to_json
+from models.c3d import C3DFusionV2
+
+import os
+
+os.chdir('../')
+
+# set seed, make result reporducable
+SEED = 1234
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.cuda.manual_seed(SEED)
+torch.backends.cudnn.deterministic = True
+
+
+def train(model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_freq=10):
+    # create Average Meters
+    batch_time = AverageMeter()
+    data_time = AverageMeter()
+    losses = AverageMeter()
+    top1 = AverageMeter()
+    top5 = AverageMeter()
+    train_loss = []
+
+    # switch to train mode
+    model.train()
+    # record start time
+    start = time.time()
+
+    for i, (azi, ele, target) in enumerate(data_loader):
+        # prepare input and target
+        azi = azi.to(device)
+        ele = ele.to(device)
+        # target = target.type(torch.LongTensor)
+        target = target.long()
+        target = target.to(device)
+
+        # measure data loading time
+        data_time.update(time.time() - start)
+
+        # zero the parameter gradients
+        optimizer.zero_grad()
+
+        # gradient and do SGD step
+        output = model(azi, ele)
+        loss = criterion(output, target)
+
+        train_loss.append(loss.item())
+        loss.backward()
+        optimizer.step()
+
+        # measure accuracy and record loss
+        prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
+        losses.update(loss.item(), data_loader.batch_size)
+        top1.update(prec1.item(), data_loader.batch_size)
+        top5.update(prec5.item(), data_loader.batch_size)
+
+        # measure elapsed time
+        batch_time.update(time.time() - start)
+        start = time.time()
+
+        # print training info
+        if i % print_freq == 0:
+            str = ('Epoch: [{0}][{1}/{2}]\t'
+                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                   'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
+                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                   'Prec@1 {top1.val:3.3f} ({top1.avg:3.3f})\t'
+                   'Prec@5 {top5.val:3.3f} ({top5.avg:3.3f})'.format(
+                epoch, i, len(data_loader), batch_time=batch_time,
+                data_time=data_time, loss=losses, top1=top1, top5=top5))
+            print(str)
+
+            if to_log is not None:
+                write_log(str + '\n', to_log)
+
+    return train_loss
+
+
+def test(model, test_loader, criterion, to_log=None):
+    model.eval()
+    test_loss = 0
+    correct = 0
+    with torch.no_grad():
+        for (azi, ele, target) in test_loader:
+            azi, ele, target = azi.to(device), ele.to(device), target.to(device)
+            target = target.long()
+            output = model(azi, ele)
+            loss = criterion(output, target)
+            test_loss += loss
+            pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+            correct += pred.eq(target.view_as(pred)).sum().item()
+        test_loss /= len(test_loader.sampler)
+        test_loss *= test_loader.batch_size
+        acc = 100. * correct / len(test_loader.sampler)
+        format_str = 'Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
+            test_loss, correct, len(test_loader.sampler), acc
+        )
+        print(format_str)
+        if to_log is not None:
+            write_log(format_str, to_log)
+        return test_loss.item(), acc
+
+
+if __name__ == "__main__":
+
+    N_EPOCHS = 30
+    LR = 0.0003
+    BATCH_SIZE = 32
+    num_classes = 6
+    num_frames = 300
+
+    emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust']
+
+    # results dir
+    result_dir = "results"
+
+    # load data
+
+    azi_data_path = "data/Heatmap_D0_S1_L0_B4-14_I0-80_azi.npy"
+    ele_data_path = "data/Heatmap_D0_S1_L0_B4-14_I0-80_ele.npy"
+
+    azi = np.load(azi_data_path)
+    ele = np.load(ele_data_path)
+
+    label = np.zeros((len(emotion_list), 80))
+    for i in range(len(label)):
+        label[i] = i
+    label = label.flatten()
+
+    # expand dims
+    azi = np.expand_dims(azi, axis=1)
+    ele = np.expand_dims(ele, axis=1)
+
+    # normalize
+    azi = normalise_data(azi)
+    ele = normalise_data(ele)
+
+    # split data
+    azi_train, azi_test, ele_train, ele_test, label_train, label_test = train_test_split(azi, ele, label, test_size=0.2,
+                                                                                         random_state=25,
+                                                                                         stratify=label)
+
+    train_loader = senor_heatmap_label_data_loader(azi_train, ele_train, label_train, batch_size=BATCH_SIZE)
+    test_loader = senor_heatmap_label_data_loader(azi_test, ele_test, label_test, batch_size=np.shape(azi_test)[0])
+
+    # log path
+    path = dir_path("sensor_heatmap_3dcnn_fusion_v2", result_dir)
+
+    # create model
+    model = C3DFusionV2(sample_duration=num_frames, num_classes=num_classes)
+    model = model.to(device)
+
+    # initialize critierion and optimizer
+    # could add weighted loss e.g. pos_weight = torch.ones([64])
+    # criterion = nn.BCELoss()
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.2)
+
+    metrics_dic = {
+        'loss': [],
+        'precision': []
+    }
+
+    best_acc = 0
+    for epoch in range(N_EPOCHS):
+        train_loss = train(model, data_loader=train_loader, criterion=criterion, optimizer=optimizer, epoch=epoch,
+                           to_log=path['log'])
+        test_loss, acc = test(model, test_loader=test_loader, criterion=criterion, to_log=path['log'])
+
+        if acc > best_acc:
+            best_acc = acc
+            torch.save(model.state_dict(), path['model'])
+
+        lr_scheduler.step()
+
+        metrics_dic['loss'].append(test_loss)
+        metrics_dic['precision'].append(acc)

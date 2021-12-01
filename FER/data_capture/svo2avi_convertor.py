@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
     all = []
     start_index = 0
-    end_index = 40
+    end_index = 0
     emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust', 'Neutral']
     for em in emotion_list:
         for i in range(start_index, end_index):
@@ -145,7 +145,6 @@ if __name__ == "__main__":
     all = np.asarray(all)
 
     subs = ['S1', 'S2', 'S3', 'S4', 'S5']
-    # subs = ['S5']
     size = 800000
 
     data_folder = 'D:\\Subjects\\'
