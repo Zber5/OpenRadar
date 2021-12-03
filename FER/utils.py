@@ -1,12 +1,12 @@
 import numpy as np
 import math
-
+import os
 import matplotlib._color_data as mcd
 
 tab_color = [mcd.TABLEAU_COLORS[name] for name in mcd.TABLEAU_COLORS]
 extra_color = ['#acc2d9', '#56ae57', '#b2996e', '#a8ff04']
 colors = tab_color + extra_color
-
+ROOT_PATH = "C:/Users/Zber/Documents/Dev_program/OpenRadar"
 
 def get_label(name):
     labels = {'Joy': 1, 'Surprise': 2, 'Anger': 3, 'Sadness': 4, 'Fear': 5, 'Disgust': 6, 'Neutral': 0}
@@ -113,3 +113,79 @@ def correction_factor(win_type='Hanning', numADCSamples=256):
     cf = 20 * math.log10(2 ** (numBits - 1)) + 20 * math.log10(numADCSamples * WIN_EC[win_type]) - 20 * math.log10(
         math.sqrt(2))
     return cf
+
+
+
+class MapRecord(object):
+    """
+    Helper class for class VideoFrameDataset. This class
+    represents a video sample's metadata.
+
+    Args:
+        root_datapath: the system path to the root folder
+                       of the videos.
+        row: A list with four or more elements where 1) The first
+             element is the path to the video sample's frames excluding
+             the root_datapath prefix 2) The  second element is the starting frame id of the video
+             3) The third element is the inclusive ending frame id of the video
+             4) The fourth element is the label index.
+             5) any following elements are labels in the case of multi-label classification
+    """
+    def __init__(self, row, root_datapath):
+        self._data = row
+        self._path = os.path.join(root_datapath, row[0])
+
+
+    @property
+    def path(self):
+        return self._path
+
+    @path.setter
+    def path(self, value):
+        self._path = value
+
+    @property
+    def num_frames(self):
+        if self.offset == -1:
+            return self.peak - self.onset + 1  # +1 because end frame is inclusive
+        else:
+            return self.offset - self.onset + 1  # +1 because end frame is inclusive
+    @property
+    def onset(self):
+        return int(self._data[2])
+
+    @onset.setter
+    def onset(self, value):
+        self._data[2] = value
+
+    @property
+    def peak(self):
+        return int(self._data[3])
+
+    @peak.setter
+    def peak(self, value):
+        self._data[3] = value
+
+    @property
+    def offset(self):
+        return int(self._data[4])
+
+    @offset.setter
+    def offset(self, value):
+        self._data[4] = value
+
+    @property
+    def width_err(self):
+        return int(self._data[5])
+
+    @property
+    def height_err(self):
+        return int(self._data[6])
+
+    @property
+    def index_err(self):
+        return int(self._data[7])
+
+    @property
+    def label(self):
+        return int(self._data[1])

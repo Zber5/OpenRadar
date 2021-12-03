@@ -1,27 +1,17 @@
-# Copyright 2019 The OpenRadar Authors. All Rights Reserved.
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#     http://www.apache.org/licenses/LICENSE-2.0
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-
-import sys
 import numpy as np
 import mmwave.dsp as dsp
 from mmwave.dataloader import DCA1000
 import os
 from FER.utils import parseConfigFile, arange_tx, get_label
+from queue import Queue
+import threading
 
 # mmWave studio configure
 configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.cfg'
 
 
-def plot_heatmap_capon(adc_data_path, bin_start=4, bin_end=14, diff=False, is_log=False, remove_clutter=True,
+def plot_heatmap_capon(adc_data_path, save_path, bin_start=4, bin_end=14, diff=False, is_log=False,
+                       remove_clutter=True,
                        cumulative=False):
     num_bins = bin_end - bin_start
     npy_azi = np.zeros((numFrames, ANGLE_BINS, num_bins))
@@ -96,7 +86,11 @@ def plot_heatmap_capon(adc_data_path, bin_start=4, bin_end=14, diff=False, is_lo
         npy_azi[frame_index] = heatmap_azi
         npy_ele[frame_index] = heatmap_ele
 
-    return npy_azi, npy_ele
+    save_path_azi = save_path + "_azi"
+    save_path_ele = save_path + "_ele"
+    np.save(save_path_azi, npy_azi)
+    np.save(save_path_ele, npy_ele)
+    print("{} npy file saved!".format(save_path))
 
 
 def plot_heatmap(adc_data_path, bin_start=4, bin_end=14, diff=False, remove_clutter=True, cumulative=False):
@@ -187,6 +181,16 @@ def plot_heatmap(adc_data_path, bin_start=4, bin_end=14, diff=False, remove_clut
     return npy_azi, npy_ele
 
 
+def thread_job(queue, bin_path, heatmap_out_path):
+    while not queue.empty():
+        q = queue.get()
+        bpath = os.path.join(bin_path, q)
+        hpath = os.path.join(heatmap_out_path, q.replace("_Raw_0.bin", ""))
+        plot_heatmap_capon(bpath, hpath, bin_start=bin_start, bin_end=bin_end, diff=is_diff, is_log=is_log,
+                           remove_clutter=static_clutter_removal)
+        queue.task_done()
+
+
 if __name__ == '__main__':
 
     # num Antennas
@@ -230,7 +234,8 @@ if __name__ == '__main__':
 
     static_clutter_removal = True
     is_diff = False
-    is_log = False
+    is_log = True
+
 
     # range resolutiona and doppler resolution
     range_resolution, bandwidth = dsp.range_resolution(numADCSamples,
@@ -256,57 +261,67 @@ if __name__ == '__main__':
     # A Angle Range, AR Angle Resolution, CO coherent
 
     # start index
-    subs = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5']
-    emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust', 'Neutral']
-    start_index = 0
-    end_index = 1
-    num_records = (end_index - start_index) * len(emotion_list) * len(subs)
-    save_npy = True
-    save_txt = True
+    # subs = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5']
+    subs = ['S0']
+    # emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust', 'Neutral']
+    emotion_list = ['Neutral']
+    start_index = 1
+    end_index = 2
+    save_txt = False
+    save_config = False
 
     # data
     bin_start = 4
     bin_end = 14
     num_bins = bin_end - bin_start
-    data_azi = np.zeros((num_records, numFrames, ANGLE_BINS, num_bins))
-    data_ele = np.zeros((num_records, numFrames, ANGLE_BINS, num_bins))
     index = 0
+    queue = Queue()
 
     str_arr = []
-
-    # saved file name
-    # file_prefix = "heatmap_D0_S0_L0_N0_B4-14_I0-80_A-45->45_AR_1_CO_0"
-    file_prefix = "Heatmap_D{}_S{}_L{}_B{}->{}_I{}->{}_A{}->{}_AR_{}_CO_{}".format(int(is_diff), int(static_clutter_removal),
-                                                                          int(is_log), bin_start, bin_end, start_index,
-                                                                          end_index, -ANGLE_RANGE, ANGLE_RANGE,
-                                                                          ANGLE_RES, non_coherent)
 
     for sub in subs:
         for l, e in enumerate(emotion_list):
             for i in range(start_index, end_index):
                 bin_path = os.path.join(root_path, sub, data_path.format(e, i))
                 relative_path = os.path.join(sub, data_path.format(e, i))
+                queue.put(relative_path)
                 label = get_label(data_path.format(e, i))
-
-                npy_azi, npy_ele = plot_heatmap_capon(bin_path, bin_start, bin_end, diff=is_diff, is_log=is_log,
-                                                      remove_clutter=static_clutter_removal)
                 str_arr.append("{} {}".format(relative_path, label))
 
-                data_azi[index] = npy_azi
-                data_ele[index] = npy_ele
-                index += 1
-                print("{} Complete".format(bin_path))
-
-    # save npy file
-    if save_npy:
-        save_path = os.path.join(output_data_path, file_prefix)
-        save_path_azi = save_path + "_azi"
-        save_path_ele = save_path + "_ele"
-        np.save(save_path_azi, data_azi)
-        np.save(save_path_ele, data_ele)
-        print("Npy file saved")
-
     if save_txt:
-        with open(os.path.join(root_path, "heatmap_annotation.txt"), 'a') as f:
-            f.writelines('\n'.join(str_arr))
+        with open(os.path.join(output_data_path, "heatmap_annotation.txt"), 'a') as f:
+            f.writelines('\n'.join(str_arr)+'\n')
         print("Write {} Records to txt file".format(len(str_arr)))
+
+    if save_config:
+        import json
+
+        config = {
+            "Different": str(is_diff),
+            "Static Clutter Removal": str(static_clutter_removal),
+            "Noncoherent": str(non_coherent),
+            "Log10": str(is_log),
+            "Bin Start": bin_start,
+            "Bin End": bin_end,
+            "Data Start Index": start_index,
+            "Data End Index": end_index,
+            "Angle Start": -ANGLE_RANGE,
+            "Angle End": ANGLE_RANGE,
+            "Angle Bins": ANGLE_BINS,
+            "Angle Resolution": ANGLE_RES,
+        }
+
+        with open(os.path.join(output_data_path, 'config.json'), 'w') as f:
+            json.dump(config, f, indent=4)
+
+    thread_job(queue, root_path, output_data_path)
+
+    # NUM_THREADS = 16
+    # for i in range(NUM_THREADS):
+    #     worker = threading.Thread(target=thread_job, args=(queue, root_path, output_data_path))
+    #     worker.start()
+    #
+    # print('waiting for all videos to be completed.', queue.qsize(), 'videos')
+    # print('This can take an hour or two depending on dataset size')
+    # queue.join()
+    # print('all done')

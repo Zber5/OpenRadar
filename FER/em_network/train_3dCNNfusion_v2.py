@@ -24,61 +24,6 @@ torch.cuda.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 
 
-def rmse(y, y_hat):
-    """Compute root mean squared error"""
-    length = y.size()[1]
-    return torch.sqrt(torch.mean((y - y_hat).pow(2))) / length
-
-
-def precision(y_true, y_pred):
-    '''Calculates the precision, a metric for multi-label classification of
-    how many selected items are relevant.
-    '''
-    epsilon = torch.tensor([1e-7]).to(device)
-    true_positives = torch.sum(torch.round(torch.clip(y_true * y_pred, 0, 1)))
-    predicted_positives = torch.sum(torch.round(torch.clip(y_pred, 0, 1)))
-    precision = true_positives / (predicted_positives + epsilon)
-    return precision.item()
-
-
-def recall(y_true, y_pred):
-    '''Calculates the recall, a metric for multi-label classification of
-    how many relevant items are selected.
-    '''
-    epsilon = torch.tensor([1e-7]).to(device)
-    true_positives = torch.sum(torch.round(torch.clip(y_true * y_pred, 0, 1)))
-    possible_positives = torch.sum(torch.round(torch.clip(y_true, 0, 1)))
-    recall = true_positives / (possible_positives + epsilon)
-    return recall.item()
-
-
-def fbeta_score(y_true, y_pred, beta=1):
-    '''Calculates the F score, the weighted harmonic mean of precision and recall.
-    This is useful for multi-label classification, where input samples can be
-    classified as sets of labels. By only using accuracy (precision) a model
-    would achieve a perfect score by simply assigning every class to every
-    input. In order to avoid this, a metric should penalize incorrect class
-    assignments as well (recall). The F-beta score (ranged from 0.0 to 1.0)
-    computes this, as a weighted mean of the proportion of correct class
-    assignments vs. the proportion of incorrect class assignments.
-    With beta = 1, this is equivalent to a F-measure. With beta < 1, assigning
-    correct classes becomes more important, and with beta > 1 the metric is
-    instead weighted towards penalizing incorrect class assignments.
-    '''
-    if beta < 0:
-        raise ValueError('The lowest choosable beta is zero (only precision).')
-
-    # If there are no true positives, fix the F score at 0 like sklearn.
-    if torch.sum(torch.round(torch.clip(y_true, 0, 1))) == 0:
-        return 0
-    epsilon = torch.tensor([1e-7]).to(device)
-    p = precision(y_true, y_pred)
-    r = recall(y_true, y_pred)
-    bb = beta ** 2
-    fbeta_score = (1 + bb) * (p * r) / (bb * p + r + epsilon)
-    return fbeta_score
-
-
 class TimeseriesDataset(torch.utils.data.Dataset):
     def __init__(self, X, y):
         self.X = X
@@ -90,54 +35,6 @@ class TimeseriesDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         return (self.X[index:index + self.seq_len], self.y[index + self.seq_len - 1])
-
-
-def format_dataset(sensor, imag, label, imag_window=9, sensor_window=30, imag_step=3, sensor_step=10):
-    num_data = np.shape(sensor)[0]
-    sensor_channels = np.shape(sensor)[1]
-    sensor_bins = np.shape(sensor)[3]
-    imag_channels = np.shape(imag)[1]
-    sensor_length = np.shape(sensor)[2]
-    imag_length = np.shape(imag)[2]
-
-    intensity_unit = 0.1
-
-    num_segment = (imag_length - imag_window) // imag_step + 1
-
-    x = np.zeros((num_segment * num_data, sensor_channels, sensor_window, sensor_bins))
-    y = np.zeros((num_segment * num_data, imag_channels))
-    l = np.zeros((num_segment * num_data))
-    index = 0
-    for i in range(num_data):
-        label_content = label[i]
-        for imag_idx, sensor_idx in twin_sliding_window(imag_length, sensor_length, imag_window, sensor_window,
-                                                        imag_step, sensor_step):
-            sensor_start, sensor_end = sensor_idx
-            imag_start, imag_end = imag_idx
-            x[index] = sensor[i, :, sensor_start:sensor_end]
-            # imag_mean = np.mean(imag[i, :, imag_start:imag_end], axis=1)
-            imag_diff = imag[i, :, imag_end] - imag[i, :, imag_start]
-            cond = imag_diff > intensity_unit
-            binary_label = cond.astype(int)
-            y[index] = binary_label
-            l[index] = label_content
-            index += 1
-
-    return x, y, l
-
-
-def loss_fn(recon_x, x, mu, logvar):
-    # BCE = F.binary_cross_entropy(recon_x, x, size_average=False)
-    bceloss_fn = nn.BCELoss(size_average=False)
-    BCE = bceloss_fn(recon_x, x)
-    # BCE = F.mse_loss(recon_x, x, size_average=False)
-
-    # see Appendix B from VAE paper:
-    # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
-    # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-    KLD = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp())
-
-    return BCE + KLD, BCE, KLD
 
 
 def train(model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_freq=5):
@@ -234,37 +131,6 @@ def scale_range(input, min=0, max=1):
     input /= np.max(input) / (max - min)
     input += min
     return input
-
-
-class EMONet(nn.Module):
-    def __init__(self, n_class):
-        super(EMONet, self).__init__()
-
-        self.encode = EMOEncode()
-        self.decode = EMODecode(n_class)
-        self.fc1 = nn.Linear(192, 32)
-        self.fc2 = nn.Linear(192, 32)
-        self.fc3 = nn.Linear(32, 192)
-
-    def reparameterize(self, mu, logvar):
-        std = logvar.mul(0.5).exp_()
-        # return torch.normal(mu, std)
-        esp = torch.randn(*mu.size()).to(device)
-        z = mu + std * esp
-        # z = mu + std
-        return z
-
-    def bottleneck(self, h):
-        mu, logvar = self.fc1(h), self.fc2(h)
-        z = self.reparameterize(mu, logvar)
-        return z, mu, logvar
-
-    def forward(self, x):
-        h = self.encode(x)
-        z, mu, logvar = self.bottleneck(h)
-        z = self.fc3(z)
-        z = self.decode(z)
-        return z, mu, logvar
 
 
 if __name__ == "__main__":

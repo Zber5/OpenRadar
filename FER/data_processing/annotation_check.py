@@ -6,8 +6,9 @@ from mmwave.dsp.utils import Window
 import math
 from scipy.signal import find_peaks, peak_widths
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
-from FER.utils import parseConfigFile, get_label, arange_tx, colors
+from FER.utils import parseConfigFile, get_label, arange_tx, MapRecord
 
 plt.close('all')
 
@@ -100,6 +101,66 @@ def peak_detection(range_data, half=True, is_diff=True, loop_index=5, plot=False
     return onset, peak, offset, e1, e2, e3
 
 
+def annotation_update(record_list, width=100, total_frame=300):
+    for record in record_list:
+        if record.num_frames < width:
+            pad = (width - record.num_frames)//2
+            if record.onset < pad:
+                record.peak += pad*2
+
+            elif (total_frame - record.peak) < pad:
+                record.onset -= pad*2
+            else:
+                record.onset -= pad
+                record.peak += pad
+        else:
+            pad = record.num_frames - width
+            record.peak -= pad
+
+        record.path = record.path.replace("Raw_0.bin","{}.npy").replace("\\", "/")
+
+        if record.num_frames != 100:
+            record.peak += 1
+        assert record.num_frames == 100, 'the num of frames must equal to 100!'
+    return record_list
+
+
+def annotation_attention(record_list, width=30):
+    for record in record_list:
+        record.onset = math.floor(record.onset * 3 / 10)
+        record.peak = record.onset + width - 1
+        record.path = record.path.replace("_{}.npy","")
+    return record_list
+
+
+def annotation_append():
+    str_arr = []
+    str_format = "{} {} {} {} {} {} {} {}"
+    npy_path = "{}_{}"
+    emotion = 'Neutral'
+    subs = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5']
+
+    for sub in subs:
+        for i in range(0,30):
+            path = (os.path.join(sub, npy_path.format(emotion, i,)) + '_{}.npy').replace("\\", "/")
+            label = "0"
+            onset = 51
+            peak = 150
+            offset = -1
+            e1 = 0
+            e2 = 0
+            e3 = 0
+            str_arr.append(str_format.format(path, label, onset, peak, offset, e1, e2 , e3))
+    return str_arr
+
+
+def data_split(record_list):
+    labels = [r.label for r in record_list]
+    train, test = train_test_split(record_list, test_size=0.2, random_state=25, stratify=labels)
+    return train, test
+
+
+
 if __name__ == '__main__':
 
     # num Antennas
@@ -137,49 +198,31 @@ if __name__ == '__main__':
                                                                                                 doppler_resolution))
 
     # loading data configure
-    root_path = "D:\\Subjects\\"
-    output_data_path = "C:\\Users\\Zber\\Desktop\\Subjects_Variance\\S2"
-    str_arr = []
+    # root_path = "D:\\Subjects"
+    # root_path = "C:\\Users\\Zber\\Desktop\\Subjects_Heatmap"
+    root_path = "C:\\Users\\Zber\\Desktop\\Subjects_Frames"
+    annotaton_path = "D:\\Subjects\\annotations.txt"
 
-    # str format: path, label, onset, peak, offset, widthError, heightError, indexError
-    str_format = "{} {} {} {} {} {} {} {}"
+    record_list = [MapRecord(x.strip().split(), root_path) for x in open(annotaton_path)]
 
-    adc_path = "{}_{}_Raw_0.bin"
-    emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust']
-    # emotion_list = ['Anger']
-    subs = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5']
-    # subs = ['S1']
-
-    start_index = 0
-    end_index = 30
     half_attention = True
     plot_debug = True
 
-    for sub in subs:
-        for e in emotion_list:
-            for i in range(start_index, end_index):
-                adc_data_path = os.path.join(root_path, sub, adc_path.format(e, i))
-                relative_path = os.path.join(sub, adc_path.format(e, i))
+    for record in record_list:
 
-                # (1) Reading in adc data
-                adc_data = np.fromfile(adc_data_path, dtype=np.int16)
-                adc_data = adc_data.reshape(numFrames, -1)
-                adc_data = np.apply_along_axis(DCA1000.organize, 1, adc_data, num_chirps=numChirpsPerFrame,
-                                               num_rx=numRxAntennas, num_samples=numADCSamples)
-                print("{} >> Data Loaded!".format(adc_data_path))
+        if record.index_err == 1:
+            adc_data = np.fromfile(record.path, dtype=np.int16)
+            adc_data = adc_data.reshape(numFrames, -1)
+            adc_data = np.apply_along_axis(DCA1000.organize, 1, adc_data, num_chirps=numChirpsPerFrame,
+                                           num_rx=numRxAntennas, num_samples=numADCSamples)
+            print("{} >> Data Loaded!".format(record.path))
 
-                # processing range data
-                range_data = dsp.range_processing(adc_data, window_type_1d=Window.HANNING)
+            # processing range data
+            range_data = dsp.range_processing(adc_data, window_type_1d=Window.HANNING)
 
-                # reshape frame data
-                range_data = arange_tx(range_data, num_tx=numTxAntennas)
+            # reshape frame data
+            range_data = arange_tx(range_data, num_tx=numTxAntennas)
 
-                b_index = 8
-                out = peak_detection(range_data[..., b_index], half=half_attention,
-                                                                 plot=plot_debug)
-                label = get_label(e)
-                str_arr.append(str_format.format(relative_path, label, *out))
-
-    with open(os.path.join(root_path, "annotations_v2txt"), 'a') as f:
-        f.writelines('\n'.join(str_arr))
-    print("Write {} Records to txt file".format(len(str_arr)))
+            b_index = 8
+            out = peak_detection(range_data[..., b_index], half=half_attention,
+                                                             plot=plot_debug)

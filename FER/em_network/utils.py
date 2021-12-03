@@ -4,38 +4,28 @@ import os
 import shutil
 import torch
 from torch.utils.data import DataLoader, Dataset
-from sklearn.preprocessing import LabelEncoder
 import time
 from pathlib import Path
 import cv2
 import torchvision.transforms as transforms
-
-from collections import OrderedDict
 import datetime
-
-# import tensorflow as tf
-
 import numpy as np
-import scipy.misc
-
 import random
 
-random.seed(123)
+# set seed, make result reporducable
+SEED = 1234
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.cuda.manual_seed(SEED)
+torch.backends.cudnn.deterministic = True
 
-try:
-    from StringIO import StringIO  # Python 2.7
-except ImportError:
-    from io import BytesIO  # Python 3.x
+
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# device = torch.device('cpu')
 
 EMO_CLASSES = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust']
-
-
-# device = torch.device('cpu')
-
-
-# device = torch.device('cpu')
 
 
 def normalise_data(data):
@@ -356,7 +346,7 @@ def dir_path(dir_name, result_dir):
     path_to_model = os.path.join(res_dir, 'best_model.pt')
     path_to_log = os.path.join(res_dir, 'log.txt')
     path_to_timer_dic = os.path.join(res_dir, 'timer.json')
-    path_to_metrics = os.path.join(res_dir, 'metrics.json')
+    path_to_metrics = os.path.join(res_dir, 'metrics.csv')
     if not os.path.exists(res_dir):
         os.makedirs(res_dir)
     dic = {
@@ -366,7 +356,6 @@ def dir_path(dir_name, result_dir):
         'model': path_to_model,
         'timer': path_to_timer_dic,
     }
-
     return dic
 
 
@@ -397,19 +386,6 @@ def set_logger(log_path):
         stream_handler = logging.StreamHandler()
         stream_handler.setFormatter(logging.Formatter('%(message)s'))
         logger.addHandler(stream_handler)
-
-
-def save_dict_to_json(d, json_path):
-    """Saves dict of floats in json file
-
-    Args:
-        d: (dict) of float-castable values (np.float, int, float, etc.)
-        json_path: (string) path to json file
-    """
-    with open(json_path, 'w') as f:
-        # We need to convert the values to float for json (it doesn't accept np.array, np.float, )
-        d = {k: float(v) for k, v in d.items()}
-        json.dump(d, f, indent=4)
 
 
 def save_checkpoint(state, is_best, checkpoint):
@@ -500,65 +476,3 @@ class Logger(object):
         self.file_writer.write('{:}\n'.format(string))
         self.file_writer.flush()
 
-    # class Board_Logger(object):
-#     """Tensorboard log utility"""
-#
-#     def __init__(self, log_dir):
-#         """Create a summary writer logging to log_dir."""
-#         self.writer = tf.summary.FileWriter(log_dir)
-#
-#     def scalar_summary(self, tag, value, step):
-#         """Log a scalar variable."""
-#         summary = tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)])
-#         self.writer.add_summary(summary, step)
-#
-#     def image_summary(self, tag, images, step):
-#         """Log a list of images."""
-#
-#         img_summaries = []
-#         for i, img in enumerate(images):
-#             # Write the image to a string
-#             try:
-#                 s = StringIO()
-#             except:
-#                 s = BytesIO()
-#             scipy.misc.toimage(img).save(s, format="png")
-#
-#             # Create an Image object
-#             img_sum = tf.Summary.Image(encoded_image_string=s.getvalue(),
-#                                        height=img.shape[0],
-#                                        width=img.shape[1])
-#             # Create a Summary value
-#             img_summaries.append(tf.Summary.Value(tag='%s/%d' % (tag, i), image=img_sum))
-#
-#         # Create and write Summary
-#         summary = tf.Summary(value=img_summaries)
-#         self.writer.add_summary(summary, step)
-#
-#     def histo_summary(self, tag, values, step, bins=1000):
-#         """Log a histogram of the tensor of values."""
-#
-#         # Create a histogram using numpy
-#         counts, bin_edges = np.histogram(values, bins=bins)
-#
-#         # Fill the fields of the histogram proto
-#         hist = tf.HistogramProto()
-#         hist.min = float(np.min(values))
-#         hist.max = float(np.max(values))
-#         hist.num = int(np.prod(values.shape))
-#         hist.sum = float(np.sum(values))
-#         hist.sum_squares = float(np.sum(values ** 2))
-#
-#         # Drop the start of the first bin
-#         bin_edges = bin_edges[1:]
-#
-#         # Add bin edges and counts
-#         for edge in bin_edges:
-#             hist.bucket_limit.append(edge)
-#         for c in counts:
-#             hist.bucket.append(c)
-#
-#         # Create and write Summary
-#         summary = tf.Summary(value=[tf.Summary.Value(tag=tag, histo=hist)])
-#         self.writer.add_summary(summary, step)
-#         self.writer.flush()

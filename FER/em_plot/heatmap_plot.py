@@ -51,11 +51,12 @@ device_v = True
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/S1/Surprise_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/S3/Surprise_30_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/S3/Surprise_30_Raw_0.bin"
-adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/constant_moving_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/constant_moving_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/SavedData_MIMO/Joy_41_Raw_0.bin"
 # adc_data_path = "C:\\Users\\Zber\\Desktop\\mmWave_plot\\Neutral_0_Raw_0.bin"
 # adc_data_path = "C:\\Users\\Zber\\Desktop\\mmWave_plot\\Neutral_11_Raw_0.bin"
 # adc_data_path = "C:\\Users\\Zber\\Desktop\\mmWave_plot\\Neutral_4_Raw_0.bin"
+adc_data_path = "D:\\Subjects\\S0\\Neutral_26_Raw_0.bin"
 
 
 plotRangeDopp = True
@@ -676,8 +677,8 @@ if __name__ == '__main__':
     num_vec, steering_vec = dsp.gen_steering_vec(ANGLE_RANGE, ANGLE_RES, VIRT_ANT_AZI)
     num_vec_ele, steering_vec_ele = dsp.gen_steering_vec(ANGLE_RANGE, ANGLE_RES, VIRT_ANT_ELE)
 
-    # fig, axes = plt.subplots(1, 4, figsize=(ANGLE_BINS // 5, BINS_PROCESSED // 5 * 4))
-    fig, axes = plt.subplots(1, 2, figsize=(ANGLE_BINS // 5, BINS_PROCESSED // 5 * 2))
+    fig, axes = plt.subplots(1, 4, figsize=(ANGLE_BINS // 5, BINS_PROCESSED // 5 * 4))
+    # fig, axes = plt.subplots(1, 2, figsize=(ANGLE_BINS // 5, BINS_PROCESSED // 5 * 2))
     frame_index = 0
 
     # stored np array
@@ -794,7 +795,7 @@ if __name__ == '__main__':
         axes[0].set_xlabel('Range')
         axes[0].set_ylabel('Azimuth')
 
-        # axes[0].imshow(range_azimuth / range_azimuth.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
+        axes[0].imshow(range_azimuth / range_azimuth.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
         # axes[0].imshow(range_azimuth, interpolation='nearest', aspect='auto', cmap='coolwarm')
 
         # axes[0].imshow(np.angle(range_azimuth), interpolation='nearest', aspect='auto')
@@ -802,9 +803,9 @@ if __name__ == '__main__':
         # cago
         # peaks = cago_cfar(range_azimuth)
 
-        # axes[1].set_xlabel('Range')
-        # axes[1].set_ylabel('Elevation')
-        # axes[1].imshow(range_elevation / range_elevation.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
+        axes[1].set_xlabel('Range')
+        axes[1].set_ylabel('Elevation')
+        axes[1].imshow(range_elevation / range_elevation.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
         # axes[1].imshow(range_elevation, interpolation='nearest', aspect='auto', cmap='coolwarm')
 
 
@@ -813,22 +814,22 @@ if __name__ == '__main__':
 
         # peaks, mask = cago_cfar(range_elevation)
 
-        axes[0].imshow(cum_h/np.max(cum_h), interpolation='nearest', aspect='auto', cmap='coolwarm')
+        # axes[0].imshow(cum_h/np.max(cum_h), interpolation='nearest', aspect='auto', cmap='coolwarm')
         # axes[0].imshow(cum_e/np.max(cum_e), interpolation='nearest', aspect='auto', cmap='coolwarm')
 
-        peaks, mask = cago_cfar(cum_h/np.max(cum_h))
+        # peaks, mask = cago_cfar(cum_h/np.max(cum_h))
         # peaks, mask = cago_cfar_ele(cum_e/np.max(cum_e))
 
-        axes[1].imshow(mask, interpolation='nearest', aspect='auto', cmap='coolwarm')
+        # axes[1].imshow(mask, interpolation='nearest', aspect='auto', cmap='coolwarm')
         # axes[1].imshow(np.angle(range_elevation), interpolation='nearest', aspect='auto')
         #
-        # axes[2].set_xlabel('Range')
-        # axes[2].set_ylabel('Azimuth')
-        # axes[2].imshow(cum_h / cum_h.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
+        axes[2].set_xlabel('Range')
+        axes[2].set_ylabel('Azimuth')
+        axes[2].imshow(cum_h / cum_h.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
         #
-        # axes[3].set_xlabel('Range')
-        # axes[3].set_ylabel('Elevation')
-        # axes[3].imshow(cum_e / cum_e.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
+        axes[3].set_xlabel('Range')
+        axes[3].set_ylabel('Elevation')
+        axes[3].imshow(cum_e / cum_e.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
 
         plt.title("Range-Angle Heatmap " + str(frame_index), loc='center')
         plt.pause(0.02)

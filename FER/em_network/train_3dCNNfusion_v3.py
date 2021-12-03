@@ -1,17 +1,16 @@
 import torch
 import torch.nn as nn
-from sklearn.model_selection import train_test_split
 import numpy as np
 import random
 import time
 
-from utils import device, AverageMeter, dir_path, write_log, senor_heatmap_label_data_loader, \
-    accuracy, normalise_data, save_dict_to_json
-from models.c3d import C3DFusionV2
-
+from utils import device, AverageMeter, dir_path, write_log, accuracy
+from models.c3d import C3DFusionBaseline
+from heatmap_dataset import HeatmapDataset
+from torch.utils.data import DataLoader
 import os
-
-os.chdir('../')
+import pandas as pd
+print("Current Working Dir: {}".format(os.getcwd()))
 
 # set seed, make result reporducable
 SEED = 1234
@@ -37,12 +36,10 @@ def train(model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_
     start = time.time()
 
     for i, (azi, ele, target) in enumerate(data_loader):
-        # prepare input and target
-        azi = azi.to(device)
-        ele = ele.to(device)
-        # target = target.type(torch.LongTensor)
-        target = target.long()
-        target = target.to(device)
+        # prepare input and target to device
+        azi = azi.to(device, dtype=torch.float)
+        ele = ele.to(device, dtype=torch.float)
+        target = target.to(device, dtype=torch.long)
 
         # measure data loading time
         data_time.update(time.time() - start)
@@ -92,13 +89,17 @@ def test(model, test_loader, criterion, to_log=None):
     correct = 0
     with torch.no_grad():
         for (azi, ele, target) in test_loader:
-            azi, ele, target = azi.to(device), ele.to(device), target.to(device)
-            target = target.long()
+            # prepare input and target to device
+            azi = azi.to(device, dtype=torch.float)
+            ele = ele.to(device, dtype=torch.float)
+            target = target.to(device, dtype=torch.long)
+
             output = model(azi, ele)
             loss = criterion(output, target)
             test_loss += loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
+
         test_loss /= len(test_loader.sampler)
         test_loss *= test_loader.batch_size
         acc = 100. * correct / len(test_loader.sampler)
@@ -113,51 +114,35 @@ def test(model, test_loader, criterion, to_log=None):
 
 if __name__ == "__main__":
 
-    N_EPOCHS = 30
+    N_EPOCHS = 1
     LR = 0.0003
-    BATCH_SIZE = 32
-    num_classes = 6
-    num_frames = 300
+    BATCH_SIZE = 16
+    num_classes = 7
+    num_frames = 100
 
-    emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust']
+    emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust', 'Neutral']
 
     # results dir
-    result_dir = "results"
+    result_dir = "FER/results"
+
+    # heatmap root dir
+    heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+
+    # annotation dir
+    annotation_train = os.path.join(heatmap_root, "heatmap_annotation_train.txt")
+    annotation_test = os.path.join(heatmap_root, "heatmap_annotation_test.txt")
 
     # load data
-
-    azi_data_path = "data/Heatmap_D0_S1_L0_B4-14_I0-80_azi.npy"
-    ele_data_path = "data/Heatmap_D0_S1_L0_B4-14_I0-80_ele.npy"
-
-    azi = np.load(azi_data_path)
-    ele = np.load(ele_data_path)
-
-    label = np.zeros((len(emotion_list), 80))
-    for i in range(len(label)):
-        label[i] = i
-    label = label.flatten()
-
-    # expand dims
-    azi = np.expand_dims(azi, axis=1)
-    ele = np.expand_dims(ele, axis=1)
-
-    # normalize
-    azi = normalise_data(azi)
-    ele = normalise_data(ele)
-
-    # split data
-    azi_train, azi_test, ele_train, ele_test, label_train, label_test = train_test_split(azi, ele, label, test_size=0.2,
-                                                                                         random_state=25,
-                                                                                         stratify=label)
-
-    train_loader = senor_heatmap_label_data_loader(azi_train, ele_train, label_train, batch_size=BATCH_SIZE)
-    test_loader = senor_heatmap_label_data_loader(azi_test, ele_test, label_test, batch_size=np.shape(azi_test)[0])
+    dataset_train = HeatmapDataset(heatmap_root, annotation_train)
+    dataset_test = HeatmapDataset(heatmap_root, annotation_test)
+    train_loader = DataLoader(dataset_train, batch_size=BATCH_SIZE, num_workers=4, pin_memory=True)
+    test_loader = DataLoader(dataset_test, batch_size=BATCH_SIZE, num_workers=4, pin_memory=True)
 
     # log path
     path = dir_path("sensor_heatmap_3dcnn_fusion_v2", result_dir)
 
     # create model
-    model = C3DFusionV2(sample_duration=num_frames, num_classes=num_classes)
+    model = C3DFusionBaseline(sample_duration=num_frames, num_classes=num_classes)
     model = model.to(device)
 
     # initialize critierion and optimizer
@@ -166,7 +151,7 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.2)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.2)
 
     metrics_dic = {
         'loss': [],
@@ -187,3 +172,7 @@ if __name__ == "__main__":
 
         metrics_dic['loss'].append(test_loss)
         metrics_dic['precision'].append(acc)
+
+    # save csv log
+    df = pd.DataFrame.from_dict(metrics_dic)
+    df.to_csv(path['metrics'], sep='\t', encoding='utf-8')
