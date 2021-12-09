@@ -6,6 +6,136 @@ from torchvision import transforms
 import torch
 
 
+class ConcatDataset(torch.utils.data.Dataset):
+    def __init__(self, *datasets):
+        self.datasets = datasets
+
+    def __getitem__(self, i):
+        return tuple(d[i] for d in self.datasets)
+
+    def __len__(self):
+        return min(len(d) for d in self.datasets)
+
+
+class MapRecord(object):
+    """
+    Helper class for class VideoFrameDataset. This class
+    represents a video sample's metadata.
+
+    Args:
+        root_datapath: the system path to the root folder
+                       of the videos.
+        row: A list with four or more elements where 1) The first
+             element is the path to the video sample's frames excluding
+             the root_datapath prefix 2) The  second element is the starting frame id of the video
+             3) The third element is the inclusive ending frame id of the video
+             4) The fourth element is the label index.
+             5) any following elements are labels in the case of multi-label classification
+    """
+    def __init__(self, row, root_datapath):
+        self._data = row
+        self._path = os.path.join(root_datapath, row[0])
+
+
+    @property
+    def path(self):
+        return self._path
+
+    @path.setter
+    def path(self, value):
+        self._path = value
+
+    @property
+    def relative_path(self):
+        return self._data[0]
+
+    @property
+    def num_frames(self):
+        if self.offset == -1:
+            return self.peak - self.onset + 1  # +1 because end frame is inclusive
+        else:
+            return self.offset - self.onset + 1  # +1 because end frame is inclusive
+    @property
+    def onset(self):
+        return int(self._data[2])
+
+    @onset.setter
+    def onset(self, value):
+        self._data[2] = value
+
+    @property
+    def peak(self):
+        return int(self._data[3])
+
+    @peak.setter
+    def peak(self, value):
+        self._data[3] = value
+
+    @property
+    def offset(self):
+        return int(self._data[4])
+
+    @offset.setter
+    def offset(self, value):
+        self._data[4] = value
+
+    @property
+    def width_err(self):
+        return int(self._data[5])
+
+    @property
+    def height_err(self):
+        return int(self._data[6])
+
+    @property
+    def index_err(self):
+        return int(self._data[7])
+
+    @property
+    def label(self):
+        return int(self._data[1])
+
+
+class HeatmapDataset(torch.utils.data.Dataset):
+    def __init__(self,
+                 root_path: str,
+                 annotationfile_path: str):
+        super(HeatmapDataset, self).__init__()
+
+        self.root_path = root_path
+        self.annotationfile_path = annotationfile_path
+        self._parse_list()
+
+    def _parse_list(self):
+        self.map_list = [MapRecord(x.strip().split(), self.root_path) for x in open(self.annotationfile_path)]
+
+    def __getitem__(self, index):
+        record = self.map_list[index]
+        return self._get(record)
+
+    def _get(self, record):
+        azi = np.load(record.path.format("azi"))
+        azi = azi[record.onset:record.peak + 1]
+        azi = np.expand_dims(azi, axis=0)
+
+        ele = np.load(record.path.format("ele"))
+        ele = ele[record.onset:record.peak + 1]
+        ele = np.expand_dims(ele, axis=0)
+
+        return azi, ele, record.label
+
+    def _normalize(self, data, is_azi=True):
+        azi_para = [73.505790, 3.681510]
+        ele_para = [86.071959, 5.921158]
+        if is_azi:
+            return (data-azi_para[0])/azi_para[1]
+        else:
+            return (data - ele_para[0]) / ele_para[1]
+
+    def __len__(self):
+        return len(self.map_list)
+
+
 class VideoRecord(object):
     """
     Helper class for class VideoFrameDataset. This class
@@ -284,3 +414,17 @@ class ImglistToTensor(torch.nn.Module):
             tensor of size ``NUM_IMAGES x CHANNELS x HEIGHT x WIDTH``
         """
         return torch.stack([transforms.functional.to_tensor(pic) for pic in img_list])
+
+
+def denormalize(video_tensor):
+    """
+    Undoes mean/standard deviation normalization, zero to one scaling,
+    and channel rearrangement for a batch of images.
+    args:
+        video_tensor: a (FRAMES x CHANNELS x HEIGHT x WIDTH) tensor
+    """
+    inverse_normalize = transforms.Normalize(
+        mean=[-0.485 / 0.229, -0.456 / 0.224, -0.406 / 0.225],
+        std=[1 / 0.229, 1 / 0.224, 1 / 0.225]
+    )
+    return (inverse_normalize(video_tensor) * 255.).type(torch.uint8).permute(0, 2, 3, 1).numpy()

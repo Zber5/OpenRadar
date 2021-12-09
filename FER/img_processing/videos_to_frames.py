@@ -37,6 +37,10 @@ def detect_face_cv(img, padding_ratio=1.1):
         'C:/Users/Zber/Documents/GitHub/face-alignment/emotion/haarcascade_frontalface_alt2.xml')
     # Detect faces
     faces = face_cascade.detectMultiScale(image=gray, scaleFactor=1.1, minNeighbors=4)
+    new_x = new_y = pad_w = pad_h = -1
+
+    if len(faces) == 0:
+        return (new_x, new_y, pad_w, pad_h, False)
 
     for (x, y, w, h) in faces:
         pad_w = int(w * padding_ratio)
@@ -45,7 +49,7 @@ def detect_face_cv(img, padding_ratio=1.1):
         new_x = x - (pad_w - w) // 2
         new_y = y - (pad_h - h) // 2
 
-        return (new_x, new_y, pad_w, pad_h)
+        return (new_x, new_y, pad_w, pad_h, True)
 
 
 def video_to_rgb_face(video_filename, out_dir, resize_shape):
@@ -55,6 +59,7 @@ def video_to_rgb_face(video_filename, out_dir, resize_shape):
     success, frame, = reader.read()  # read first frame
 
     # detect face cv
+
     x, y, w, h = detect_face_cv(frame)
 
     count = 0
@@ -91,9 +96,9 @@ def thread_job(queue, video_path, rgb_out_path, file_extension='.webm'):
 
 if __name__ == '__main__':
     # the path to the folder which contains all video files (mp4, webm, or other)
-    video_path = 'C:\\Users\\Zber\\Desktop\\Subjects_Video\\S5'
+    video_path = 'C:\\Users\\Zber\\Desktop\\Subjects_Video\\S0\\Anger_26'
     # the root output path where RGB frame folders should be created
-    rgb_out_path = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\S5'
+    rgb_out_path = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\S0'
     # the file extension that the videos have
     file_extension = '.avi'
 
@@ -102,14 +107,14 @@ if __name__ == '__main__':
     queue = Queue()
     [queue.put(video_filename) for video_filename in video_filenames]
 
-    # thread_job(queue, video_path, rgb_out_path, file_extension)
+    thread_job(queue, video_path, rgb_out_path, file_extension)
 
-    NUM_THREADS = 30
-    for i in range(NUM_THREADS):
-        worker = threading.Thread(target=thread_job, args=(queue, video_path, rgb_out_path, file_extension))
-        worker.start()
-
-    print('waiting for all videos to be completed.', queue.qsize(), 'videos')
-    print('This can take an hour or two depending on dataset size')
-    queue.join()
-    print('all done')
+    # NUM_THREADS = 16
+    # for i in range(NUM_THREADS):
+    #     worker = threading.Thread(target=thread_job, args=(queue, video_path, rgb_out_path, file_extension))
+    #     worker.start()
+    #
+    # print('waiting for all videos to be completed.', queue.qsize(), 'videos')
+    # print('This can take an hour or two depending on dataset size')
+    # queue.join()
+    # print('all done')

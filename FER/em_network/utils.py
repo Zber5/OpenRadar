@@ -270,15 +270,6 @@ class Params():
         return self.__dict__
 
 
-def save_model(model=None, path_to_model=None, mode='part'):
-    """Save model in two ways :  state_dic, entire"""
-
-    if mode == 'part':
-        torch.save(model.state_dict(), path_to_model)
-    if mode == 'entire':
-        torch.save(model, path_to_model)
-
-
 class RunningAverage():
     """A simple class that maintains the running average of a quantity
     
@@ -303,50 +294,13 @@ class RunningAverage():
         return self.total / float(self.steps)
 
 
-def dir_path_bp(dir_name):
-    parent_dir = os.path.dirname(os.getcwd())
-    if parent_dir[-3:] == 'src':
-        parent_dir = os.path.dirname(parent_dir)
-    res_dir = os.path.join(parent_dir, 'results')
-    res_dir = os.path.join(res_dir, (dir_name + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
-    path_to_model = os.path.join(res_dir, 'model_{str}.ckpt')
-    path_to_log = os.path.join(res_dir, '{}_log.txt'.format(dir_name))
-    path_to_layers = {
-        0: os.path.join(res_dir, 'layer0_log.txt'),
-        1: os.path.join(res_dir, 'layer1_log.txt'),
-        2: os.path.join(res_dir, 'layer2_log.txt'),
-        3: os.path.join(res_dir, 'layer3_log.txt'),
-    }
-    path_to_json = os.path.join(res_dir, '{}_json_log.json'.format(dir_name))
-    path_to_json1 = os.path.join(res_dir, '{}_json_in_out.json'.format(dir_name))
-    path_to_json_dic = os.path.join(res_dir, '{}_json_dic.json'.format(dir_name))
-    path_to_gate_dic = os.path.join(res_dir, '{}_Gate.json'.format(dir_name))
-    path_to_lr_dic = os.path.join(res_dir, '{}_LR.json'.format(dir_name))
-    path_to_timer_dic = os.path.join(res_dir, '{}_Timer.json'.format(dir_name))
-    if not os.path.exists(res_dir):
-        os.makedirs(res_dir)
-    dic = {
-        'res_dir': res_dir,
-        'path_to_log': path_to_log,
-        'path_to_model': path_to_model,
-        'path_to_test': path_to_layers,
-        'path_to_json': path_to_json,
-        'path_to_json1': path_to_json1,
-        'path_to_json_dic': path_to_json_dic,
-        'path_to_gate': path_to_gate_dic,
-        'path_to_lr': path_to_lr_dic,
-        'path_to_timer': path_to_timer_dic,
-    }
-
-    return dic
-
-
 def dir_path(dir_name, result_dir):
     res_dir = os.path.join(result_dir, (dir_name + "_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
     path_to_model = os.path.join(res_dir, 'best_model.pt')
     path_to_log = os.path.join(res_dir, 'log.txt')
     path_to_timer_dic = os.path.join(res_dir, 'timer.json')
     path_to_metrics = os.path.join(res_dir, 'metrics.csv')
+    path_to_config = os.path.join(res_dir, 'config.json')
     if not os.path.exists(res_dir):
         os.makedirs(res_dir)
     dic = {
@@ -355,6 +309,7 @@ def dir_path(dir_name, result_dir):
         'metrics': path_to_metrics,
         'model': path_to_model,
         'timer': path_to_timer_dic,
+        'config': path_to_config,
     }
     return dic
 
@@ -401,8 +356,7 @@ def save_checkpoint(state, is_best, checkpoint):
     if not os.path.exists(checkpoint):
         print("Checkpoint Directory does not exist! Making directory {}".format(checkpoint))
         os.mkdir(checkpoint)
-    else:
-        print("Checkpoint Directory exists! ")
+
     torch.save(state, filepath)
     if is_best:
         shutil.copyfile(filepath, os.path.join(checkpoint, 'best.pth.tar'))

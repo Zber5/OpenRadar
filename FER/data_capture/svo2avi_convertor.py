@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
     all = []
     start_index = 0
-    end_index = 0
+    end_index = 30
     emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust', 'Neutral']
     for em in emotion_list:
         for i in range(start_index, end_index):
@@ -144,7 +144,8 @@ if __name__ == "__main__":
 
     all = np.asarray(all)
 
-    subs = ['S1', 'S2', 'S3', 'S4', 'S5']
+    # subs = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5']
+    subs = ['S0']
     size = 800000
 
     data_folder = 'D:\\Subjects\\'
@@ -165,16 +166,16 @@ if __name__ == "__main__":
         for tp in tasks_path:
             queue.put(tp)
 
-    thread_job(queue, output_folder)
+    # thread_job(queue, output_folder)
 
 
     # multi threadings
-    # NUM_THREADS = 20
-    # for i in range(NUM_THREADS):
-    #     worker = threading.Thread(target=thread_job, args=(queue, output_folder))
-    #     worker.start()
-    #
-    # print('waiting for all videos to be completed.', queue.qsize(), 'videos')
-    # print('This can take an hour or two depending on dataset size')
-    # queue.join()
-    # print('all done')
+    NUM_THREADS = 20
+    for i in range(NUM_THREADS):
+        worker = threading.Thread(target=thread_job, args=(queue, output_folder))
+        worker.start()
+
+    print('waiting for all videos to be completed.', queue.qsize(), 'videos')
+    print('This can take an hour or two depending on dataset size')
+    queue.join()
+    print('all done')

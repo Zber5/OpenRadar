@@ -15,8 +15,6 @@ Proceedings of the IEEE international conference on computer vision. 2015.
 4.C3D with multimodal phase attention -> ATT_PHASE
 5.MMTM add to C3D multimodal fusion + phase attention
   https://github.com/haamoon/mmtm/blob/master/mmtm.py
-  
-  
 """
 
 import math
@@ -87,10 +85,10 @@ class MMTM(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
         # initialize
-        with torch.no_grad():
-            self.fc_squeeze.apply(init_weights)
-            self.fc_visual.apply(init_weights)
-            self.fc_skeleton.apply(init_weights)
+        # with torch.no_grad():
+        #     self.fc_squeeze.apply(init_weights)
+        #     self.fc_visual.apply(init_weights)
+        #     self.fc_skeleton.apply(init_weights)
 
     def forward(self, visual, skeleton):
         squeeze_array = []
@@ -258,6 +256,233 @@ class C3DFusionBaseline(nn.Module):
         return out
 
 
+class C3DFusionBaseline_out(nn.Module):
+    def __init__(self,
+                 sample_duration,
+                 num_classes=600):
+        super(C3DFusionBaseline_out, self).__init__()
+        self.net_azimuth = SubNet()
+        self.net_elevation = SubNet()
+
+        last_duration = int(math.floor(sample_duration / 8))
+        last_size_h = 2
+        last_size_w = 2
+        self.fc1 = nn.Sequential(
+            nn.Linear((128 * last_duration * last_size_h * last_size_w), 1024),
+            nn.ReLU(),
+            nn.Dropout(0.5))
+        self.fc2 = nn.Sequential(
+            nn.Linear(1024, 256),
+            nn.ReLU(),
+            nn.Dropout(0.5))
+        self.fc = nn.Sequential(
+            nn.Linear(256, num_classes))
+
+    def forward(self, azi, ele):
+        out_azi = self.net_azimuth(azi)
+        out_ele = self.net_elevation(ele)
+
+        # concatenation
+        out1 = torch.cat((out_azi, out_ele), dim=1)
+
+        out = out1.view(out1.size(0), -1)
+        out = self.fc1(out)
+        out = self.fc2(out)
+        out = self.fc(out)
+        return out1, out
+
+
+class C3DMMTM_v1(nn.Module):
+    def __init__(self,
+                 sample_duration,
+                 num_classes=600):
+        super(C3DMMTM_v1, self).__init__()
+        self.net_azimuth = SubNet()
+        self.net_elevation = SubNet()
+        self.mmtm = TimeDistributedTwin(MMTM(64, 64, 4))
+
+        last_duration = int(math.floor(sample_duration / 8))
+        last_size_h = 2
+        last_size_w = 2
+
+        self.fc1 = nn.Sequential(
+            nn.Linear((128 * last_duration * last_size_h * last_size_w), 1024),
+            nn.ReLU(),
+            nn.Dropout(0.5))
+        self.fc2 = nn.Sequential(
+            nn.Linear(1024, 256),
+            nn.ReLU(),
+            nn.Dropout(0.5))
+        self.fc = nn.Sequential(
+            nn.Linear(256, num_classes))
+
+    def forward(self, azi, ele):
+        out_azi = self.net_azimuth(azi)
+        out_ele = self.net_elevation(ele)
+
+        # MMTM fusion
+        out_azi = out_azi.permute(0, 2, 1, 3, 4)
+        out_ele = out_ele.permute(0, 2, 1, 3, 4)
+
+        out_azi, out_ele = self.mmtm(out_azi, out_ele)
+        out_azi = out_azi.permute(0, 2, 1, 3, 4)
+        out_ele = out_ele.permute(0, 2, 1, 3, 4)
+
+        # concatenation
+        out = torch.cat((out_azi, out_ele), dim=1)
+        out = out.view(out.size(0), -1)
+        out = self.fc1(out)
+        out = self.fc2(out)
+        out = self.fc(out)
+
+
+        return out
+
+
+
+class C3DMMTM_v2(nn.Module):
+    def __init__(self,
+                 sample_duration,
+                 num_classes=600):
+        super(C3DMMTM_v2, self).__init__()
+
+        self.azi_group1 = nn.Sequential(
+            nn.Conv3d(1, 16, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(16),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(1, 2, 1)))
+        self.azi_group2 = nn.Sequential(
+            nn.Conv3d(16, 32, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(32),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 2, 1)))
+        self.azi_group3 = nn.Sequential(
+            nn.Conv3d(32, 64, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(64),
+            nn.ReLU(),
+            nn.Conv3d(64, 64, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(64),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 1, 2)))
+        self.azi_group4 = nn.Sequential(
+            nn.Conv3d(64, 64, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(64),
+            nn.ReLU(),
+            nn.Conv3d(64, 64, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(64),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(1, 2, 2), stride=(2, 2, 2), padding=(0, 1, 0)))
+
+        self.ele_group1 = nn.Sequential(
+            nn.Conv3d(1, 16, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(16),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(1, 2, 1)))
+        self.ele_group2 = nn.Sequential(
+            nn.Conv3d(16, 32, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(32),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 2, 1)))
+        self.ele_group3 = nn.Sequential(
+            nn.Conv3d(32, 64, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(64),
+            nn.ReLU(),
+            nn.Conv3d(64, 64, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(64),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 1, 2)))
+        self.ele_group4 = nn.Sequential(
+            nn.Conv3d(64, 64, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(64),
+            nn.ReLU(),
+            nn.Conv3d(64, 64, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(64),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(1, 2, 2), stride=(2, 2, 2), padding=(0, 1, 0)))
+
+        self.mmtm1 = TimeDistributedTwin(MMTM(16, 16, 4))
+        self.mmtm2 = TimeDistributedTwin(MMTM(32, 32, 4))
+        self.mmtm3 = TimeDistributedTwin(MMTM(64, 64, 4))
+        self.mmtm4 = TimeDistributedTwin(MMTM(64, 64, 4))
+
+        last_duration = int(math.floor(sample_duration / 8))
+        last_size_h = 2
+        last_size_w = 2
+
+        self.fc1 = nn.Sequential(
+            nn.Linear((128 * last_duration * last_size_h * last_size_w), 1024),
+            nn.ReLU(),
+            nn.Dropout(0.5))
+        self.fc2 = nn.Sequential(
+            nn.Linear(1024, 256),
+            nn.ReLU(),
+            nn.Dropout(0.5))
+        self.fc = nn.Sequential(
+            nn.Linear(256, num_classes))
+
+
+    def forward(self, azi, ele):
+
+        # group 1
+        out_azi = self.azi_group1(azi)
+        out_ele = self.ele_group1(ele)
+
+        # MMTM fusion1
+        out_azi = out_azi.permute(0, 2, 1, 3, 4)
+        out_ele = out_ele.permute(0, 2, 1, 3, 4)
+
+        out_azi, out_ele = self.mmtm1(out_azi, out_ele)
+        out_azi = out_azi.permute(0, 2, 1, 3, 4)
+        out_ele = out_ele.permute(0, 2, 1, 3, 4)
+
+        # group 2
+        out_azi = self.azi_group2(out_azi)
+        out_ele = self.ele_group2(out_ele)
+
+        # MMTM fusion2
+        out_azi = out_azi.permute(0, 2, 1, 3, 4)
+        out_ele = out_ele.permute(0, 2, 1, 3, 4)
+
+        out_azi, out_ele = self.mmtm2(out_azi, out_ele)
+        out_azi = out_azi.permute(0, 2, 1, 3, 4)
+        out_ele = out_ele.permute(0, 2, 1, 3, 4)
+
+        # group 3
+        out_azi = self.azi_group3(out_azi)
+        out_ele = self.ele_group3(out_ele)
+
+        # MMTM fusion3
+        out_azi = out_azi.permute(0, 2, 1, 3, 4)
+        out_ele = out_ele.permute(0, 2, 1, 3, 4)
+
+        out_azi, out_ele = self.mmtm3(out_azi, out_ele)
+        out_azi = out_azi.permute(0, 2, 1, 3, 4)
+        out_ele = out_ele.permute(0, 2, 1, 3, 4)
+
+        # group 4
+        out_azi = self.azi_group4(out_azi)
+        out_ele = self.ele_group4(out_ele)
+
+        # MMTM fusion3
+        out_azi = out_azi.permute(0, 2, 1, 3, 4)
+        out_ele = out_ele.permute(0, 2, 1, 3, 4)
+
+        out_azi, out_ele = self.mmtm4(out_azi, out_ele)
+        out_azi = out_azi.permute(0, 2, 1, 3, 4)
+        out_ele = out_ele.permute(0, 2, 1, 3, 4)
+
+        # concatenation
+        out = torch.cat((out_azi, out_ele), dim=1)
+        out = out.view(out.size(0), -1)
+        out = self.fc1(out)
+        out = self.fc2(out)
+        out = self.fc(out)
+
+        return out
+
+
+
+# still the old version
 class C3DAttention(nn.Module):
     def __init__(self,
                  sample_duration,
@@ -440,6 +665,65 @@ class C3D_VIDEO(nn.Module):
         return out
 
 
+class C3D_VIDEO_out(nn.Module):
+    def __init__(self,
+                 sample_size,
+                 sample_duration,
+                 num_classes=600):
+        super(C3D_VIDEO_out, self).__init__()
+        self.group1 = nn.Sequential(
+            nn.Conv3d(3, 32, kernel_size=3, padding=1),
+            nn.BatchNorm3d(32),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(1, 2, 2)))
+        self.group2 = nn.Sequential(
+            nn.Conv3d(32, 64, kernel_size=3, padding=1),
+            nn.BatchNorm3d(64),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 3, 3), stride=(2, 2, 2)))
+        self.group3 = nn.Sequential(
+            nn.Conv3d(64, 128, kernel_size=3, padding=0),
+            nn.BatchNorm3d(128),
+            nn.ReLU(),
+            nn.Conv3d(128, 128, kernel_size=(3, 5, 5), padding=1),
+            nn.BatchNorm3d(128),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 3, 3), stride=(2, 4, 4)))
+        self.group4 = nn.Sequential(
+            nn.Conv3d(128, 256, kernel_size=(3, 5, 5), padding=0),
+            nn.BatchNorm3d(256),
+            nn.ReLU(),
+            nn.Conv3d(256, 256, kernel_size=(3, 5, 5), padding=0),
+            nn.BatchNorm3d(256),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 4, 4)))
+
+        last_duration = 1
+        last_size = 1
+        self.fc1 = nn.Sequential(
+            nn.Linear((256 * last_duration * last_size * last_size), 128),
+            nn.ReLU(),
+            nn.Dropout(0.5))
+        self.fc2 = nn.Sequential(
+            nn.Linear(128, 32),
+            nn.ReLU(),
+            nn.Dropout(0.5))
+        self.fc = nn.Sequential(
+            nn.Linear(32, num_classes))
+
+    def forward(self, x):
+        out1 = self.group1(x)
+        out2 = self.group2(out1)
+        out3 = self.group3(out2)
+        out4 = self.group4(out3)
+        # out = self.group5(out)
+        out = out4.view(out4.size(0), -1)
+        out = self.fc1(out)
+        out = self.fc2(out)
+        out = self.fc(out)
+        return out4, out
+
+
 def get_fine_tuning_parameters(model, ft_portion):
     if ft_portion == "complete":
         return model.parameters()
@@ -465,13 +749,13 @@ def get_fine_tuning_parameters(model, ft_portion):
 if __name__ == '__main__':
     device = torch.device('cpu')
 
-    # model = C3DFusionBaseline(sample_duration=300, num_classes=6)
-    # model = model.to(device)
-    #
-    # var_azi = torch.randn((8, 1, 300, 91, 10)).to(device)
-    # var_ele = torch.randn((8, 1, 300, 91, 10)).to(device)
-    # output = model(var_azi, var_ele)
-    # print(output.shape)
+    model = C3DMMTM_v2(sample_duration=100, num_classes=7)
+    model = model.to(device)
+
+    var_azi = torch.randn((8, 1, 100, 91, 10)).to(device)
+    var_ele = torch.randn((8, 1, 100, 91, 10)).to(device)
+    output = model(var_azi, var_ele)
+    print(output.shape)
 
     # model = C3DFusionV2(sample_duration=300, num_classes=6)
     # model = model.to(device)
@@ -501,14 +785,20 @@ if __name__ == '__main__':
     # output = model(input)
     # print(output.size())
 
-    model = TimeDistributedTwin(MMTM(8, 8, 4))
-    model = model.to(device)
-
-    input1 = torch.randn(8, 50, 8, 4, 4)
-    input2 = torch.randn(8, 50, 8, 2, 2)
-    input1 = input1.to(device)
-    input2 = input2.to(device)
-
-    output1, output2 = model(input1, input2)
-    print(output1.size())
-    print(output2.size())
+    # model = TimeDistributedTwin(MMTM(64, 64, 4))
+    # model = model.to(device)
+    #
+    # input1 = torch.randn(8, 50, 8, 4, 4)
+    # input2 = torch.randn(8, 50, 8, 2, 2)
+    # input1 = torch.randn(8, 64, 12, 2, 2)
+    # input2 = torch.randn(8, 64, 12, 2, 2)
+    # input1 = input1.to(device)
+    # input2 = input2.to(device)
+    # input1 = input1.permute(0, 2, 1, 3, 4)
+    # input2 = input2.permute(0, 2, 1, 3, 4)
+    #
+    # output1, output2 = model(input1, input2)
+    # output1 = output1.permute(0, 2, 1, 3, 4)
+    # output2 = output2.permute(0, 2, 1, 3, 4)
+    # print(output1.size())
+    # print(output2.size())

@@ -15,6 +15,12 @@ def get_label(name):
             return labels[key]
 
 
+def save_to_json(data, path):
+    import json
+    with open(path, 'w') as fp:
+        json.dump(data, fp, indent=4)
+
+
 def parseConfigFile(configFileName, numTxAnt=3):
     configParameters = {}  # Initialize an empty dictionary to store the configuration parameters
 
@@ -143,6 +149,10 @@ class MapRecord(object):
     @path.setter
     def path(self, value):
         self._path = value
+
+    @property
+    def relative_path(self):
+        return self._data[0]
 
     @property
     def num_frames(self):

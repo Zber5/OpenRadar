@@ -22,5 +22,6 @@ movie/
 .data
 model.ckpt
 *.ini
+FER/results
 
 

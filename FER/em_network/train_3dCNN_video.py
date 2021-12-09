@@ -1,19 +1,19 @@
 import torch
 import torch.nn as nn
-from sklearn.model_selection import train_test_split
 import numpy as np
 import random
 import time
-from video_dataset import VideoFrameDataset, ImglistToTensor
+from dataset import VideoFrameDataset, ImglistToTensor
 from torchvision import transforms
 from torch.utils.data import DataLoader
+from FER.utils import ROOT_PATH
 
-from utils import twin_sliding_window, device, AverageMeter, dir_path, write_log, \
-    senor_heatmap_label_data_loader, accuracy, normalise_data
-from models.autoencoder import EMOEncode, EMODecode
+from utils import accuracy, device, AverageMeter, dir_path, write_log, save_checkpoint
 from models.c3d import C3D_VIDEO
 
 import os
+
+os.chdir(ROOT_PATH)
 
 # set seed, make result reporducable
 SEED = 1234
@@ -131,7 +131,7 @@ def denormalize(video_tensor):
 
 if __name__ == "__main__":
 
-    N_EPOCHS = 100
+    N_EPOCHS = 50
     LR = 0.0003
     BATCH_SIZE = 16
     num_classes = 7
@@ -140,12 +140,12 @@ if __name__ == "__main__":
 
     # results dir
     result_dir = "FER/results"
-    path = dir_path("C3D_Video", result_dir)
+    path = dir_path("C3D_Video_att", result_dir)
 
     # load data
     videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-    annotation_train = os.path.join(videos_root, 'annotations_train.txt')
-    annotation_test = os.path.join(videos_root, 'annotations_test.txt')
+    annotation_train = os.path.join(videos_root, 'annotations_att_train.txt')
+    annotation_test = os.path.join(videos_root, 'annotations_att_test.txt')
 
     preprocess = transforms.Compose([
         ImglistToTensor(),  # list of PIL images to (FRAMES x CHANNELS x HEIGHT x WIDTH) tensor
@@ -197,9 +197,9 @@ if __name__ == "__main__":
         train_loss = train(model, data_loader=train_loader, criterion=criterion, optimizer=optimizer, epoch=epoch,
                            to_log=path['log'])
         test_loss, acc = test(model, test_loader=test_loader, criterion=criterion, to_log=path['log'])
-        if acc > best_acc and epoch > 15:
+        if acc >= best_acc:
             best_acc = acc
-            torch.save(model.state_dict(), path['model'])
+            save_checkpoint(model.state_dict(), is_best=True, checkpoint=path['dir'])
 
         lr_scheduler.step()
 

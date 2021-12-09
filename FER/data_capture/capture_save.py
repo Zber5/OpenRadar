@@ -411,7 +411,7 @@ if __name__ == "__main__":
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S3"
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S4"
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S5"
-    ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S6"
+    file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S6"
 
     prefix = "Neutral_{}"
 
@@ -420,8 +420,8 @@ if __name__ == "__main__":
     record_time = config['numFrames'] / (1000 / config['framePeriodicity'])
 
     interval = 3
-    start_record_index = 0
-    end_record_index = 0
+    start_record_index = 20
+    end_record_index = 40
 
     # preparing camera
     init = sl.InitParameters()

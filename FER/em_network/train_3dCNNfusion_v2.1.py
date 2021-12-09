@@ -4,8 +4,8 @@ import numpy as np
 import random
 import time
 
-from utils import device, AverageMeter, dir_path, write_log, accuracy
-from models.c3d import C3DFusionBaseline
+from utils import device, AverageMeter, dir_path, write_log, accuracy, save_checkpoint
+from models.c3d import C3DFusionV2
 from dataset import HeatmapDataset
 from torch.utils.data import DataLoader
 import os
@@ -22,7 +22,7 @@ torch.cuda.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 
 
-def train(model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_freq=10):
+def train(model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_freq=25):
     # create Average Meters
     batch_time = AverageMeter()
     data_time = AverageMeter()
@@ -115,11 +115,13 @@ def test(model, test_loader, criterion, to_log=None):
 
 if __name__ == "__main__":
 
-    N_EPOCHS = 60
-    LR = 0.0003
-    BATCH_SIZE = 16
-    num_classes = 7
-    num_frames = 100
+    config = dict(num_epochs=60,
+                  lr=0.001,
+                  lr_step_size=20,
+                  lr_decay_gamma=0.2,
+                  num_classes=7,
+                  batch_size=16,
+                  h_num_frames=100)
 
     emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust', 'Neutral']
 
@@ -136,23 +138,23 @@ if __name__ == "__main__":
     # load data
     dataset_train = HeatmapDataset(heatmap_root, annotation_train)
     dataset_test = HeatmapDataset(heatmap_root, annotation_test)
-    train_loader = DataLoader(dataset_train, batch_size=BATCH_SIZE, num_workers=4, pin_memory=True)
-    test_loader = DataLoader(dataset_test, batch_size=BATCH_SIZE, num_workers=4, pin_memory=True)
+    train_loader = DataLoader(dataset_train, batch_size=config['batch_size'], num_workers=4, pin_memory=True)
+    test_loader = DataLoader(dataset_test, batch_size=config['batch_size'], num_workers=4, pin_memory=True)
 
     # log path
-    path = dir_path("sensor_heatmap_3dcnn_fusion_v2", result_dir)
+    path = dir_path("sensor_heatmap_3dcnn_fusion_v2.1", result_dir)
 
     # create model
-    model = C3DFusionBaseline(sample_duration=num_frames, num_classes=num_classes)
+    model = C3DFusionV2(sample_duration=config['h_num_frames'], num_classes=config['num_classes'])
     model = model.to(device)
 
     # initialize critierion and optimizer
     # could add weighted loss e.g. pos_weight = torch.ones([64])
     # criterion = nn.BCELoss()
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+    optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
 
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.2)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=config['lr_step_size'], gamma=config['lr_decay_gamma'])
 
     metrics_dic = {
         'loss': [],
@@ -160,19 +162,24 @@ if __name__ == "__main__":
     }
 
     best_acc = 0
-    for epoch in range(N_EPOCHS):
-        train_loss = train(model, data_loader=train_loader, criterion=criterion, optimizer=optimizer, epoch=epoch,
+    for epoch in range(config['num_epochs']):
+        train_loss = train(model, data_loader=train_loader, criterion=criterion,
+                           optimizer=optimizer, epoch=epoch,
                            to_log=path['log'])
         test_loss, acc = test(model, test_loader=test_loader, criterion=criterion, to_log=path['log'])
-
-        if acc > best_acc:
+        if acc >= best_acc:
             best_acc = acc
-            torch.save(model.state_dict(), path['model'])
+            save_checkpoint(model.state_dict(), is_best=True, checkpoint=path['dir'])
+        else:
+            save_checkpoint(model.state_dict(), is_best=False, checkpoint=path['dir'])
 
         lr_scheduler.step()
 
         metrics_dic['loss'].append(test_loss)
         metrics_dic['precision'].append(acc)
+
+    # print best acc after training
+    write_log("<<<<< Best Accuracy = {:.2f} >>>>>".format(best_acc), path['log'])
 
     # save csv log
     df = pd.DataFrame.from_dict(metrics_dic)
