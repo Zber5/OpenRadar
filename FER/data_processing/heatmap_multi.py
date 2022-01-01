@@ -214,7 +214,7 @@ if __name__ == '__main__':
     ANGLE_RES = 1
     ANGLE_RANGE = 45
     ANGLE_BINS = (ANGLE_RANGE * 2) // ANGLE_RES + 1
-    BINS_PROCESSED = 20
+    BINS_PROCESSED = 60
 
     # VIRT_ANT_AZI_INDEX = [i for i in range(8)]
     VIRT_ANT_AZI_INDEX = [i for i in range(0, 8)]
@@ -254,25 +254,25 @@ if __name__ == '__main__':
 
     root_path = "D:\\Subjects\\"
     data_path = '{}_{}_Raw_0.bin'
-    output_data_path = "C:\\Users\\Zber\\Desktop\\Subjects_Heatmap"
+    output_data_path = "C:\\Users\\Zber\\Desktop\\Subjects_Heatmap_Large"
 
     # D Differences (current - pre), S (static clutter removal), L (log2 calculation),
     # N (Normalization), B (Bin index from # to #), I (Data Index from # to #)
     # A Angle Range, AR Angle Resolution, CO coherent
 
     # start index
-    # subs = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5']
-    subs = ['S0']
-    # emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust', 'Neutral']
-    emotion_list = ['Neutral']
-    start_index = 1
-    end_index = 2
+    subs = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5']
+    # subs = ['S0']
+    emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust', 'Neutral']
+    # emotion_list = ['Neutral']
+    start_index = 0
+    end_index = 30
     save_txt = False
     save_config = False
 
     # data
     bin_start = 4
-    bin_end = 14
+    bin_end = 54
     num_bins = bin_end - bin_start
     index = 0
     queue = Queue()
@@ -314,14 +314,14 @@ if __name__ == '__main__':
         with open(os.path.join(output_data_path, 'config.json'), 'w') as f:
             json.dump(config, f, indent=4)
 
-    thread_job(queue, root_path, output_data_path)
+    # thread_job(queue, root_path, output_data_path)
 
-    # NUM_THREADS = 16
-    # for i in range(NUM_THREADS):
-    #     worker = threading.Thread(target=thread_job, args=(queue, root_path, output_data_path))
-    #     worker.start()
-    #
-    # print('waiting for all videos to be completed.', queue.qsize(), 'videos')
-    # print('This can take an hour or two depending on dataset size')
-    # queue.join()
-    # print('all done')
+    NUM_THREADS = 12
+    for i in range(NUM_THREADS):
+        worker = threading.Thread(target=thread_job, args=(queue, root_path, output_data_path))
+        worker.start()
+
+    print('waiting for all videos to be completed.', queue.qsize(), 'videos')
+    print('This can take an hour or two depending on dataset size')
+    queue.join()
+    print('all done')

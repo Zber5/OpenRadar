@@ -11,6 +11,7 @@ import torchvision.transforms as transforms
 import datetime
 import numpy as np
 import random
+import torch.nn.functional as F
 
 # set seed, make result reporducable
 SEED = 1234
@@ -20,12 +21,25 @@ torch.manual_seed(SEED)
 torch.cuda.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 
-
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # device = torch.device('cpu')
 
 EMO_CLASSES = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust']
+
+
+def Cos_similarity(x, y, dim=1):
+    assert (x.shape == y.shape)
+
+    if len(x.shape) >= 2:
+        return F.cosine_similarity(x, y, dim=dim)
+    else:
+        return F.cosine_similarity(x.view(1, -1), y.view(1, -1))
+
+
+# def Cos_similarity(x, y, dim=1):
+#     assert (x.shape == y.shape)
+#
+#     return F.cosine_similarity(x.view(1, -1), y.view(1, -1))
 
 
 def normalise_data(data):
@@ -143,6 +157,16 @@ def _read_pics_as_numpy(pics_dir, length=85, transform=None):
     video = np.concatenate(video, axis=0)
 
     return video
+
+
+def print_summary_txt(txt_file, model, input_size):
+    from torchsummary import summary
+    from contextlib import redirect_stdout
+    with open(txt_file, 'a') as f:
+        with redirect_stdout(f):
+            summary(model, input_size, device=device)
+
+    print("Model summary has been written.")
 
 
 class VideoDataset(Dataset):
@@ -429,4 +453,3 @@ class Logger(object):
     def write(self, string):
         self.file_writer.write('{:}\n'.format(string))
         self.file_writer.flush()
-

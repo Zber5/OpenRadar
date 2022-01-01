@@ -32,10 +32,10 @@ class MapRecord(object):
              4) The fourth element is the label index.
              5) any following elements are labels in the case of multi-label classification
     """
+
     def __init__(self, row, root_datapath):
         self._data = row
         self._path = os.path.join(root_datapath, row[0])
-
 
     @property
     def path(self):
@@ -55,6 +55,7 @@ class MapRecord(object):
             return self.peak - self.onset + 1  # +1 because end frame is inclusive
         else:
             return self.offset - self.onset + 1  # +1 because end frame is inclusive
+
     @property
     def onset(self):
         return int(self._data[2])
@@ -105,6 +106,11 @@ class HeatmapDataset(torch.utils.data.Dataset):
         self.root_path = root_path
         self.annotationfile_path = annotationfile_path
         self._parse_list()
+        # self.crop_azi = np.s_[:, 20:70, 3:8]
+        # self.crop_azi = np.s_[:, 20:70, 3:8]
+        self.crop_azi = np.s_[:, :, :]
+        self.crop_ele = np.s_[:, :, :]
+        self.diff = False
 
     def _parse_list(self):
         self.map_list = [MapRecord(x.strip().split(), self.root_path) for x in open(self.annotationfile_path)]
@@ -115,11 +121,21 @@ class HeatmapDataset(torch.utils.data.Dataset):
 
     def _get(self, record):
         azi = np.load(record.path.format("azi"))
+        azi = azi[self.crop_azi]
+        if self.diff:
+            record.onset = record.onset - 1
         azi = azi[record.onset:record.peak + 1]
+        azi = self._normalize(azi, is_azi=True)
+        if self.diff:
+            azi = np.diff(azi, axis=0)
         azi = np.expand_dims(azi, axis=0)
 
         ele = np.load(record.path.format("ele"))
+        ele = ele[self.crop_ele]
         ele = ele[record.onset:record.peak + 1]
+        ele = self._normalize(ele, is_azi=False)
+        if self.diff:
+            ele = np.diff(ele, axis=0)
         ele = np.expand_dims(ele, axis=0)
 
         return azi, ele, record.label
@@ -128,9 +144,38 @@ class HeatmapDataset(torch.utils.data.Dataset):
         azi_para = [73.505790, 3.681510]
         ele_para = [86.071959, 5.921158]
         if is_azi:
-            return (data-azi_para[0])/azi_para[1]
+            return (data - azi_para[0]) / azi_para[1]
         else:
             return (data - ele_para[0]) / ele_para[1]
+
+    def __len__(self):
+        return len(self.map_list)
+
+
+class PhaseDataset(torch.utils.data.Dataset):
+    def __init__(self,
+                 root_path: str,
+                 annotationfile_path: str):
+        super(PhaseDataset, self).__init__()
+
+        self.root_path = root_path
+        self.annotationfile_path = annotationfile_path
+        self._parse_list()
+        self.diff = True
+
+    def _parse_list(self):
+        self.map_list = [MapRecord(x.strip().split(), self.root_path) for x in open(self.annotationfile_path)]
+
+    def __getitem__(self, index):
+        record = self.map_list[index]
+        return self._get(record)
+
+    def _get(self, record):
+        phase = np.load(record.path.replace("_{}", ""))
+        if self.diff:
+            phase = np.diff(phase, axis=-1)
+        phase = phase[..., record.onset:record.peak + 1]
+        return phase, record.label
 
     def __len__(self):
         return len(self.map_list)
@@ -151,10 +196,10 @@ class VideoRecord(object):
              4) The fourth element is the label index.
              5) any following elements are labels in the case of multi-label classification
     """
+
     def __init__(self, row, root_datapath):
         self._data = row
         self._path = os.path.join(root_datapath, row[0])
-
 
     @property
     def path(self):
@@ -163,6 +208,7 @@ class VideoRecord(object):
     @property
     def num_frames(self):
         return self.end_frame - self.start_frame + 1  # +1 because end frame is inclusive
+
     @property
     def start_frame(self):
         return int(self._data[1])
@@ -244,13 +290,14 @@ class VideoFrameDataset(torch.utils.data.Dataset):
                    frames from segments with random_shift=False.
 
     """
+
     def __init__(self,
                  root_path: str,
                  annotationfile_path: str,
                  num_segments: int = 3,
                  frames_per_segment: int = 1,
-                 imagefile_template: str='img_{:05d}.jpg',
-                 transform = None,
+                 imagefile_template: str = 'img_{:05d}.jpg',
+                 transform=None,
                  random_shift: bool = True,
                  test_mode: bool = False):
         super(VideoFrameDataset, self).__init__()
@@ -292,7 +339,8 @@ class VideoFrameDataset(torch.utils.data.Dataset):
 
         segment_duration = (record.num_frames - self.frames_per_segment + 1) // self.num_segments
         if segment_duration > 0:
-            offsets = np.multiply(list(range(self.num_segments)), segment_duration) + np.random.randint(segment_duration, size=self.num_segments)
+            offsets = np.multiply(list(range(self.num_segments)), segment_duration) + np.random.randint(
+                segment_duration, size=self.num_segments)
 
         # edge cases for when a video has approximately less than (num_frames*frames_per_segment) frames.
         # random sampling in that case, which will lead to repeated frames.
@@ -402,6 +450,7 @@ class ImglistToTensor(torch.nn.Module):
     of shape (NUM_IMAGES x CHANNELS x HEIGHT x WIDTH) in the range [0,1].
     Can be used as first transform for ``VideoFrameDataset``.
     """
+
     def forward(self, img_list):
         """
         Converts each PIL image in a list to

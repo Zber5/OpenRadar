@@ -997,7 +997,7 @@ if __name__ == '__main__':
     # plot range profile
     for i in range(start_bin_index, end_bin_index):
         b_index = i
-        # plot_range_profile(range_data, b_index)
+        plot_range_profile(range_data, b_index)
         # plot change of amplitude
         # plot_amplitude_change_multi_in_one(range_data[..., b_index], b_index)
         # plot_amplitude_change_multi_in_one(range_data[..., b_index], b_index, is_diff=False)

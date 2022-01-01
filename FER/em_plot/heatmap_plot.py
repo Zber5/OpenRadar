@@ -56,8 +56,9 @@ device_v = True
 # adc_data_path = "C:\\Users\\Zber\\Desktop\\mmWave_plot\\Neutral_0_Raw_0.bin"
 # adc_data_path = "C:\\Users\\Zber\\Desktop\\mmWave_plot\\Neutral_11_Raw_0.bin"
 # adc_data_path = "C:\\Users\\Zber\\Desktop\\mmWave_plot\\Neutral_4_Raw_0.bin"
-adc_data_path = "D:\\Subjects\\S0\\Neutral_26_Raw_0.bin"
+# adc_data_path = "D:\\Subjects\\S0\\Neutral_26_Raw_0.bin"
 
+adc_data_path = "D:\\Subjects\\S0\\Joy_26_Raw_0.bin"
 
 plotRangeDopp = True
 plot2DscatterXY = False
@@ -474,12 +475,12 @@ def cago_cfar(heatmap):
     """
     # cago
     thresholdAngle, noiseFloorAngle = np.apply_along_axis(func1d=dsp.cago_,
-                                                              axis=0,
-                                                              arr=heatmap,
-                                                              l_bound=0.05,
-                                                              mode='constant',
-                                                              guard_len=2,
-                                                              noise_len=8)
+                                                          axis=0,
+                                                          arr=heatmap,
+                                                          l_bound=0.05,
+                                                          mode='constant',
+                                                          guard_len=2,
+                                                          noise_len=8)
 
     thresholdRange, noiseFloorRange = np.apply_along_axis(func1d=dsp.cago_,
                                                           axis=0,
@@ -538,12 +539,12 @@ def cago_cfar_ele(heatmap):
     """
     # cago
     thresholdAngle, noiseFloorAngle = np.apply_along_axis(func1d=dsp.cago_,
-                                                              axis=0,
-                                                              arr=heatmap,
-                                                              l_bound=0.02,
-                                                              mode='constant',
-                                                              guard_len=2,
-                                                              noise_len=8)
+                                                          axis=0,
+                                                          arr=heatmap,
+                                                          l_bound=0.02,
+                                                          mode='constant',
+                                                          guard_len=2,
+                                                          noise_len=8)
 
     thresholdRange, noiseFloorRange = np.apply_along_axis(func1d=dsp.cago_,
                                                           axis=0,
@@ -618,12 +619,12 @@ if __name__ == '__main__':
     # VIRT_AZI_PAIRS = [[i for i in range(0, 4)], [i for i in range(4, 8)], [i for i in range(8, 12)]]
     VIRT_AZI_PAIRS = [[i for i in range(0, 8)]]
     SKIP_SIZE = 4
-    ANGLE_RES = 2
-    ANGLE_RANGE = 60
+    ANGLE_RES = 1
+    ANGLE_RANGE = 45
     ANGLE_BINS = (ANGLE_RANGE * 2) // ANGLE_RES + 1
-    BINS_PROCESSED = 50
-    BIN_RANG_S = 0
-    BIN_RANG_E = 50
+    BIN_RANG_S = 4
+    BIN_RANG_E = 14
+    BINS_PROCESSED = BIN_RANG_E - BIN_RANG_S
     # VIRT_ANT_AZI_INDEX = [i for i in range(8)]
     VIRT_ANT_AZI_INDEX = [i for i in range(0, 8)]
     # VIRT_ANT_AZI_INDEX = [i for i in range(8, 12)]
@@ -693,7 +694,7 @@ if __name__ == '__main__':
 
     # for frame_index in range(1, 150):
     for frame_index in range(numFrames):
-    # for frame_index in range(50, 100):
+        # for frame_index in range(50, 100):
         # frame_index += 1
         """ 1 (Range Processing) """
 
@@ -807,7 +808,6 @@ if __name__ == '__main__':
         axes[1].set_ylabel('Elevation')
         axes[1].imshow(range_elevation / range_elevation.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
         # axes[1].imshow(range_elevation, interpolation='nearest', aspect='auto', cmap='coolwarm')
-
 
         # axes[0].imshow(range_elevation, interpolation='nearest', aspect='auto', cmap='coolwarm')
         # peaks, mask = cago_cfar(range_azimuth)
