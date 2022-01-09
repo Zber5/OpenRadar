@@ -325,6 +325,7 @@ def dir_path(dir_name, result_dir):
     path_to_timer_dic = os.path.join(res_dir, 'timer.json')
     path_to_metrics = os.path.join(res_dir, 'metrics.csv')
     path_to_config = os.path.join(res_dir, 'config.json')
+    path_to_confusion_matrix = os.path.join(res_dir, 'confusion_matrix.pdf')
     if not os.path.exists(res_dir):
         os.makedirs(res_dir)
     dic = {
@@ -334,6 +335,7 @@ def dir_path(dir_name, result_dir):
         'model': path_to_model,
         'timer': path_to_timer_dic,
         'config': path_to_config,
+        'cm': path_to_confusion_matrix,
     }
     return dic
 

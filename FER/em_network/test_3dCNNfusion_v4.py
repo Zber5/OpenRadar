@@ -134,6 +134,7 @@ def test(model, test_loader, criterion, to_log=None):
 def evaluate(model, resdir, testloader):
     # load weights
     cmdir = os.path.join(resdir, 'cm.pdf')
+    logdir = os.path.join(resdir, 'cm_log.txt')
     model_path = os.path.join(resdir, 'best.pth.tar')
 
     # load weights
@@ -150,17 +151,14 @@ def evaluate(model, resdir, testloader):
             azi = azi.to(device, dtype=torch.float)
             ele = ele.to(device, dtype=torch.float)
             target = target.to(device, dtype=torch.long)
-
             output = model(azi, ele)
-            loss = criterion(output, target)
-            test_loss += loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
-            pred = pred.numpy().flatten()
-            target = target.numpy().flatten()
-            all_pred += pred
-            all_target += target
+            pred = pred.cpu().numpy().flatten()
+            target = target.cpu().numpy().flatten()
+            all_pred = np.concatenate((all_pred, pred), axis=0)
+            all_target = np.concatenate((all_target, target), axis=0)
     # print
-    print(classification_report(all_target, all_pred, target_names=emotion_list))
+    write_log(classification_report(all_target, all_pred, target_names=emotion_list), logdir)
 
     cm = confusion_matrix(all_target, all_pred)
 
@@ -177,7 +175,6 @@ def evaluate(model, resdir, testloader):
 
 
 if __name__ == "__main__":
-
     config = dict(num_epochs=100,
                   lr=0.0006,
                   lr_step_size=20,
@@ -212,40 +209,46 @@ if __name__ == "__main__":
     model = C3DFusionBaseline(sample_duration=config['h_num_frames'], num_classes=config['num_classes'])
     model = model.to(device)
 
+    criterion = nn.CrossEntropyLoss()
+
+    # test
+    dir = "C:/Users/Zber/Documents/Dev_program/OpenRadar/FER/results/sensor_heatmap_3dcnn_fusion_baseline_20211216-185624"
+    evaluate(model, dir, test_loader)
+
     # initialize critierion and optimizer
     # could add weighted loss e.g. pos_weight = torch.ones([64])
     # criterion = nn.BCELoss()
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
 
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=config['lr_step_size'],
-                                                   gamma=config['lr_decay_gamma'])
-
-    metrics_dic = {
-        'loss': [],
-        'precision': []
-    }
-
-    best_acc = 0
-    for epoch in range(config['num_epochs']):
-        train_loss = train(model, data_loader=train_loader, criterion=criterion,
-                           optimizer=optimizer, epoch=epoch,
-                           to_log=path['log'])
-        test_loss, acc = test(model, test_loader=test_loader, criterion=criterion, to_log=path['log'])
-        if acc >= best_acc:
-            best_acc = acc
-            save_checkpoint(model.state_dict(), is_best=True, checkpoint=path['dir'])
-        else:
-            save_checkpoint(model.state_dict(), is_best=False, checkpoint=path['dir'])
-
-        lr_scheduler.step()
-
-        metrics_dic['loss'].append(test_loss)
-        metrics_dic['precision'].append(acc)
-
-    # print best acc after training
-    write_log("<<<<< Best Accuracy = {:.2f} >>>>>".format(best_acc), path['log'])
-
-    # save csv log
-    df = pd.DataFrame.from_dict(metrics_dic)
-    df.to_csv(path['metrics'], sep='\t', encoding='utf-8')
+    # optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
+    #
+    # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=config['lr_step_size'],
+    #                                                gamma=config['lr_decay_gamma'])
+    #
+    # metrics_dic = {
+    #     'loss': [],
+    #     'precision': []
+    # }
+    #
+    # best_acc = 0
+    # for epoch in range(config['num_epochs']):
+    #     train_loss = train(model, data_loader=train_loader, criterion=criterion,
+    #                        optimizer=optimizer, epoch=epoch,
+    #                        to_log=path['log'])
+    #     test_loss, acc = test(model, test_loader=test_loader, criterion=criterion, to_log=path['log'])
+    #     if acc >= best_acc:
+    #         best_acc = acc
+    #         save_checkpoint(model.state_dict(), is_best=True, checkpoint=path['dir'])
+    #     else:
+    #         save_checkpoint(model.state_dict(), is_best=False, checkpoint=path['dir'])
+    #
+    #     lr_scheduler.step()
+    #
+    #     metrics_dic['loss'].append(test_loss)
+    #     metrics_dic['precision'].append(acc)
+    #
+    # # print best acc after training
+    # write_log("<<<<< Best Accuracy = {:.2f} >>>>>".format(best_acc), path['log'])
+    #
+    # # save csv log
+    # df = pd.DataFrame.from_dict(metrics_dic)
+    # df.to_csv(path['metrics'], sep='\t', encoding='utf-8')

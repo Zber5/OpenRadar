@@ -32,8 +32,8 @@ class ConvLSTMCell(nn.Module):
         self.hidden_dim = hidden_dim
 
         self.kernel_size = kernel_size
-        # self.padding = kernel_size[0] // 2, kernel_size[1] // 2
-        self.padding = (0, 0)
+        self.padding = kernel_size[0] // 2, kernel_size[1] // 2
+        # self.padding = (0, 0)
         self.bias = bias
 
         self.conv = nn.Conv2d(in_channels=self.input_dim + self.hidden_dim,
@@ -110,7 +110,7 @@ class ConvLSTM(nn.Module):
         self.bias = bias
         self.return_all_layers = return_all_layers
 
-        self.maxpool1 = nn.MaxPool3d((3,2,2), stride=(1,2,2), padding=() )
+        self.maxpool1 = nn.MaxPool3d((3, 2, 2), stride=(1, 2, 2), padding=())
 
         cell_list = []
         for i in range(0, self.num_layers):
@@ -195,28 +195,83 @@ class ConvLSTM(nn.Module):
         return param
 
 
+class ConvLSTMFull(nn.Module):
+    def __init__(self, input_dim, hidden_dim, kernel_size, num_layers, num_classes,
+                 batch_first=False, bias=True, return_all_layers=False):
+        super(ConvLSTMFull, self).__init__()
+        self.feature_azi = ConvLSTM(input_dim, hidden_dim, kernel_size, num_layers,
+                                    batch_first, bias, return_all_layers)
+        self.feature_ele = ConvLSTM(input_dim, hidden_dim, kernel_size, num_layers,
+                                    batch_first, bias, return_all_layers)
+        self.fc1 = nn.Sequential(
+            nn.Linear((8 * 91 * 10 * 2), 1024),
+            nn.ReLU(),
+            nn.Dropout(0.5)
+        )
+        self.fc2 = nn.Sequential(
+            nn.Linear(1024, 256),
+            nn.ReLU(),
+            nn.Dropout(0.5)
+        )
+        self.fc3 = nn.Sequential(
+            nn.Linear(256, num_classes))
+
+    def forward(self, azi, ele):
+        # azi
+        _, azi_last = self.feature_azi(azi)
+        _, azi_x = azi_last[0]
+        azi_x = azi_x.view(azi_x.size(0), -1)
+        # ele
+        _, ele_last = self.feature_ele(ele)
+        _, ele_x = ele_last[0]
+        ele_x = ele_x.view(ele_x.size(0), -1)
+
+        x = torch.cat((azi_x, ele_x), dim=1)
+        x = self.fc1(x)
+        x = self.fc2(x)
+        x = self.fc3(x)
+        return x
+
+
 if __name__ == "__main__":
-    device = torch.device('cpu')
+    device = torch.device('cuda')
     channels = 1
 
-    input = torch.rand((8, 300, 1, 91, 10))
-    input = input.to(device)
+    input1 = torch.rand((8, 300, 1, 91, 10))
+    input1 = input1.to(device)
+    input2 = torch.rand((8, 300, 1, 91, 10))
+    input2 = input2.to(device)
 
-    model = ConvLSTM(input_dim=channels,
-                     hidden_dim=[2, 4, 8],
-                     kernel_size=(7, 3),
-                     num_layers=3,
-                     batch_first=True,
-                     bias=True,
-                     return_all_layers=False)
+    # model = ConvLSTM(input_dim=channels,
+    #                  hidden_dim=[2, 4, 8],
+    #                  kernel_size=(7, 3),
+    #                  num_layers=3,
+    #                  batch_first=True,
+    #                  bias=True,
+    #                  return_all_layers=False)
+    #
+    # model = model.to(device)
+    # print(model)
+    # layer_output_list, last_state_list = model(input)
+    #
+    # for layer in layer_output_list:
+    #     print(layer.size())
+    #
+    # print("\n\n\n")
+    # for last in last_state_list:
+    #     print(last[0].size())
+    #     print(last[1].size())
+
+    model = ConvLSTMFull(input_dim=channels,
+                         hidden_dim=[2, 4, 8],
+                         kernel_size=(7, 3),
+                         num_layers=3,
+                         num_classes=7,
+                         batch_first=True,
+                         bias=True,
+                         return_all_layers=False)
 
     model = model.to(device)
-    print(model)
-    layer_output_list, last_state_list = model(input)
 
-    for layer in layer_output_list:
-        print(layer.size())
-
-    print("\n\n\n")
-    for last in last_state_list:
-        print(last.size())
+    out = model(input1, input2)
+    print(out.size())

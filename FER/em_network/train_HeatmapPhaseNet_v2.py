@@ -3,13 +3,10 @@ import torch.nn as nn
 import numpy as np
 import random
 import time
-from sklearn.metrics import classification_report, confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 from utils import device, AverageMeter, dir_path, write_log, accuracy, save_checkpoint
-from models.c3d import C3DFusionBaseline
-from dataset import HeatmapDataset
+from models.Conv2D import ImagePhaseNet
+from dataset import HeatmapDataset, ConcatDataset, PhaseDataset
 from torch.utils.data import DataLoader
 import os
 import pandas as pd
@@ -40,10 +37,16 @@ def train(model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_
     # record start time
     start = time.time()
 
-    for i, (azi, ele, target) in enumerate(data_loader):
+    for i, conc_data in enumerate(data_loader):
         # prepare input and target to device
+        h_data, p_data = conc_data
+        azi, ele, target = h_data
+        azi = torch.permute(azi, (0, 2, 1, 3, 4))
+        ele = torch.permute(ele, (0, 2, 1, 3, 4))
+        phase, _ = p_data
         azi = azi.to(device, dtype=torch.float)
         ele = ele.to(device, dtype=torch.float)
+        phase = phase.to(device, dtype=torch.float)
         target = target.to(device, dtype=torch.long)
 
         # measure data loading time
@@ -53,7 +56,7 @@ def train(model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_
         optimizer.zero_grad()
 
         # gradient and do SGD step
-        output = model(azi, ele)
+        output = model(azi, ele, phase)
         loss = criterion(output, target)
 
         # L2 regularization
@@ -107,13 +110,19 @@ def test(model, test_loader, criterion, to_log=None):
     test_loss = 0
     correct = 0
     with torch.no_grad():
-        for (azi, ele, target) in test_loader:
+        for i, conc_data in enumerate(test_loader):
             # prepare input and target to device
+            h_data, p_data = conc_data
+            azi, ele, target = h_data
+            azi = torch.permute(azi, (0, 2, 1, 3, 4))
+            ele = torch.permute(ele, (0, 2, 1, 3, 4))
+            phase, _ = p_data
             azi = azi.to(device, dtype=torch.float)
             ele = ele.to(device, dtype=torch.float)
+            phase = phase.to(device, dtype=torch.float)
             target = target.to(device, dtype=torch.long)
 
-            output = model(azi, ele)
+            output = model(azi, ele, phase)
             loss = criterion(output, target)
             test_loss += loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
@@ -131,85 +140,46 @@ def test(model, test_loader, criterion, to_log=None):
         return test_loss.item(), acc
 
 
-def evaluate(model, resdir, testloader):
-    # load weights
-    cmdir = os.path.join(resdir, 'cm.pdf')
-    model_path = os.path.join(resdir, 'best.pth.tar')
-
-    # load weights
-    model.load_state_dict(torch.load(model_path))
-    model = model.to(device)
-
-    # test
-    all_pred = []
-    all_target = []
-    test_loss = 0
-    with torch.no_grad():
-        for (azi, ele, target) in testloader:
-            # prepare input and target to device
-            azi = azi.to(device, dtype=torch.float)
-            ele = ele.to(device, dtype=torch.float)
-            target = target.to(device, dtype=torch.long)
-
-            output = model(azi, ele)
-            loss = criterion(output, target)
-            test_loss += loss
-            pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
-            pred = pred.numpy().flatten()
-            target = target.numpy().flatten()
-            all_pred += pred
-            all_target += target
-    # print
-    print(classification_report(all_target, all_pred, target_names=emotion_list))
-
-    cm = confusion_matrix(all_target, all_pred)
-
-    ax = sns.heatmap(cm, annot=True, cmap='Blues')
-
-    ax.set_title('Confusion Matrix\n\n');
-    ax.set_xlabel('\nPredicted Classes')
-    ax.set_ylabel('Actual Classes');
-
-    ## Ticket labels - List must be in alphabetical order
-    ax.xaxis.set_ticklabels(emotion_list)
-    ax.yaxis.set_ticklabels(emotion_list)
-    plt.savefig(cmdir)
-
-
 if __name__ == "__main__":
 
-    config = dict(num_epochs=100,
+    config = dict(num_epochs=60,
                   lr=0.0006,
                   lr_step_size=20,
                   lr_decay_gamma=0.2,
                   num_classes=7,
                   batch_size=16,
-                  h_num_frames=99,
+                  h_num_frames=100,
                   )
 
-    emotion_list = ['Neutral', 'Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust']
+    emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust', 'Neutral']
 
     # results dir
     result_dir = "FER/results"
 
     # heatmap root dir
     heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+    phase_root = "C:/Users/Zber/Desktop/Subjects_Phase"
 
     # annotation dir
     annotation_train = os.path.join(heatmap_root, "heatmap_annotation_train.txt")
     annotation_test = os.path.join(heatmap_root, "heatmap_annotation_test.txt")
 
-    # load data
-    dataset_train = HeatmapDataset(heatmap_root, annotation_train)
-    dataset_test = HeatmapDataset(heatmap_root, annotation_test)
+    # dataloader
+    heatmap_train = HeatmapDataset(heatmap_root, annotation_train)
+    heatmap_test = HeatmapDataset(heatmap_root, annotation_test)
+    phase_train = PhaseDataset(phase_root, annotation_train)
+    phase_test = PhaseDataset(phase_root, annotation_test)
+
+    dataset_train = ConcatDataset(heatmap_train, phase_train)
+    dataset_test = ConcatDataset(heatmap_test, phase_test)
     train_loader = DataLoader(dataset_train, batch_size=config['batch_size'], num_workers=4, pin_memory=True)
     test_loader = DataLoader(dataset_test, batch_size=config['batch_size'], num_workers=4, pin_memory=True)
 
     # log path
-    path = dir_path("sensor_heatmap_3dcnn_fusion_baseline_diff", result_dir)
+    path = dir_path("sensor_heatmap_conv2d_heatmap&phase", result_dir)
 
     # create model
-    model = C3DFusionBaseline(sample_duration=config['h_num_frames'], num_classes=config['num_classes'])
+    model = ImagePhaseNet(num_classes=config['num_classes'])
     model = model.to(device)
 
     # initialize critierion and optimizer
