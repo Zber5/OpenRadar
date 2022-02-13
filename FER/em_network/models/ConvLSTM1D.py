@@ -271,45 +271,54 @@ class ConvLSTMFull_v1(nn.Module):
         return x
 
 
+class LandmarkConvLSTM(nn.Module):
+    def __init__(self, input_dim, hidden_dim, kernel_size, num_layers, num_classes,
+                 batch_first=False, bias=True, return_all_layers=False):
+        super(LandmarkConvLSTM, self).__init__()
+        self.feature = ConvLSTM(input_dim, hidden_dim, kernel_size, num_layers,
+                                batch_first, bias, return_all_layers)
+        self.fc1 = nn.Sequential(
+            nn.Linear((64 * 468), 1024),
+            nn.ReLU(),
+            nn.Dropout(0.5)
+        )
+        self.fc2 = nn.Sequential(
+            nn.Linear(1024, 256),
+            nn.ReLU(),
+            nn.Dropout(0.5)
+        )
+        self.fc3 = nn.Sequential(
+            nn.Linear(256, num_classes))
+
+    def forward(self, x):
+        # azi
+        x, _ = self.feature(x)
+        x = x[0][:, -1, :, :, :]
+        x = x.view(x.size(0), -1)
+
+        x = self.fc1(x)
+        x = self.fc2(x)
+        x = self.fc3(x)
+        return x
+
+
 if __name__ == "__main__":
     device = torch.device('cuda')
-    channels = 1
+    channels = 2
 
-    input1 = torch.rand((8, 100, 1, 91, 10))
+    input1 = torch.rand((8, 30, 2, 468, 1))
     input1 = input1.to(device)
-    input2 = torch.rand((8, 100, 1, 91, 10))
-    input2 = input2.to(device)
 
-    # model = ConvLSTM(input_dim=channels,
-    #                  hidden_dim=[2, 4, 8],
-    #                  kernel_size=(7, 3),
-    #                  num_layers=3,
-    #                  batch_first=True,
-    #                  bias=True,
-    #                  return_all_layers=False)
-    #
-    # model = model.to(device)
-    # print(model)
-    # layer_output_list, last_state_list = model(input)
-    #
-    # for layer in layer_output_list:
-    #     print(layer.size())
-    #
-    # print("\n\n\n")
-    # for last in last_state_list:
-    #     print(last[0].size())
-    #     print(last[1].size())
-
-    model = ConvLSTMFull_v1(input_dim=channels,
-                            hidden_dim=[2, 4, 8],
-                            kernel_size=(7, 3),
-                            num_layers=3,
-                            num_classes=7,
-                            batch_first=True,
-                            bias=True,
-                            return_all_layers=False)
+    model = LandmarkConvLSTM(input_dim=channels,
+                             hidden_dim=[8, 16, 32, 64],
+                             kernel_size=(5, 1),
+                             num_layers=5,
+                             num_classes=7,
+                             batch_first=True,
+                             bias=True,
+                             return_all_layers=False)
 
     model = model.to(device)
 
-    out = model(input1, input2)
+    out = model(input1)
     print(out.size())

@@ -1,12 +1,21 @@
 import math
 import torch
 import torch.nn as nn
-from utils import Cos_similarity, device
+# from utils import device
 from torchsummary import summary
 import torch.nn.init as init
 import torch.nn.functional as F
 from torch.autograd import Variable
 from functools import partial
+
+
+def Cos_similarity(x, y, dim=1):
+    assert (x.shape == y.shape)
+
+    if len(x.shape) >= 2:
+        return F.cosine_similarity(x, y, dim=dim)
+    else:
+        return F.cosine_similarity(x.view(1, -1), y.view(1, -1))
 
 
 def norm(input, p=2, dim=1, eps=1e-12):
@@ -59,13 +68,60 @@ class SubNet(nn.Module):
         return out
 
 
+class SubNet_v1(nn.Module):
+    def __init__(self, act_mode='LeakyReLU'):
+        super(SubNet_v1, self).__init__()
+
+        if act_mode == "ReLU":
+            self.act_fun = nn.ReLU()
+        elif act_mode == "LeakyReLU":
+            self.act_fun = nn.LeakyReLU(1e-2)
+        else:
+            raise Exception("Not supported yet!")
+
+        self.group1 = nn.Sequential(
+            nn.Conv3d(1, 16, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(16),
+            nn.LeakyReLU(1e-2),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(1, 2, 1)))
+        self.group2 = nn.Sequential(
+            nn.Conv3d(16, 32, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(32),
+            nn.LeakyReLU(1e-2),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 2, 1)))
+        self.group3 = nn.Sequential(
+            nn.Conv3d(32, 64, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(64),
+            nn.LeakyReLU(1e-2),
+            nn.Conv3d(64, 64, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(64),
+            nn.LeakyReLU(1e-2),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 1, 2)))
+        self.group4 = nn.Sequential(
+            nn.Conv3d(64, 64, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(64),
+            nn.LeakyReLU(1e-2),
+            nn.Conv3d(64, 64, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(64),
+            nn.LeakyReLU(1e-2),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 2, 2), padding=(0, 1, 0)))
+
+    def forward(self, x):
+        out = self.group1(x)
+        out = self.group2(out)
+        out = self.group3(out)
+        out = self.group4(out)
+        return out
+
+
+
 class Autoencoder_v2(nn.Module):
     def __init__(self, sample_duration):
         super(Autoencoder_v2, self).__init__()
 
         # encoder part
-        self.net_azimuth = SubNet()
-        self.net_elevation = SubNet()
+        self.net_azimuth = SubNet_v1()
+        self.net_elevation = SubNet_v1()
 
         encoder_duration = int(math.floor(sample_duration / 8))
         encoder_channels = 64
@@ -264,13 +320,18 @@ if __name__ == "__main__":
     device = torch.device('cuda')
     # device = torch.device('cpu')
     model = AutoencoderWithClassifier()
+    model = SubNet_v1()
     model = model.to(device)
+
+
     var_azi = torch.randn((8, 1, 100, 91, 10)).to(device)
     var_ele = torch.randn((8, 1, 100, 91, 10)).to(device)
 
-    out = model(var_azi, var_ele)
-    print(out[0].size())
-    print(out[1].size())
+    summary(model, (1, 100, 91, 10))
+
+    # out = model(var_azi, var_ele)
+    # print(out[0].size())
+    # print(out[1].size())
 
 
     # model = Autoencoder_v2(sample_duration=100)

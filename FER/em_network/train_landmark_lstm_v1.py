@@ -8,8 +8,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from utils import device, AverageMeter, dir_path, write_log, accuracy, save_checkpoint
-from models.c3d import C3DFusionBaseline, C3DFusionBaseline_Frame
-from dataset import HeatmapDataset
+from models.Conv1D import LandmarkNet, Classifier, SubNet1D, LandmarkNet_LSTM
+from dataset import LandmarkDataset
 from torch.utils.data import DataLoader
 import os
 import pandas as pd
@@ -40,10 +40,12 @@ def train(model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_
     # record start time
     start = time.time()
 
-    for i, (azi, ele, target) in enumerate(data_loader):
+    for i, (lm_data, target) in enumerate(data_loader):
+
+        lm_data = torch.permute(lm_data, (0, 1, 3, 2))
+        lm_data = torch.reshape(lm_data, (lm_data.size(0), lm_data.size(1), -1))
         # prepare input and target to device
-        azi = azi.to(device, dtype=torch.float)
-        ele = ele.to(device, dtype=torch.float)
+        lm_data = lm_data.to(device, dtype=torch.float)
         target = target.to(device, dtype=torch.long)
 
         # measure data loading time
@@ -53,7 +55,7 @@ def train(model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_
         optimizer.zero_grad()
 
         # gradient and do SGD step
-        output = model(azi, ele)
+        output = model(lm_data)
         loss = criterion(output, target)
 
         # L2 regularization
@@ -107,13 +109,14 @@ def test(model, test_loader, criterion, to_log=None):
     test_loss = 0
     correct = 0
     with torch.no_grad():
-        for (azi, ele, target) in test_loader:
+        for i, (lm_data, target) in enumerate(test_loader):
+            lm_data = torch.permute(lm_data, (0, 1, 3, 2))
+            lm_data = torch.reshape(lm_data, (lm_data.size(0), lm_data.size(1), -1))
             # prepare input and target to device
-            azi = azi.to(device, dtype=torch.float)
-            ele = ele.to(device, dtype=torch.float)
+            lm_data = lm_data.to(device, dtype=torch.float)
             target = target.to(device, dtype=torch.long)
 
-            output = model(azi, ele)
+            output = model(lm_data)
             loss = criterion(output, target)
             test_loss += loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
@@ -147,12 +150,14 @@ def evaluate(model, resdir, testloader):
     all_target = []
     test_loss = 0
     with torch.no_grad():
-        for (azi, ele, target) in test_loader:
+        for i, (lm_data, target) in enumerate(test_loader):
+            lm_data = torch.permute(lm_data, (0, 1, 3, 2))
+            lm_data = torch.reshape(lm_data, (lm_data.size(0), lm_data.size(1), -1))
             # prepare input and target to device
-            azi = azi.to(device, dtype=torch.float)
-            ele = ele.to(device, dtype=torch.float)
+            lm_data = lm_data.to(device, dtype=torch.float)
             target = target.to(device, dtype=torch.long)
-            output = model(azi, ele)
+
+            output = model(lm_data)
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             pred = pred.cpu().numpy().flatten()
             target = target.cpu().numpy().flatten()
@@ -168,8 +173,6 @@ def evaluate(model, resdir, testloader):
     ax.set_title('Confusion Matrix\n\n')
     ax.set_xlabel('\nPredicted Classes')
     ax.set_ylabel('Actual Classes')
-
-    ## Ticket labels - List must be in alphabetical order
     ax.xaxis.set_ticklabels(emotion_list)
     ax.yaxis.set_ticklabels(emotion_list)
     plt.savefig(cmdir)
@@ -177,14 +180,14 @@ def evaluate(model, resdir, testloader):
 
 if __name__ == "__main__":
 
-    config = dict(num_epochs=60,
-                  lr=0.0006,
+    config = dict(num_epochs=80,
+                  lr=0.001,
                   lr_step_size=20,
                   lr_decay_gamma=0.2,
                   num_classes=7,
                   batch_size=16,
-                  h_num_frames=10,
-                  num_cumulated_frames=10,
+                  h_num_frames=30,
+                  num_channels=2,
                   )
 
     emotion_list = ['Neutral', 'Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust']
@@ -192,26 +195,26 @@ if __name__ == "__main__":
     # results dir
     result_dir = "FER/results"
 
-    # heatmap root dir
-    heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+    # landmark root dir
+    landmark_root = "C:/Users/Zber/Desktop/Subjects_Landmark_video"
 
     # annotation dir
-    annotation_train = os.path.join(heatmap_root, "heatmap_annotation_train.txt")
-    annotation_test = os.path.join(heatmap_root, "heatmap_annotation_test.txt")
+    annotation_train = os.path.join(landmark_root, "landmark_annotation_train_new.txt")
+    annotation_test = os.path.join(landmark_root, "landmark_annotation_test_new.txt")
 
-    # load data
-    dataset_train = HeatmapDataset(heatmap_root, annotation_train, cumulated=True,
-                                   num_frames=config['num_cumulated_frames'])
-    dataset_test = HeatmapDataset(heatmap_root, annotation_test, cumulated=True,
-                                  num_frames=config['num_cumulated_frames'])
+    # dataloader
+    dataset_train = LandmarkDataset(landmark_root, annotation_train, num_dim=config['num_channels'])
+    dataset_test = LandmarkDataset(landmark_root, annotation_test, num_dim=config['num_channels'])
+
     train_loader = DataLoader(dataset_train, batch_size=config['batch_size'], num_workers=4, pin_memory=True)
     test_loader = DataLoader(dataset_test, batch_size=config['batch_size'], num_workers=4, pin_memory=True)
 
     # log path
-    path = dir_path("C3DFusionBaseline_Frame_5f", result_dir)
+    path = dir_path("LandMark_LSTM-CNN_v1", result_dir)
 
     # create model
-    model = C3DFusionBaseline_Frame(sample_duration=config['h_num_frames'], num_classes=config['num_classes'])
+    model = LandmarkNet_LSTM(subnet=SubNet1D, classifier=Classifier, num_channel=config['num_channels'],
+                             num_classes=config['num_classes'])
     model = model.to(device)
 
     # initialize critierion and optimizer
@@ -254,4 +257,6 @@ if __name__ == "__main__":
     df.to_csv(path['metrics'], sep='\t', encoding='utf-8')
 
     # evaluate network
+    # eva_path = "C:/Users/Zber/Documents/Dev_program/OpenRadar/FER/results/sensor_heatmap_conv2d_heatmap&phase_v3_20220109-230604"
     evaluate(model, path['dir'], test_loader)
+    # evaluate(model, eva_path, test_loader)

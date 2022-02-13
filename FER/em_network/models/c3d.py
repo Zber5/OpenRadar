@@ -222,6 +222,44 @@ class SubNet(nn.Module):
         return out
 
 
+class SubNet_v5(nn.Module):
+    def __init__(self):
+        super(SubNet_v5, self).__init__()
+        self.group1 = nn.Sequential(
+            nn.Conv3d(1, 16, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(16),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(1, 2, 1)))
+        self.group2 = nn.Sequential(
+            nn.Conv3d(16, 32, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(32),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 2, 1)))
+        self.group3 = nn.Sequential(
+            nn.Conv3d(32, 64, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(64),
+            nn.ReLU(),
+            nn.Conv3d(64, 64, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(64),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(1, 1, 2)))
+        self.group4 = nn.Sequential(
+            nn.Conv3d(64, 128, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(128),
+            nn.ReLU(),
+            nn.Conv3d(128, 128, kernel_size=(3, 7, 3), padding=1),
+            nn.BatchNorm3d(128),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(1, 2, 2), padding=(0, 1, 0)))
+
+    def forward(self, x):
+        out = self.group1(x)
+        out = self.group2(out)
+        out = self.group3(out)
+        out = self.group4(out)
+        return out
+
+
 class SubNet_v4(nn.Module):
     def __init__(self):
         super(SubNet_v4, self).__init__()
@@ -345,18 +383,81 @@ class C3DFusionBaseline(nn.Module):
         last_duration = int(math.floor(sample_duration / 8))
         last_size_h = 2
         last_size_w = 2
+        # self.fc1 = nn.Sequential(
+        #     nn.Linear((128 * last_duration * last_size_h * last_size_w), 1024),
+        #     nn.ReLU(),
+        #     nn.Dropout(0.5)
+        # )
+        # self.fc2 = nn.Sequential(
+        #     nn.Linear(1024, 256),
+        #     nn.ReLU(),
+        #     nn.Dropout(0.5)
+        # )
+        # self.fc = nn.Sequential(
+        #     nn.Linear(256, num_classes))
+
         self.fc1 = nn.Sequential(
-            nn.Linear((128 * last_duration * last_size_h * last_size_w), 1024),
+            nn.Linear((128 * last_duration * last_size_h * last_size_w), 128),
             nn.ReLU(),
             nn.Dropout(0.5)
         )
         self.fc2 = nn.Sequential(
-            nn.Linear(1024, 256),
+            nn.Linear(128, 32),
             nn.ReLU(),
             nn.Dropout(0.5)
         )
         self.fc = nn.Sequential(
-            nn.Linear(256, num_classes))
+            nn.Linear(32, num_classes))
+
+    def forward(self, azi, ele):
+        out_azi = self.net_azimuth(azi)
+        out_ele = self.net_elevation(ele)
+
+        # concatenation
+        out = torch.cat((out_azi, out_ele), dim=1)
+        out = out.view(out.size(0), -1)
+        out = self.fc1(out)
+        out = self.fc2(out)
+        out = self.fc(out)
+        return out
+
+
+class C3DFusionBaseline_Frame(nn.Module):
+    def __init__(self,
+                 sample_duration,
+                 num_classes=600):
+        super(C3DFusionBaseline_Frame, self).__init__()
+        self.net_azimuth = SubNet_v5()
+        self.net_elevation = SubNet_v5()
+
+        last_duration = int(math.floor(sample_duration / 5))
+        last_size_h = 2
+        last_size_w = 2
+        # self.fc1 = nn.Sequential(
+        #     nn.Linear((128 * last_duration * last_size_h * last_size_w), 1024),
+        #     nn.ReLU(),
+        #     nn.Dropout(0.5)
+        # )
+        # self.fc2 = nn.Sequential(
+        #     nn.Linear(1024, 256),
+        #     nn.ReLU(),
+        #     nn.Dropout(0.5)
+        # )
+        # self.fc = nn.Sequential(
+        #     nn.Linear(256, num_classes))
+
+        self.fc1 = nn.Sequential(
+            nn.Linear((128 * 2 * last_duration * last_size_h * last_size_w), 128),
+            nn.ReLU(),
+            nn.Dropout(0.5)
+        )
+        self.fc2 = nn.Sequential(
+            nn.Linear(128, 32),
+            nn.ReLU(),
+            nn.Dropout(0.5)
+        )
+        self.fc = nn.Sequential(
+            nn.Linear(32, num_classes))
 
     def forward(self, azi, ele):
         out_azi = self.net_azimuth(azi)
@@ -1112,19 +1213,24 @@ def get_fine_tuning_parameters(model, ft_portion):
 
 if __name__ == '__main__':
     device = torch.device('cuda')
-    model = HeatmapPhaseNet(sample_duration=100, num_classes=7)
-    # model = SubNet()
+    # model = HeatmapPhaseNet(sample_duration=100, num_classes=7)
+    # model = C3DFusionBaseline_Frame(sample_duration=10, num_classes=7)
+    model = SubNet()
+    # model = SubNet_v5()
     model = model.to(device)
 
     input1 = torch.randn(8, 1, 100, 91, 10)
     input2 = torch.randn(8, 1, 100, 91, 10)
-    input3 = torch.randn(8, 12, 10, 100)
+    # input3 = torch.randn(8, 12, 10, 100)
 
     input1 = input1.to(device)
     input2 = input2.to(device)
-    input3 = input3.to(device)
+
+    summary(model,(1, 100, 91, 10))
+    # input3 = input3.to(device)
 
     # output = model(input1)
-    output = model(input1, input2, input3)
+    # output = model(input1, input2)
+    # output = model(input1, input2, input3)
 
-    print(output.size())
+    # print(output.size())

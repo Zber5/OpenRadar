@@ -15,7 +15,7 @@ import seaborn as sns
 
 sns.set_theme()
 
-total_FLms = 468
+
 frame_id = 0
 camera_fps = 30
 width = 1280
@@ -413,12 +413,12 @@ def _normalized_to_pixel_coordinates(
 
 if __name__ == "__main__":
     # video_path = "C:/Users/Zber/Desktop/SavedData_MIMO/Anger_1/Anger_1.avi"
-    video_path = "C:/Users/Zber/Desktop/Subjects_Video/S1/Anger_1.avi"
+    video_path = "C:/Users/Zber/Desktop/Subjects_Video/S2/Anger_1/Anger_1.avi"
 
     root_path = "C:/Users/Zber/Desktop/SavedData_MIMO/"
     # output_data_path = "C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/Emotion/data/"
     # output_data_path = "C:/Users/Zber/Desktop/Subjects_Video/S1/"
-    output_path = "C:/Users/Zber/Desktop/Subjects_Landmark/S1/"
+    output_path = "C:/Users/Zber/Desktop/Subjects_Landmark/Test/"
     file_prefix = "Anger_1_flm"
 
     video_dir = "{}_{}"

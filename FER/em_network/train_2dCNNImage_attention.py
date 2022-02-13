@@ -8,7 +8,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from utils import device, AverageMeter, dir_path, write_log, accuracy, save_checkpoint
-from models.c3d import C3DFusionBaseline, C3DFusionBaseline_Frame
+from models.Conv2D import ImageFull, ImageDualNet_Attention_Single, ImageNet_Attention_v1
 from dataset import HeatmapDataset
 from torch.utils.data import DataLoader
 import os
@@ -183,8 +183,7 @@ if __name__ == "__main__":
                   lr_decay_gamma=0.2,
                   num_classes=7,
                   batch_size=16,
-                  h_num_frames=10,
-                  num_cumulated_frames=10,
+                  h_num_frames=100,
                   )
 
     emotion_list = ['Neutral', 'Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust']
@@ -200,18 +199,17 @@ if __name__ == "__main__":
     annotation_test = os.path.join(heatmap_root, "heatmap_annotation_test.txt")
 
     # load data
-    dataset_train = HeatmapDataset(heatmap_root, annotation_train, cumulated=True,
-                                   num_frames=config['num_cumulated_frames'])
-    dataset_test = HeatmapDataset(heatmap_root, annotation_test, cumulated=True,
-                                  num_frames=config['num_cumulated_frames'])
+    dataset_train = HeatmapDataset(heatmap_root, annotation_train, cumulated=True, num_frames=config['h_num_frames'])
+    dataset_test = HeatmapDataset(heatmap_root, annotation_test, cumulated=True, num_frames=config['h_num_frames'])
     train_loader = DataLoader(dataset_train, batch_size=config['batch_size'], num_workers=4, pin_memory=True)
     test_loader = DataLoader(dataset_test, batch_size=config['batch_size'], num_workers=4, pin_memory=True)
 
     # log path
-    path = dir_path("C3DFusionBaseline_Frame_5f", result_dir)
+    path = dir_path("sensor_heatmap_ImageSingle_Attention", result_dir)
 
     # create model
-    model = C3DFusionBaseline_Frame(sample_duration=config['h_num_frames'], num_classes=config['num_classes'])
+    model = ImageFull(num_classes=config['num_classes'], block=ImageDualNet_Attention_Single,
+                      subblock=ImageNet_Attention_v1)
     model = model.to(device)
 
     # initialize critierion and optimizer
@@ -255,3 +253,7 @@ if __name__ == "__main__":
 
     # evaluate network
     evaluate(model, path['dir'], test_loader)
+
+    # evaluate network manually
+    # eva_path = "C:/Users/Zber/Documents/Dev_program/OpenRadar/FER/results/sensor_heatmap_ImageSingle_20220110-181253"
+    # evaluate(model, eva_path, test_loader)

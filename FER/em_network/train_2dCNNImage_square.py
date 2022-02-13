@@ -6,10 +6,12 @@ import time
 from sklearn.metrics import classification_report, confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
+from torchvision import transforms
 
 from utils import device, AverageMeter, dir_path, write_log, accuracy, save_checkpoint
-from models.c3d import C3DFusionBaseline, C3DFusionBaseline_Frame
-from dataset import HeatmapDataset
+from models.Conv2D import ImageFull_Square, ImageDualNet_Single, ImageNet_Square
+from models.resnet import ResNet10, resnet10
+from dataset import HeatmapDataset, HeatmapDataset_Image, ImglistToTensor
 from torch.utils.data import DataLoader
 import os
 import pandas as pd
@@ -41,6 +43,8 @@ def train(model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_
     start = time.time()
 
     for i, (azi, ele, target) in enumerate(data_loader):
+        azi = torch.squeeze(azi, 1)
+        ele = torch.squeeze(ele, 1)
         # prepare input and target to device
         azi = azi.to(device, dtype=torch.float)
         ele = ele.to(device, dtype=torch.float)
@@ -108,6 +112,8 @@ def test(model, test_loader, criterion, to_log=None):
     correct = 0
     with torch.no_grad():
         for (azi, ele, target) in test_loader:
+            azi = torch.squeeze(azi, 1)
+            ele = torch.squeeze(ele, 1)
             # prepare input and target to device
             azi = azi.to(device, dtype=torch.float)
             ele = ele.to(device, dtype=torch.float)
@@ -148,6 +154,8 @@ def evaluate(model, resdir, testloader):
     test_loss = 0
     with torch.no_grad():
         for (azi, ele, target) in test_loader:
+            azi = torch.squeeze(azi, 1)
+            ele = torch.squeeze(ele, 1)
             # prepare input and target to device
             azi = azi.to(device, dtype=torch.float)
             ele = ele.to(device, dtype=torch.float)
@@ -183,8 +191,7 @@ if __name__ == "__main__":
                   lr_decay_gamma=0.2,
                   num_classes=7,
                   batch_size=16,
-                  h_num_frames=10,
-                  num_cumulated_frames=10,
+                  h_num_frames=100,
                   )
 
     emotion_list = ['Neutral', 'Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust']
@@ -196,22 +203,32 @@ if __name__ == "__main__":
     heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
 
     # annotation dir
-    annotation_train = os.path.join(heatmap_root, "heatmap_annotation_train.txt")
-    annotation_test = os.path.join(heatmap_root, "heatmap_annotation_test.txt")
+    annotation_train = os.path.join(heatmap_root, "heatmap_annotation_train_new.txt")
+    annotation_test = os.path.join(heatmap_root, "heatmap_annotation_test_new.txt")
 
     # load data
-    dataset_train = HeatmapDataset(heatmap_root, annotation_train, cumulated=True,
-                                   num_frames=config['num_cumulated_frames'])
-    dataset_test = HeatmapDataset(heatmap_root, annotation_test, cumulated=True,
-                                  num_frames=config['num_cumulated_frames'])
+    # dataset_train = HeatmapDataset(heatmap_root, annotation_train, cumulated=True, num_frames=config['h_num_frames'])
+    # dataset_test = HeatmapDataset(heatmap_root, annotation_test, cumulated=True, num_frames=config['h_num_frames'])
+
+    preprocess = transforms.Compose([
+        ImglistToTensor(),  # list of PIL images to (FRAMES x CHANNELS x HEIGHT x WIDTH) tensor
+        transforms.Normalize((0.5,), (0.5,)),
+        transforms.Resize([70, 70]),
+    ])
+
+    dataset_train = HeatmapDataset_Image(heatmap_root, annotation_train, transform=preprocess, cumulated=True,
+                                         num_frames=config['h_num_frames'])
+    dataset_test = HeatmapDataset_Image(heatmap_root, annotation_test, transform=preprocess, cumulated=True,
+                                        num_frames=config['h_num_frames'])
+
     train_loader = DataLoader(dataset_train, batch_size=config['batch_size'], num_workers=4, pin_memory=True)
     test_loader = DataLoader(dataset_test, batch_size=config['batch_size'], num_workers=4, pin_memory=True)
 
     # log path
-    path = dir_path("C3DFusionBaseline_Frame_5f", result_dir)
+    path = dir_path("sensor_heatmap_ImageSingle_Square_ResNet", result_dir)
 
     # create model
-    model = C3DFusionBaseline_Frame(sample_duration=config['h_num_frames'], num_classes=config['num_classes'])
+    model = ImageFull_Square(num_classes=config['num_classes'], block=ImageDualNet_Single, subblock=ResNet10)
     model = model.to(device)
 
     # initialize critierion and optimizer
@@ -255,3 +272,7 @@ if __name__ == "__main__":
 
     # evaluate network
     evaluate(model, path['dir'], test_loader)
+
+    # evaluate network manually
+    # eva_path = "C:/Users/Zber/Documents/Dev_program/OpenRadar/FER/results/sensor_heatmap_ImageSingle_20220110-181253"
+    # evaluate(model, eva_path, test_loader)

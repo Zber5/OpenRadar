@@ -3,6 +3,9 @@ import torch.nn as nn
 import numpy as np
 import random
 import time
+from sklearn.metrics import classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 from utils import device, AverageMeter, dir_path, write_log, accuracy, save_checkpoint
 from models.Conv2D import ImagePhaseNet
@@ -140,6 +143,56 @@ def test(model, test_loader, criterion, to_log=None):
         return test_loss.item(), acc
 
 
+def evaluate(model, resdir, testloader):
+    # load weights
+    cmdir = os.path.join(resdir, 'cm.pdf')
+    logdir = os.path.join(resdir, 'cm_log.txt')
+    model_path = os.path.join(resdir, 'last.pth.tar')
+
+    # load weights
+    model.load_state_dict(torch.load(model_path))
+    model = model.to(device)
+    model.eval()
+
+    # test
+    all_pred = []
+    all_target = []
+    test_loss = 0
+    with torch.no_grad():
+        for i, conc_data in enumerate(test_loader):
+            # prepare input and target to device
+            h_data, p_data = conc_data
+            azi, ele, target = h_data
+            azi = torch.permute(azi, (0, 2, 1, 3, 4))
+            ele = torch.permute(ele, (0, 2, 1, 3, 4))
+            phase, _ = p_data
+            azi = azi.to(device, dtype=torch.float)
+            ele = ele.to(device, dtype=torch.float)
+            phase = phase.to(device, dtype=torch.float)
+            target = target.to(device, dtype=torch.long)
+            output = model(azi, ele, phase)
+            pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+            pred = pred.cpu().numpy().flatten()
+            target = target.cpu().numpy().flatten()
+            all_pred = np.concatenate((all_pred, pred), axis=0)
+            all_target = np.concatenate((all_target, target), axis=0)
+    # print
+    write_log(classification_report(all_target, all_pred, target_names=emotion_list), logdir)
+
+    cm = confusion_matrix(all_target, all_pred)
+
+    ax = sns.heatmap(cm, annot=True, cmap='Blues')
+
+    ax.set_title('Confusion Matrix\n\n');
+    ax.set_xlabel('\nPredicted Classes')
+    ax.set_ylabel('Actual Classes');
+
+    ## Ticket labels - List must be in alphabetical order
+    ax.xaxis.set_ticklabels(emotion_list)
+    ax.yaxis.set_ticklabels(emotion_list)
+    plt.savefig(cmdir)
+
+
 if __name__ == "__main__":
 
     config = dict(num_epochs=60,
@@ -151,7 +204,7 @@ if __name__ == "__main__":
                   h_num_frames=100,
                   )
 
-    emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust', 'Neutral']
+    emotion_list = ['Neutral', 'Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust']
 
     # results dir
     result_dir = "FER/results"
@@ -219,3 +272,6 @@ if __name__ == "__main__":
     # save csv log
     df = pd.DataFrame.from_dict(metrics_dic)
     df.to_csv(path['metrics'], sep='\t', encoding='utf-8')
+
+    # evaluate network
+    evaluate(model, path['dir'], test_loader)

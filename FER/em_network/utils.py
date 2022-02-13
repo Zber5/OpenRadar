@@ -369,23 +369,16 @@ def set_logger(log_path):
         logger.addHandler(stream_handler)
 
 
-def save_checkpoint(state, is_best, checkpoint):
-    """Saves model and training parameters at checkpoint + 'last.pth.tar'. If is_best==True, also saves
-    checkpoint + 'best.pth.tar'
-
-    Args:
-        state: (dict) contains model's state_dict, may contain other keys such as epoch, optimizer state_dict
-        is_best: (bool) True if it is the best model seen till now
-        checkpoint: (string) folder where parameters are to be saved
-    """
-    filepath = os.path.join(checkpoint, 'last.pth.tar')
+def save_checkpoint(state, is_best, checkpoint, name="", epoch=0):
+    full_name = '{}_{}.pth.tar'
+    filepath = os.path.join(checkpoint, full_name.format(name, epoch))
     if not os.path.exists(checkpoint):
         print("Checkpoint Directory does not exist! Making directory {}".format(checkpoint))
         os.mkdir(checkpoint)
 
     torch.save(state, filepath)
     if is_best:
-        shutil.copyfile(filepath, os.path.join(checkpoint, 'best.pth.tar'))
+        torch.save(state, os.path.join(checkpoint, full_name.format(name, "best")))
 
 
 def load_checkpoint(checkpoint, model, optimizer=None):
@@ -455,3 +448,28 @@ class Logger(object):
     def write(self, string):
         self.file_writer.write('{:}\n'.format(string))
         self.file_writer.flush()
+
+
+def model_parameters(_structure, _parameterDir):
+    checkpoint = torch.load(_parameterDir)
+    pretrained_state_dict = checkpoint['state_dict']
+    model_state_dict = _structure.state_dict()
+
+    for key in pretrained_state_dict:
+        if ((key == 'module.fc.weight') | (key == 'module.fc.bias')):
+
+            pass
+        else:
+            model_state_dict[key.replace('module.', '')] = pretrained_state_dict[key]
+
+    _structure.load_state_dict(model_state_dict)
+
+    # gpu
+    device = torch.device("cuda")
+    # device = torch.device("cpu")
+    model = _structure.to(device)
+
+    # GPU
+    # model = torch.nn.DataParallel(_structure).cuda()
+
+    return model

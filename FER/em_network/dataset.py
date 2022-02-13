@@ -4,6 +4,13 @@ import numpy as np
 from PIL import Image
 from torchvision import transforms
 import torch
+import imgaug as ia
+import imgaug.augmenters as iaa
+from imgaug import parameters as iap
+import random
+from utils import normalise_data
+
+ia.seed(123)
 
 
 class ConcatDataset(torch.utils.data.Dataset):
@@ -100,7 +107,10 @@ class MapRecord(object):
 class HeatmapDataset(torch.utils.data.Dataset):
     def __init__(self,
                  root_path: str,
-                 annotationfile_path: str):
+                 annotationfile_path: str,
+                 cumulated=False,
+                 aug=False,
+                 num_frames=100):
         super(HeatmapDataset, self).__init__()
 
         self.root_path = root_path
@@ -111,6 +121,24 @@ class HeatmapDataset(torch.utils.data.Dataset):
         self.crop_azi = np.s_[:, :, :]
         self.crop_ele = np.s_[:, :, :]
         self.diff = False
+        self.cumulated = cumulated
+        self.num_frames = num_frames
+        self.total = 100
+        self.num_cumulated = self.total // num_frames
+        self.sum_axis = 0 if self.num_frames == self.total else 1
+        self.aug = aug
+
+        blurer_gaussian = iaa.GaussianBlur(0.5)  # blur images with a sigma between 0 and 3.0
+        blurer_mean = iaa.AverageBlur(k=3)  # blur image using local means with kernel sizes between 2 and 7
+        blurer_median = iaa.MedianBlur(k=3)  # blur image using local medians with kernel sizes between 2 and 7
+        blurer_motion = iaa.MotionBlur(k=5, angle=(5, 20))
+        gaussian_noise = iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05 * 255), per_channel=0.5)
+        avg_pooling = iaa.AveragePooling(2)
+        # crop = iaa.Crop(percent=(0.1, 0.1))
+        crop = iaa.CropAndPad(percent=(0.1, 0.1), pad_mode=ia.ALL)
+        # self.aug_option = [blurer_gaussian, blurer_motion, gaussian_noise, avg_pooling, crop, None]
+        # self.aug_option = [blurer_gaussian, blurer_mean, crop]
+        self.aug_option = [blurer_gaussian, crop, blurer_mean, avg_pooling]
 
     def _parse_list(self):
         self.map_list = [MapRecord(x.strip().split(), self.root_path) for x in open(self.annotationfile_path)]
@@ -128,6 +156,11 @@ class HeatmapDataset(torch.utils.data.Dataset):
         azi = self._normalize(azi, is_azi=True)
         if self.diff:
             azi = np.diff(azi, axis=0)
+        if self.cumulated:
+            azi = np.split(azi, self.num_cumulated, axis=0)
+            azi = np.squeeze(azi)
+            azi = np.sum(azi, axis=self.sum_axis)
+            azi /= self.num_cumulated
         azi = np.expand_dims(azi, axis=0)
 
         ele = np.load(record.path.format("ele"))
@@ -136,7 +169,165 @@ class HeatmapDataset(torch.utils.data.Dataset):
         ele = self._normalize(ele, is_azi=False)
         if self.diff:
             ele = np.diff(ele, axis=0)
+        if self.cumulated:
+            ele = np.split(ele, self.num_cumulated, axis=0)
+            ele = np.squeeze(ele)
+            ele = np.sum(ele, axis=self.sum_axis)
+            ele /= self.num_cumulated
         ele = np.expand_dims(ele, axis=0)
+
+        if self.aug:
+            azi, ele = self._aug(azi, ele)
+
+        return azi, ele, record.label
+
+    def _normalize(self, data, is_azi=True):
+        azi_para = [73.505790, 3.681510]
+        ele_para = [86.071959, 5.921158]
+        if is_azi:
+            return (data - azi_para[0]) / azi_para[1]
+        else:
+            return (data - ele_para[0]) / ele_para[1]
+
+    def __len__(self):
+        return len(self.map_list)
+
+    def _aug(self, azi, ele):
+        if random.random() <= 0.3:
+            return azi, ele
+        aug_opt = random.sample(self.aug_option, 1)
+        seq = iaa.Sequential(aug_opt)
+
+        azi = seq(images=azi)
+        ele = seq(images=ele)
+        return azi, ele
+
+
+class LandmarkDataset(torch.utils.data.Dataset):
+    def __init__(self,
+                 root_path: str,
+                 annotationfile_path: str,
+                 num_dim=2):
+        super(LandmarkDataset, self).__init__()
+
+        self.root_path = root_path
+        self.annotationfile_path = annotationfile_path
+        self._parse_list()
+        self.num_dim = num_dim
+
+    def _parse_list(self):
+        self.map_list = [VideoRecord(x.strip().split(), self.root_path) for x in open(self.annotationfile_path)]
+
+    def __getitem__(self, index):
+        record = self.map_list[index]
+        return self._get(record)
+
+    def _get(self, record):
+        landmark = np.load(record.path)
+        landmark = landmark[record.start_frame:record.end_frame + 1]
+        landmark = self._normalize(landmark)
+        landmark = landmark[:, :, :self.num_dim]
+        return landmark, record.label
+
+    def _normalize(self, data):
+        nose_index = 2
+
+        # position normalize
+        for fid, frame in enumerate(data):
+            nose_landmark = frame[nose_index]
+            nose_landmark[2] = 0
+            data[fid] = data[fid] - nose_landmark
+
+        # scale normalize
+        data[:, :, 0] = normalise_data(data[:, :, 0])
+        data[:, :, 1] = normalise_data(data[:, :, 1])
+        data[:, :, 2] = normalise_data(data[:, :, 2])
+
+        return data
+
+    def __len__(self):
+        return len(self.map_list)
+
+
+def video_from_array(array):
+    images = []
+    if array.ndim == 2:
+        array = np.expand_dims(array, axis=0)
+
+    for arr in array:
+        # scale to 0 - 255
+        new_arr = ((arr - arr.min()) * (1 / (arr.max() - arr.min()) * 255)).astype('uint8')
+        new_arr = np.squeeze(new_arr)
+        img = Image.fromarray(new_arr)
+        images.append(img)
+    return images
+
+
+class HeatmapDataset_Image(torch.utils.data.Dataset):
+    def __init__(self,
+                 root_path: str,
+                 annotationfile_path: str,
+                 transform=None,
+                 cumulated=False,
+                 num_frames=100):
+        super(HeatmapDataset_Image, self).__init__()
+
+        self.root_path = root_path
+        self.annotationfile_path = annotationfile_path
+        self._parse_list()
+        # self.crop_azi = np.s_[:, 20:70, 3:8]
+        # self.crop_azi = np.s_[:, 20:70, 3:8]
+        self.crop_azi = np.s_[:, :, :]
+        self.crop_ele = np.s_[:, :, :]
+        self.diff = False
+        self.cumulated = cumulated
+        self.num_frames = num_frames
+        self.total = 100
+        self.num_cumulated = self.total // num_frames
+        self.sum_axis = 0 if self.num_frames == self.total else 1
+        self.transform = transform
+
+    def _parse_list(self):
+        self.map_list = [MapRecord(x.strip().split(), self.root_path) for x in open(self.annotationfile_path)]
+
+    def __getitem__(self, index):
+        record = self.map_list[index]
+        return self._get(record)
+
+    def _get(self, record):
+        # to grey scale data 0-255
+
+        azi = np.load(record.path.format("azi"))
+        azi = azi[self.crop_azi]
+        if self.diff:
+            record.onset = record.onset - 1
+        azi = azi[record.onset:record.peak + 1]
+        azi = self._normalize(azi, is_azi=True)
+        if self.diff:
+            azi = np.diff(azi, axis=0)
+        if self.cumulated:
+            azi = np.split(azi, self.num_cumulated, axis=0)
+            azi = np.squeeze(azi)
+            azi = np.sum(azi, axis=self.sum_axis)
+            azi /= self.num_cumulated
+        azi = video_from_array(azi)
+
+        ele = np.load(record.path.format("ele"))
+        ele = ele[self.crop_ele]
+        ele = ele[record.onset:record.peak + 1]
+        ele = self._normalize(ele, is_azi=False)
+        if self.diff:
+            ele = np.diff(ele, axis=0)
+        if self.cumulated:
+            ele = np.split(ele, self.num_cumulated, axis=0)
+            ele = np.squeeze(ele)
+            ele = np.sum(ele, axis=self.sum_axis)
+            ele /= self.num_cumulated
+        ele = video_from_array(ele)
+
+        if self.transform is not None:
+            azi = self.transform(azi)
+            ele = self.transform(ele)
 
         return azi, ele, record.label
 
@@ -155,13 +346,15 @@ class HeatmapDataset(torch.utils.data.Dataset):
 class PhaseDataset(torch.utils.data.Dataset):
     def __init__(self,
                  root_path: str,
-                 annotationfile_path: str):
+                 annotationfile_path: str,
+                 flatten=False):
         super(PhaseDataset, self).__init__()
 
         self.root_path = root_path
         self.annotationfile_path = annotationfile_path
         self._parse_list()
         self.diff = True
+        self.flatten = flatten
 
     def _parse_list(self):
         self.map_list = [MapRecord(x.strip().split(), self.root_path) for x in open(self.annotationfile_path)]
@@ -175,6 +368,13 @@ class PhaseDataset(torch.utils.data.Dataset):
         if self.diff:
             phase = np.diff(phase, axis=-1)
         phase = phase[..., record.onset:record.peak + 1]
+        if self.flatten:
+            # phase = np.transpose(phase, (1, 2, 0))
+            # phase = np.reshape(phase, (-1, phase.shape[2]))
+
+            phase = np.transpose(phase, (2, 1, 0))
+            phase = np.reshape(phase, (phase.shape[0], -1))
+
         return phase, record.label
 
     def __len__(self):
@@ -463,6 +663,7 @@ class ImglistToTensor(torch.nn.Module):
             tensor of size ``NUM_IMAGES x CHANNELS x HEIGHT x WIDTH``
         """
         return torch.stack([transforms.functional.to_tensor(pic) for pic in img_list])
+        # return torch.squeeze(torch.stack([transforms.functional.to_tensor(pic) for pic in img_list]))
 
 
 def denormalize(video_tensor):

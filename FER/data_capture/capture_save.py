@@ -40,7 +40,8 @@ import json
 
 # AOP 3s
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_5s.cfg'
-configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.cfg'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.cfg'
+configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/radarProfile.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/Front.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/xwr18xx_profile_front.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_10s.cfg'
@@ -411,17 +412,18 @@ if __name__ == "__main__":
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S3"
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S4"
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S5"
-    file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S6"
+    ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S6"
+    file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Test"
 
-    prefix = "Neutral_{}"
+    prefix = "Test4_{}"
 
     config = parseConfigFile(configFileName)
 
     record_time = config['numFrames'] / (1000 / config['framePeriodicity'])
 
-    interval = 3
-    start_record_index = 20
-    end_record_index = 40
+    interval = 5
+    start_record_index = 0
+    end_record_index = 1
 
     # preparing camera
     init = sl.InitParameters()

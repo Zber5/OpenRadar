@@ -16,7 +16,7 @@ import mmwave.dsp as dsp
 import mmwave.clustering as clu
 from mmwave.dataloader import DCA1000
 from demo.visualizer.visualize import ellipse_visualize
-from em_plot.mediapipe_facemesh_one import flm_detector, distance
+from data_processing.mediapipe_facemesh_one import flm_detector, distance
 from scipy import signal
 import os
 from mmwave.dsp.utils import Window
@@ -58,6 +58,7 @@ figpath = "C:/Users/Zber/Desktop/SavedFigure"
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_10s.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx1_rx4_2.cfg'
 configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.cfg'
+configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/radarProfile.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_5s.cfg'
 
 # pad cover face v
@@ -99,9 +100,11 @@ bin_index = 7
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/S1/Joy_2_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/S1/Anger_1_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/S2/Joy_3_Raw_0.bin"
-adc_data_path = "C:/Users/Zber/Desktop/Subjects/S2/Joy_2_31_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/S2/Joy_2_31_Raw_0.bin"
+adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Test4_0_Raw_0.bin"
+# adc_data_path = "D:/Subjects/S2/Joy_31_Raw_0.bin"
 
-video_path = "C:/Users/Zber/Desktop/Subjects_Video/S2/Joy_2_31.avi"
+video_path = "C:/Users/Zber/Desktop/Subjects_Video/S2/Joy_31.avi"
 
 plotRangeDopp = True
 plot2DscatterXY = False
@@ -909,7 +912,7 @@ def phase_temporal_attentionv2(range_data, bin_index=0, is_diff=True, loop_index
 if __name__ == '__main__':
 
     # num Antennas
-    numTxAntennas = 3
+    numTxAntennas = 1
     numRxAntennas = 4
     # load configure parameters
     configParameters = parseConfigFile(configFileName)
@@ -953,6 +956,7 @@ if __name__ == '__main__':
 
     # (1) processing range data
     # window types : Bartlett, Blackman p, Hanning p and Hamming
+    # range_data = dsp.range_processing(adc_data)
     range_data = dsp.range_processing(adc_data, window_type_1d=Window.HANNING)
     # range_data = range_data.reshape((-1,32,3,4,256))
     range_data = arange_tx(range_data, num_tx=numTxAntennas)

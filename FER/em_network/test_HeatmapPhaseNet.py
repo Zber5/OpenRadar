@@ -30,25 +30,30 @@ def evaluate(model, resdir, testloader):
     # load weights
     cmdir = os.path.join(resdir, 'cm.pdf')
     logdir = os.path.join(resdir, 'cm_log.txt')
-    model_path = os.path.join(resdir, 'best.pth.tar')
+    model_path = os.path.join(resdir, 'last.pth.tar')
 
     # load weights
     model.load_state_dict(torch.load(model_path))
     model = model.to(device)
+    model.eval()
 
     # test
     all_pred = []
     all_target = []
     test_loss = 0
     with torch.no_grad():
-        for (azi, ele, target) in testloader:
+        for i, conc_data in enumerate(test_loader):
+            # prepare input and target to device
+            h_data, p_data = conc_data
+            azi, ele, target = h_data
             azi = torch.permute(azi, (0, 2, 1, 3, 4))
             ele = torch.permute(ele, (0, 2, 1, 3, 4))
-            # prepare input and target to device
+            phase, _ = p_data
             azi = azi.to(device, dtype=torch.float)
             ele = ele.to(device, dtype=torch.float)
+            phase = phase.to(device, dtype=torch.float)
             target = target.to(device, dtype=torch.long)
-            output = model(azi, ele)
+            output = model(azi, ele, phase)
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             pred = pred.cpu().numpy().flatten()
             target = target.cpu().numpy().flatten()
@@ -95,7 +100,8 @@ if __name__ == "__main__":
     annotation_test = os.path.join(heatmap_root, "heatmap_annotation_test.txt")
 
     # dataloader
-    heatmap_train = HeatmapDataset(heatmap_root, annotation_train)
+    heatmap_train = HeatmapDataset(heatmap_root, annotation_train, cumulated=False,
+                                   num_frames=100)
     heatmap_test = HeatmapDataset(heatmap_root, annotation_test)
     phase_train = PhaseDataset(phase_root, annotation_train)
     phase_test = PhaseDataset(phase_root, annotation_test)
@@ -106,7 +112,7 @@ if __name__ == "__main__":
     test_loader = DataLoader(dataset_test, batch_size=config['batch_size'], num_workers=4, pin_memory=True)
 
     # log path
-    path = "C:/Users/Zber/Documents/Dev_program/OpenRadar/FER/results/sensor_heatmap_3dcnn_fusion_heatmap&phase_20220101-232921"
+    path = "C:/Users/Zber/Documents/Dev_program/OpenRadar/FER/results/sensor_heatmap_conv2d_heatmap&phase_20220109-220749"
 
     # create model
     model = ImagePhaseNet(num_classes=config['num_classes'])

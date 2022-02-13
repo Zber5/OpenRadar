@@ -1,283 +1,306 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
-import math
-from functools import partial
-
-__all__ = [
-    'ResNet', 'resnet10', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
-    'resnet152', 'resnet200'
-]
+from FER.em_network.utils import model_parameters
+import torchvision.models as models
+from torchvision.models.resnet import ResNet, BasicBlock
+from FER.em_network.models.model import TimeDistributed
 
 
-def conv3x3x3(in_planes, out_planes, stride=1):
-    # 3x3x3 convolution with padding
-    return nn.Conv3d(
-        in_planes,
-        out_planes,
-        kernel_size=3,
-        stride=stride,
-        padding=1,
-        bias=False)
+# class ResNetX(ResNet):
+#     def __init__(self, block, layers, num_classes=7, **kwargs):
+#         super(ResNetX, self).__init__(block, layers, num_classes, **kwargs)
+#
+#     def forward(self, x):
+#         x = self.conv1(x)
+#         x = self.bn1(x)
+#         x = self.relu(x)
+#         x = self.maxpool(x)  # 64,56,56
+#
+#         x = self.layer1(x)  # 64, 56, 56
+#         x = self.layer2(x)  # 128, 28, 28
+#         x = self.layer3(x)  # 256, 14, 14
+#         x = self.layer4(x)  # 512, 7, 7
+#
+#         x = self.avgpool(x)
+#         return x
 
 
-def downsample_basic_block(x, planes, stride):
-    out = F.avg_pool3d(x, kernel_size=1, stride=stride)
-    zero_pads = torch.Tensor(
-        out.size(0), planes - out.size(1), out.size(2), out.size(3),
-        out.size(4)).zero_()
-    if isinstance(out.data, torch.cuda.FloatTensor):
-        zero_pads = zero_pads.cuda()
+class ResNetX(ResNet):
+    def __init__(self, block, layers, num_classes=7, **kwargs):
+        super(ResNetX, self).__init__(block, layers, num_classes, **kwargs)
+        self.t_conv1 = TimeDistributed(self.conv1)
+        self.t_bn1 = TimeDistributed(self.bn1)
+        self.t_relu = TimeDistributed(self.relu)
+        self.t_maxpool = TimeDistributed(self.maxpool)
 
-    out = Variable(torch.cat([out.data, zero_pads], dim=1))
-
-    return out
-
-
-class BasicBlock(nn.Module):
-    expansion = 1
-
-    def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(BasicBlock, self).__init__()
-        self.conv1 = conv3x3x3(inplanes, planes, stride)
-        self.bn1 = nn.BatchNorm3d(planes)
-        self.relu = nn.ReLU(inplace=True)
-        self.conv2 = conv3x3x3(planes, planes)
-        self.bn2 = nn.BatchNorm3d(planes)
-        self.downsample = downsample
-        self.stride = stride
+        self.t_layer1 = TimeDistributed(self.layer1)
+        self.t_layer2 = TimeDistributed(self.layer2)
+        self.t_layer3 = TimeDistributed(self.layer3)
+        self.t_layer4 = TimeDistributed(self.layer4)
+        self.t_avgpool = TimeDistributed(self.avgpool)
 
     def forward(self, x):
-        residual = x
+        x = self.t_conv1(x)
+        x = self.t_bn1(x)
+        x = self.t_relu(x)
+        x = self.t_maxpool(x)  # 64,56,56
 
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu(out)
+        g1 = self.t_layer1(x)  # 64, 56, 56
+        g2 = self.t_layer2(g1)  # 128, 28, 28
+        g3 = self.t_layer3(g2)  # 256, 14, 14
+        g4 = self.t_layer4(g3)  # 512, 7, 7
 
-        out = self.conv2(out)
-        out = self.bn2(out)
+        x = self.t_avgpool(g4)
+        return x, (g1, g2, g3, g4)
 
-        if self.downsample is not None:
-            residual = self.downsample(x)
 
-        out += residual
-        out = self.relu(out)
+def _resnet(
+        arch: str,
+        block,
+        layers,
+        pretrained: bool,
+        progress: bool,
+        **kwargs):
+    model = ResNetX(block, layers, **kwargs)
 
-        return out
+    return model
+
+
+def resnet18(pretrained: bool = False, progress: bool = True, **kwargs):
+    r"""ResNet-18 model from
+    `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    """
+    return _resnet('resnet18', BasicBlock, [2, 2, 2, 2], pretrained, progress,
+                   **kwargs)
+
+
+def resnet10(pretrained: bool = False, progress: bool = True, **kwargs):
+    r"""ResNet-18 model from
+    `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    """
+    return _resnet('resnet10', BasicBlock, [2, 1, 2, 1], pretrained, progress,
+                   **kwargs)
 
 
 class Bottleneck(nn.Module):
     expansion = 4
 
-    def __init__(self, inplanes, planes, stride=1, downsample=None):
+    def __init__(self, in_channels, out_channels, i_downsample=None, stride=1):
         super(Bottleneck, self).__init__()
-        self.conv1 = nn.Conv3d(inplanes, planes, kernel_size=1, bias=False)
-        self.bn1 = nn.BatchNorm3d(planes)
-        self.conv2 = nn.Conv3d(
-            planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm3d(planes)
-        self.conv3 = nn.Conv3d(planes, planes * 4, kernel_size=1, bias=False)
-        self.bn3 = nn.BatchNorm3d(planes * 4)
-        self.relu = nn.ReLU(inplace=True)
-        self.downsample = downsample
+
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0)
+        self.batch_norm1 = nn.BatchNorm2d(out_channels)
+
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=stride, padding=1)
+        self.batch_norm2 = nn.BatchNorm2d(out_channels)
+
+        self.conv3 = nn.Conv2d(out_channels, out_channels * self.expansion, kernel_size=1, stride=1, padding=0)
+        self.batch_norm3 = nn.BatchNorm2d(out_channels * self.expansion)
+
+        self.i_downsample = i_downsample
         self.stride = stride
+        self.relu = nn.ReLU()
 
     def forward(self, x):
-        residual = x
+        identity = x.clone()
+        x = self.relu(self.batch_norm1(self.conv1(x)))
 
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu(out)
+        x = self.relu(self.batch_norm2(self.conv2(x)))
 
-        out = self.conv2(out)
-        out = self.bn2(out)
-        out = self.relu(out)
+        x = self.conv3(x)
+        x = self.batch_norm3(x)
 
-        out = self.conv3(out)
-        out = self.bn3(out)
+        # downsample if needed
+        if self.i_downsample is not None:
+            identity = self.i_downsample(identity)
+        # add identity
+        x += identity
+        x = self.relu(x)
 
-        if self.downsample is not None:
-            residual = self.downsample(x)
+        return x
 
-        out += residual
-        out = self.relu(out)
 
-        return out
+class Block(nn.Module):
+    expansion = 1
+
+    def __init__(self, in_channels, out_channels, i_downsample=None, stride=1):
+        super(Block, self).__init__()
+
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=stride, bias=False)
+        self.batch_norm1 = nn.BatchNorm2d(out_channels)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, stride=stride, bias=False)
+        self.batch_norm2 = nn.BatchNorm2d(out_channels)
+
+        self.i_downsample = i_downsample
+        self.stride = stride
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        identity = x.clone()
+
+        x = self.relu(self.batch_norm2(self.conv1(x)))
+        x = self.batch_norm2(self.conv2(x))
+
+        if self.i_downsample is not None:
+            identity = self.i_downsample(identity)
+        print(x.shape)
+        print(identity.shape)
+        x += identity
+        x = self.relu(x)
+        return x
 
 
 class ResNet(nn.Module):
-
-    def __init__(self,
-                 block,
-                 layers,
-                 sample_size,
-                 sample_duration,
-                 shortcut_type='B',
-                 num_classes=400):
-        self.inplanes = 64
+    def __init__(self, ResBlock, layer_list, num_channels=1):
         super(ResNet, self).__init__()
-        self.conv1 = nn.Conv3d(
-            3,
-            64,
-            kernel_size=7,
-            stride=(1, 2, 2),
-            padding=(3, 3, 3),
-            bias=False)
-        self.bn1 = nn.BatchNorm3d(64)
-        self.relu = nn.ReLU(inplace=True)
-        self.maxpool = nn.MaxPool3d(kernel_size=(3, 3, 3), stride=2, padding=1)
-        self.layer1 = self._make_layer(block, 64, layers[0], shortcut_type)
-        self.layer2 = self._make_layer(
-            block, 128, layers[1], shortcut_type, stride=2)
-        self.layer3 = self._make_layer(
-            block, 256, layers[2], shortcut_type, stride=2)
-        self.layer4 = self._make_layer(
-            block, 512, layers[3], shortcut_type, stride=2)
-        last_duration = int(math.ceil(sample_duration / 16))
-        last_size = int(math.ceil(sample_size / 32))
-        self.avgpool = nn.AvgPool3d(
-            (last_duration, last_size, last_size), stride=1)
-        self.fc = nn.Linear(512 * block.expansion, num_classes)
+        self.in_channels = 64
 
-        for m in self.modules():
-            if isinstance(m, nn.Conv3d):
-                m.weight = nn.init.kaiming_normal(m.weight, mode='fan_out')
-            elif isinstance(m, nn.BatchNorm3d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
+        self.conv1 = nn.Conv2d(num_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.batch_norm1 = nn.BatchNorm2d(64)
+        self.relu = nn.ReLU()
+        self.max_pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
-    def _make_layer(self, block, planes, blocks, shortcut_type, stride=1):
-        downsample = None
-        if stride != 1 or self.inplanes != planes * block.expansion:
-            if shortcut_type == 'A':
-                downsample = partial(
-                    downsample_basic_block,
-                    planes=planes * block.expansion,
-                    stride=stride)
-            else:
-                downsample = nn.Sequential(
-                    nn.Conv3d(
-                        self.inplanes,
-                        planes * block.expansion,
-                        kernel_size=1,
-                        stride=stride,
-                        bias=False), nn.BatchNorm3d(planes * block.expansion))
+        self.layer1 = self._make_layer(ResBlock, layer_list[0], planes=64)
+        self.layer2 = self._make_layer(ResBlock, layer_list[1], planes=128, stride=2)
+        self.layer3 = self._make_layer(ResBlock, layer_list[2], planes=256, stride=2)
+        self.layer4 = self._make_layer(ResBlock, layer_list[3], planes=512, stride=2)
 
-        layers = []
-        layers.append(block(self.inplanes, planes, stride, downsample))
-        self.inplanes = planes * block.expansion
-        for i in range(1, blocks):
-            layers.append(block(self.inplanes, planes))
-
-        return nn.Sequential(*layers)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
     def forward(self, x):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
+        x = self.relu(self.batch_norm1(self.conv1(x)))
+        x = self.max_pool(x)
 
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
 
-        x = self.avgpool(x)
-
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
+        # x = self.avgpool(x)
 
         return x
 
+    def _make_layer(self, ResBlock, blocks, planes, stride=1):
+        ii_downsample = None
+        layers = []
 
-def get_fine_tuning_parameters(model, ft_portion):
-    if ft_portion == "complete":
-        return model.parameters()
+        if stride != 1 or self.in_channels != planes * ResBlock.expansion:
+            ii_downsample = nn.Sequential(
+                nn.Conv2d(self.in_channels, planes * ResBlock.expansion, kernel_size=3, stride=stride),
+                nn.BatchNorm2d(planes * ResBlock.expansion)
+            )
 
-    elif ft_portion == "last_layer":
-        ft_module_names = []
-        ft_module_names.append('fc')
+        layers.append(ResBlock(self.in_channels, planes, i_downsample=ii_downsample, stride=stride))
+        self.in_channels = planes * ResBlock.expansion
 
-        parameters = []
-        for k, v in model.named_parameters():
-            for ft_module in ft_module_names:
-                if ft_module in k:
-                    parameters.append({'params': v})
-                    break
-            else:
-                parameters.append({'params': v, 'lr': 0.0})
-        return parameters
+        for i in range(blocks - 1):
+            layers.append(ResBlock(self.in_channels, planes))
 
-    else:
-        raise ValueError("Unsupported ft_portion: 'complete' or 'last_layer' expected")
+        return nn.Sequential(*layers)
 
 
-def resnet8(**kwargs):
-    """Constructs a ResNet-18 model.
-    """
-    model = ResNet(BasicBlock, [1, 1, 1, 1], **kwargs)
-    return model
+class Classifier(nn.Module):
+    def __init__(self, num_classes=7):
+        super(Classifier, self).__init__()
 
-def resnet10(**kwargs):
-    """Constructs a ResNet-18 model.
-    """
-    model = ResNet(BasicBlock, [1, 1, 1, 1], **kwargs)
-    return model
+        self.classifier = nn.Sequential(
+            nn.Linear(512, 64),
+            nn.ReLU(),
+            nn.Linear(64, num_classes),
+        )
 
-
-def resnet18(**kwargs):
-    """Constructs a ResNet-18 model.
-    """
-    model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
-    return model
+    def forward(self, input):
+        out = self.classifier(input)
+        return out
 
 
-def resnet34(**kwargs):
-    """Constructs a ResNet-34 model.
-    """
-    model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
-    return model
+class ResNetFull(nn.Module):
+    def __init__(self, fmodel, cmodel):
+        super(ResNetFull, self).__init__()
+        self.feature = TimeDistributed(fmodel)
+        self.classifier = cmodel
+
+    def forward(self, x):
+        out = self.feature(x)
+        out = torch.mean(out, dim=1)
+        out = torch.flatten(out, 1)
+        out = self.classifier(out)
+
+        return out
 
 
-def resnet50(**kwargs):
-    """Constructs a ResNet-50 model.
-    """
-    model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
-    return model
+class ResNetFull_Teacher(nn.Module):
+    def __init__(self, fmodel, cmodel):
+        super(ResNetFull_Teacher, self).__init__()
+        self.feature = fmodel
+        self.classifier = cmodel
+
+    def forward(self, x):
+        out, gs = self.feature(x)
+        out = torch.mean(out, dim=1)
+        out = torch.flatten(out, 1)
+        out1 = self.classifier(out)
+
+        return out1, gs
 
 
-def resnet101(**kwargs):
-    """Constructs a ResNet-101 model.
-    """
-    model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
-    return model
+def ResNet18(channels=3):
+    return ResNet(Bottleneck, [2, 2, 2, 2], channels)
 
 
-def resnet152(**kwargs):
-    """Constructs a ResNet-101 model.
-    """
-    model = ResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
-    return model
+def ResNet10():
+    return ResNet(Bottleneck, [2, 2, 2, 2])
 
 
-def resnet200(**kwargs):
-    """Constructs a ResNet-101 model.
-    """
-    model = ResNet(Bottleneck, [3, 24, 36, 3], **kwargs)
-    return model
+def ResNet50(num_classes, channels=3):
+    return ResNet(Bottleneck, [3, 4, 6, 3], num_classes, channels)
+
+
+def ResNet101(num_classes, channels=3):
+    return ResNet(Bottleneck, [3, 4, 23, 3], num_classes, channels)
+
+
+def ResNet152(num_classes, channels=3):
+    return ResNet(Bottleneck, [3, 8, 36, 3], num_classes, channels)
 
 
 if __name__ == "__main__":
-    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    device = torch.device('cpu')
-    model = resnet10(num_classes=6,
-                shortcut_type="B",
-                sample_size = 112,
-                sample_duration=300)
-    model = model.to(device)
-    print(model)
-    input = torch.rand(8, 3, 300, 112, 112).to(device)
+    device = torch.device('cuda')
 
-    output = model(input)
-    print(output.shape)
+    _structure = resnet18()
+    _parameterDir = "C:/Users/Zber/Documents/GitHub/Emotion-FAN/pretrain_model/Resnet18_FER+_pytorch.pth.tar"
+    fmodel = model_parameters(_structure, _parameterDir)
+    cmodel = Classifier(num_classes=7)
+    model = ResNetFull_Teacher(fmodel, cmodel)
+    model = model.to(device)
+    input1 = torch.randn(8, 30, 3, 224, 224)
+    # input1 = torch.randn(8, 3, 224, 224)
+    input1 = input1.to(device)
+
+    out, g = model(input1)
+
+    print(out.size())
+
+    # device = torch.device('cuda')
+    # fmodel = resnet10()
+    # # _parameterDir = "C:/Users/Zber/Documents/GitHub/Emotion-FAN/pretrain_model/Resnet18_FER+_pytorch.pth.tar"
+    # # fmodel = model_parameters(_structure, _parameterDir)
+    # cmodel = Classifier(num_classes=7)
+    # model = ResNetFull(fmodel, cmodel)
+    # model = model.to(device)
+    # input1 = torch.randn(8, 1, 1, 70, 70)
+    # # input1 = torch.randn(8, 3, 224, 224)
+    # input1 = input1.to(device)
+    #
+    # out = model(input1)
+    #
+    # print(out.size())

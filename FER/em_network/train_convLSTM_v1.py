@@ -8,7 +8,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from utils import device, AverageMeter, dir_path, write_log, accuracy, save_checkpoint
-from models.c3d import C3DFusionBaseline, C3DFusionBaseline_Frame
+from models.ConvLSTM import ConvLSTMFull_v1
 from dataset import HeatmapDataset
 from torch.utils.data import DataLoader
 import os
@@ -42,8 +42,11 @@ def train(model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_
 
     for i, (azi, ele, target) in enumerate(data_loader):
         # prepare input and target to device
+        azi = torch.permute(azi, (0, 2, 1, 3, 4))
+        ele = torch.permute(ele, (0, 2, 1, 3, 4))
         azi = azi.to(device, dtype=torch.float)
         ele = ele.to(device, dtype=torch.float)
+
         target = target.to(device, dtype=torch.long)
 
         # measure data loading time
@@ -109,6 +112,8 @@ def test(model, test_loader, criterion, to_log=None):
     with torch.no_grad():
         for (azi, ele, target) in test_loader:
             # prepare input and target to device
+            azi = torch.permute(azi, (0, 2, 1, 3, 4))
+            ele = torch.permute(ele, (0, 2, 1, 3, 4))
             azi = azi.to(device, dtype=torch.float)
             ele = ele.to(device, dtype=torch.float)
             target = target.to(device, dtype=torch.long)
@@ -148,6 +153,8 @@ def evaluate(model, resdir, testloader):
     test_loss = 0
     with torch.no_grad():
         for (azi, ele, target) in test_loader:
+            azi = torch.permute(azi, (0, 2, 1, 3, 4))
+            ele = torch.permute(ele, (0, 2, 1, 3, 4))
             # prepare input and target to device
             azi = azi.to(device, dtype=torch.float)
             ele = ele.to(device, dtype=torch.float)
@@ -208,10 +215,17 @@ if __name__ == "__main__":
     test_loader = DataLoader(dataset_test, batch_size=config['batch_size'], num_workers=4, pin_memory=True)
 
     # log path
-    path = dir_path("C3DFusionBaseline_Frame_5f", result_dir)
+    path = dir_path("sensor_heatmap_ConvLSTM_v1_f10", result_dir)
 
     # create model
-    model = C3DFusionBaseline_Frame(sample_duration=config['h_num_frames'], num_classes=config['num_classes'])
+    model = ConvLSTMFull_v1(input_dim=1,
+                            hidden_dim=[2, 4, 8],
+                            kernel_size=(7, 3),
+                            num_layers=3,
+                            num_classes=config['num_classes'],
+                            batch_first=True,
+                            bias=True,
+                            return_all_layers=False)
     model = model.to(device)
 
     # initialize critierion and optimizer

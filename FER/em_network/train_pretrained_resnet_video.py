@@ -7,9 +7,10 @@ from dataset import ImglistToTensor, VideoFrameDataset
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from FER.utils import ROOT_PATH, save_to_json
+from FER.em_network.utils import model_parameters
 
 from utils import accuracy, device, AverageMeter, dir_path, write_log, save_checkpoint
-from models.c3d import C3D_VIDEO_V2, C3D_VIDEO_V3
+from models.resnet import resnet18, Classifier, ResNetFull
 import pandas as pd
 
 import os
@@ -41,7 +42,7 @@ def train(model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_
 
     for i, (inputs, target) in enumerate(data_loader):
         # prepare input and target
-        inputs = torch.permute(inputs, (0, 2, 1, 3, 4))
+        # inputs = torch.permute(inputs, (0, 2, 1, 3, 4))
         inputs = inputs.to(device)
         # target = target.type(torch.LongTensor)
         target = target.long()
@@ -97,7 +98,7 @@ def test(model, test_loader, criterion, to_log=None):
     with torch.no_grad():
         for (data, target) in test_loader:
             target = target.long()
-            data = torch.permute(data, (0, 2, 1, 3, 4))
+            # data = torch.permute(data, (0, 2, 1, 3, 4))
             data, target = data.to(device), target.to(device)
             output = model(data)
             loss = criterion(output, target)
@@ -133,7 +134,7 @@ def denormalize(video_tensor):
 if __name__ == "__main__":
 
     config = dict(num_epochs=60,
-                  lr=0.0006,
+                  lr=0.0003,
                   lr_step_size=30,
                   lr_decay_gamma=0.2,
                   batch_size=16,
@@ -145,15 +146,15 @@ if __name__ == "__main__":
 
     # results dir
     result_dir = "FER/results"
-    path = dir_path("C3D_Video_V3", result_dir)
+    path = dir_path("Pretrained_ResNet_video", result_dir)
 
     # save training config
     save_to_json(config, path['config'])
 
     # data path and annotation files
     videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-    annotation_train = os.path.join(videos_root, 'video_annotations_train_new.txt')
-    annotation_test = os.path.join(videos_root, 'video_annotations_test_new.txt')
+    annotation_train = os.path.join(videos_root, 'annotations_att_train.txt')
+    annotation_test = os.path.join(videos_root, 'annotations_att_test.txt')
 
     # dataloader
     preprocess = transforms.Compose([
@@ -187,9 +188,11 @@ if __name__ == "__main__":
     test_loader = DataLoader(dataset_test, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
 
     # create model
-
-    model = C3D_VIDEO_V3(sample_size=config['imag_size'], sample_duration=config['v_num_frames'],
-                         num_classes=config['num_classes'])
+    _structure = resnet18()
+    _parameterDir = "C:/Users/Zber/Documents/GitHub/Emotion-FAN/pretrain_model/Resnet18_FER+_pytorch.pth.tar"
+    fmodel = model_parameters(_structure, _parameterDir)
+    cmodel = Classifier(num_classes=7)
+    model = ResNetFull(fmodel, cmodel)
     model = model.to(device)
 
     # print model summary to txt
