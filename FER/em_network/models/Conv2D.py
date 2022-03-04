@@ -86,7 +86,7 @@ class ImageNet(nn.Module):
 
 
 class ImageNet_Large_v1(nn.Module):
-    def __init__(self, num_channel=1):
+    def __init__(self, num_channel=3):
         super(ImageNet_Large_v1, self).__init__()
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
@@ -763,7 +763,37 @@ class ImagePhaseLSTM_Single_v1(nn.Module):
         return out
 
 
+class TFblock_v3(nn.Module):
+    def __init__(self, dim_in=512, dim_inter=1024):
+        super(TFblock_v3, self).__init__()
+        # self.encoder = nn.Linear(dim_in, dim_inter)
+        # self.decoder = nn.Linear(dim_inter, dim_in)
+
+        self.encoder = nn.Conv2d(in_channels=dim_in, out_channels=dim_inter, kernel_size=(4, 2))
+        self.bn1 = nn.BatchNorm2d(num_features=dim_inter)
+        self.decoder = nn.ConvTranspose2d(in_channels=dim_inter, out_channels=(dim_in + dim_inter) // 2, kernel_size=(
+            3, 3), stride=(1, 1), padding=(0, 0))
+        self.decoder1 = nn.ConvTranspose2d(in_channels=(dim_in + dim_inter) // 2, out_channels=dim_in, kernel_size=(
+            5, 5), stride=(1, 1), padding=(0, 0))
+
+    def forward(self, x):
+        x = self.encoder(x)
+        # x = self.avgpool(x)
+        x = self.bn1(x)
+        x = self.decoder(x)
+        x = self.decoder1(x)
+        return x
+
+
 if __name__ == "__main__":
+    device = torch.device('cuda')
+    model = TFblock_v3()
+    model = model.to(device)
+    input1 = torch.randn(8, 512, 4, 2)
+    input1 = input1.to(device)
+    outputs = model(input1)
+    print(outputs.size())
+
     # device = torch.device('cuda')
     # model = PhaseNet()
     # model = model.to(device)
@@ -794,9 +824,9 @@ if __name__ == "__main__":
     # out = model(input1, input2, input3)
     # print(out.size())
 
-    device = torch.device('cuda')
+    # device = torch.device('cuda')
     # model = ImageNet()
-    model = ImageSingle_v1(num_classes=7, block=ImageDualNet_Single_v1, subblock=ImageNet_Large_v1)
+    # model = ImageSingle_v1(num_classes=7, block=ImageDualNet_Single_v1, subblock=ImageNet_Large_v1)
     # model = ImageDualNet()
     # model = ImageFull(num_classes=7)
     # model = ImagePhaseNet_Single(num_classes=7)
@@ -809,24 +839,24 @@ if __name__ == "__main__":
     # model = ImageFull_Square(num_classes=7, block=ImageDualNet_Single, subblock=ResNet10)
     # model = PhaseNet()
 
-    model = model.to(device)
+    # model = model.to(device)
     # summary(model, (1, 91, 10))
     # summary(model, (12, 10, 100))
 
-    input1 = torch.randn(8, 1, 91, 10)
+    # input1 = torch.randn(8, 1, 91, 10)
     # input1 = torch.randn(8, 1, 70, 70)
-    input1 = input1.to(device)
+    # input1 = input1.to(device)
 
-    input2 = torch.randn(8, 1, 91, 10)
+    # input2 = torch.randn(8, 1, 91, 10)
     # input2 = torch.randn(8, 1, 70, 70)
-    input2 = input2.to(device)
+    # input2 = input2.to(device)
 
-    input3 = torch.randn(8, 12, 10, 100)
-    input3 = torch.permute(input3, (0, 2, 3, 1))
-    input3 = torch.reshape(input3, (input3.size(0), -1, input3.size(3)))
-    input3 = input3.to(device)
+    # input3 = torch.randn(8, 12, 10, 100)
+    # input3 = torch.permute(input3, (0, 2, 3, 1))
+    # input3 = torch.reshape(input3, (input3.size(0), -1, input3.size(3)))
+    # input3 = input3.to(device)
     # out = model(input1)
     # azi, ele = model(input1, input2)
-    out, g = model(input1, input2)
+    # out, g = model(input1, input2)
     # out = model(input1, input2, input3)
-    print(out.size())
+    # print(out.size())

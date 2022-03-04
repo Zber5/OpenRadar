@@ -21,6 +21,12 @@ from FER.utils import parseConfigFile, arange_tx, get_label
 configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.cfg'
 
 
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s_10fps.cfg'
+
+
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s_50fps.cfg'
+
+
 def plot_heatmap_capon(adc_data_path, bin_start=4, bin_end=14, diff=False, is_log=False, remove_clutter=True,
                        cumulative=False):
     num_bins = bin_end - bin_start
@@ -247,6 +253,28 @@ if __name__ == '__main__':
                                                                                                 bandwidth / 1000000000,
                                                                                                 doppler_resolution))
 
+    # Test data
+    bin_start = 4
+    bin_end = 14
+    bin_path = "C:\\Users\\Zber\\Desktop\\Subjects\\Test\\LR_100fps_0_Raw_0.bin"
+    output_data_path = "C:\\Users\\Zber\\Desktop\\Subjects\\Test"
+    npy_azi, npy_ele = plot_heatmap_capon(bin_path, bin_start, bin_end, diff=is_diff, is_log=is_log,
+                                          remove_clutter=static_clutter_removal, cumulative=True)
+
+    cum_azi = np.mean(npy_azi[100:200], 0)
+    cum_ele = np.mean(npy_ele[100:200], 0)
+
+    import seaborn as sns
+    import matplotlib.pylab as plt
+
+    ax = sns.heatmap(cum_azi)
+    plt.show()
+
+    uniform_data = npy_ele
+    ax = sns.heatmap(cum_ele)
+    plt.show()
+
+    # ######  #
     root_path = "D:\\Subjects\\"
     data_path = '{}_{}_Raw_0.bin'
     output_data_path = "C:\\Users\\Zber\\Desktop\\Subjects_Heatmap"
@@ -276,10 +304,12 @@ if __name__ == '__main__':
 
     # saved file name
     # file_prefix = "heatmap_D0_S0_L0_N0_B4-14_I0-80_A-45->45_AR_1_CO_0"
-    file_prefix = "Heatmap_D{}_S{}_L{}_B{}->{}_I{}->{}_A{}->{}_AR_{}_CO_{}".format(int(is_diff), int(static_clutter_removal),
-                                                                          int(is_log), bin_start, bin_end, start_index,
-                                                                          end_index, -ANGLE_RANGE, ANGLE_RANGE,
-                                                                          ANGLE_RES, non_coherent)
+    file_prefix = "Heatmap_D{}_S{}_L{}_B{}->{}_I{}->{}_A{}->{}_AR_{}_CO_{}".format(int(is_diff),
+                                                                                   int(static_clutter_removal),
+                                                                                   int(is_log), bin_start, bin_end,
+                                                                                   start_index,
+                                                                                   end_index, -ANGLE_RANGE, ANGLE_RANGE,
+                                                                                   ANGLE_RES, non_coherent)
 
     for sub in subs:
         for l, e in enumerate(emotion_list):

@@ -52,6 +52,7 @@ class ResNetX(ResNet):
         g4 = self.t_layer4(g3)  # 512, 7, 7
 
         x = self.t_avgpool(g4)
+        # x = g4
         return x, (g1, g2, g3, g4)
 
 

@@ -11,8 +11,7 @@ import torch.nn.functional as F
 
 from utils import accuracy, device, AverageMeter, dir_path, write_log, save_checkpoint
 from models.resnet import resnet18, Classifier, ResNetFull_Teacher
-from models.Conv2D import ImageSingle_Student, ImageSingle_v1, ImageDualNet_Single_v1, ImageNet_Large_v1, \
-    Classifier_Transformer
+from models.Conv2D import ImageSingle_Student, ImageSingle_v1, ImageDualNet_Single_v1, ImageNet_Large_v1
 import pandas as pd
 
 from scipy.stats import wasserstein_distance
@@ -68,70 +67,6 @@ def MMD(x, y, kernel):
             XY += torch.exp(-0.5 * dxy / a)
 
     return torch.mean(XX + YY - 2. * XY)
-
-
-def get_similarity(tx, ty):
-    # not completed yet
-    avgpool = nn.AdaptiveAvgPool2d((1, 1))
-    pdist = nn.PairwiseDistance()
-    return 0
-
-
-class TFblock(nn.Module):
-    def __init__(self, dim_in=521, dim_inter=128):
-        super(TFblock, self).__init__()
-        # self.encoder = nn.Linear(dim_in, dim_inter)
-        # self.decoder = nn.Linear(dim_inter, dim_in)
-
-        self.encoder = nn.Conv2d(dim_in, dim_inter, 1)
-        self.decoder = nn.Conv2d(dim_inter, dim_in, 1)
-
-    def forward(self, x):
-        x = self.encoder(x)
-        x = self.decoder(x)
-
-        return x
-
-
-def load_model(model, checkpoints):
-    assert os.path.exists(checkpoints), 'Error: no checkpoint directory found!'
-    model.load_state_dict(torch.load(checkpoints))
-    loaded_model = model.to(device)
-    return loaded_model
-
-
-class TFblock_v2(nn.Module):
-    def __init__(self, dim_in=521, dim_inter=128):
-        super(TFblock_v2, self).__init__()
-        # self.encoder = nn.Linear(dim_in, dim_inter)
-        # self.decoder = nn.Linear(dim_inter, dim_in)
-
-        self.encoder = nn.Conv2d(dim_in, dim_inter, 1)
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.decoder = nn.Conv2d(dim_inter, dim_in, 1)
-
-    def forward(self, x):
-        x = self.encoder(x)
-        x = self.avgpool(x)
-        x = self.decoder(x)
-
-        return x
-
-
-def at(x):
-    if len(x.shape) != 5:
-        return F.normalize(x.pow(2).mean((2, 3)).view(x.size(0), -1))
-    else:
-        return F.normalize(x.pow(2).mean((1, 3, 4)).view(x.size(0), -1))
-
-
-def pair_loss(x, y):
-    pdist = nn.PairwiseDistance()
-    x = at(x)
-    y = at(y)
-    # diff = pdist(x, y).pow(2).mean()
-    diff = pdist(x, y).mean()
-    return diff
 
 
 if __name__ == "__main__":
@@ -205,56 +140,30 @@ if __name__ == "__main__":
     train_loader = DataLoader(dataset_train, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
     test_loader = DataLoader(heatmap_test, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
 
-    # folder path
-    # best_folder = "Supervision_image2D_Transformer_power_20220214-155040"
-    # best_folder = "Supervision_image2D_Transformer_20220213-100217"
-    best_folder = "Supervision_image2D_Transformer_stage2_updated_20220216-152105"
-    # best_folder = "Supervision_image2D_Transformer_allBP_20220215-215409"
-
     # load teacher model
     fmodel = resnet18()
     cmodel = Classifier(num_classes=7)
     teacher_model = ResNetFull_Teacher(fmodel, cmodel)
-    # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_v1_20220122-002807", 'best.pth.tar')
-    checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_v1_1_20220214-135834", 'model_best.pth.tar')
-    # teacher_model = load_model(teacher_model, checkpoint)
+
+    # teacher model
+    checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_v1_20220122-002807", 'best.pth.tar')
+    assert os.path.exists(checkpoint), 'Error: no checkpoint directory found!'
     teacher_model.load_state_dict(torch.load(checkpoint))
     teacher_model = teacher_model.to(device)
 
     # student model
     student_model = ImageSingle_v1(num_classes=config['num_classes'], block=ImageDualNet_Single_v1,
                                    subblock=ImageNet_Large_v1)
-    # s_checkpoint = os.path.join(result_dir, best_folder, 'student_model_best.pth.tar')
-    s_checkpoint = os.path.join(result_dir, best_folder, 'model_best.pth.tar')
-    # s_checkpoint = os.path.join(result_dir, best_folder, 'last_0.pth.tar')
-    # s_checkpoint = os.path.join(result_dir, "Supervision_image2D_AT_20220122-004538", 'best.pth.tar')
+
+    s_checkpoint = os.path.join(result_dir, "Supervision_image2D_AT_20220122-004538", 'best.pth.tar')
     # s_checkpoint = os.path.join(result_dir, "Supervision_image2D_KD_20220204-234440", 'best.pth.tar')
-    # student_model = load_model(student_model, s_checkpoint)
+    assert os.path.exists(s_checkpoint), 'Error: no checkpoint directory found!'
     student_model.load_state_dict(torch.load(s_checkpoint))
     student_model = student_model.to(device)
-
-    # tf block
-    tf_block = TFblock_v2(dim_in=512, dim_inter=128)
-    # tf_block = TFblock(dim_in=512, dim_inter=128)
-    block_checkpoint = os.path.join(result_dir, best_folder, 'block_best.pth.tar')
-    # block_checkpoint = os.path.join(result_dir, best_folder, 'block_best.pth.tar')
-    # block_checkpoint = os.path.join(result_dir, best_folder, 'block_0.pth.tar')
-    # tf_block = load_model(tf_block, block_checkpoint)
-    tf_block.load_state_dict(torch.load(block_checkpoint))
-    tf_block = tf_block.to(device)
-
-    # student classifier
-    # student_classifier = Classifier_Transformer(input_dim=512, num_classes=config['num_classes'])
-    # classifier_checkpoint = os.path.join(result_dir, best_folder, 'classifier_best.pth.tar')
-    # classifier_checkpoint = os.path.join(result_dir, best_folder, 'classifier_0.pth.tar')
-    # student_classifier = load_model(student_classifier, classifier_checkpoint)
-    # student_classifier.load_state_dict(torch.load(classifier_checkpoint))
-    # student_classifier = student_classifier.to(device)
 
     # switch to train mode
     teacher_model.eval()
     student_model.eval()
-    tf_block.eval()
 
     m = nn.AdaptiveAvgPool2d((1, 1))
 
@@ -285,26 +194,15 @@ if __name__ == "__main__":
         t1, t2, t3, t4 = g_t
         s1, s2, s3, s4 = g_s
 
-        t_fmap = t4
-        s_fmap = tf_block(s4)
+        t_fmap = m(t4)
+        t_fmap = torch.mean(t_fmap, dim=1)
+        t_fmap = torch.squeeze(t_fmap)
+        t_fmap = F.normalize(t_fmap)
 
-        dists = pair_loss(s_fmap, t_fmap)
+        s_fmap = m(s4)
+        s_fmap = torch.squeeze(s_fmap)
+        s_fmap = F.normalize(s_fmap)
 
-        # t_fmap = m(t_fmap)
-        # t_fmap = torch.mean(t_fmap, dim=1)
-        # t_fmap = torch.squeeze(t_fmap)
-        # t_fmap = F.normalize(t_fmap)
-        t_fmap = at(t_fmap)
-
-        # s_fmap = tf_block(s4)
-        # s_fmap = m(s_fmap)
-        #
-        # s_fmap = F.normalize(s_fmap)
-        # s_fmap = m(s_fmap)
-        # s_fmap = torch.mean(s_fmap, dim=(2, 3))
-        # s_fmap = torch.squeeze(s_fmap)
-        # s_fmap = F.normalize(s_fmap)
-        s_fmap = at(s_fmap)
 
         # MMD
         mmd = MMD(t_fmap, s_fmap, kernel="multiscale")
@@ -315,8 +213,8 @@ if __name__ == "__main__":
         # pdsit
         t_fmap = t_fmap.cpu().detach()
         s_fmap = s_fmap.cpu().detach()
-        # dists = pdist(t_fmap, s_fmap)
-        # dists = torch.mean(dists)
+        dists = pdist(t_fmap, s_fmap)
+        dists = torch.mean(dists)
 
         t_fmap = t_fmap.numpy()
         s_fmap = s_fmap.numpy()
@@ -329,14 +227,16 @@ if __name__ == "__main__":
         np_dst = np.linalg.norm(t_fmap - s_fmap, axis=1)
         np_dst = np.mean(np_dst)
 
+
         total_distance.append(np_dst)
         total_distance_pdist.append(float(dists))
         total_distance_mmd.append(float(mmd.detach().cpu().numpy()))
         total_distance_mmd_rbf.append(float(mmd_rbf.detach().cpu().numpy()))
         total_distance_wad.append(was_dist)
 
+
     print("Eulucidan Distance: {:0.4f}".format(np.mean(total_distance)))
-    print("Pairwise: {:0.4f}".format(np.mean(total_distance_pdist)))
-    print("Wasserstein Distance: {:0.4f}".format(np.mean(total_distance_wad)))
-    print("MMD: {:0.4f}".format(np.mean(total_distance_mmd)))
-    print("MMD-rbf: {:0.4f}".format(np.mean(total_distance_mmd_rbf)))
+    print("Pairwise: {}".format(np.mean(total_distance_pdist)))
+    print("Wasserstein Distance: {}".format(np.mean(total_distance_wad)))
+    print("MMD: {}".format(np.mean(total_distance_mmd)))
+    print("MMD-rbf: {}".format(np.mean(total_distance_mmd_rbf)))

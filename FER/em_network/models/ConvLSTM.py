@@ -7,6 +7,8 @@ https://github.com/ndrplz/ConvLSTM_pytorch/blob/master/convlstm.py
 import torch.nn as nn
 import torch
 from torchsummary import summary
+import torch.nn.functional as F
+from torch.nn import init
 
 
 class ConvLSTMCell(nn.Module):
@@ -271,6 +273,94 @@ class ConvLSTMFull_v1(nn.Module):
         return x
 
 
+class TemporalAttention(nn.Module):
+
+    def __init__(self, channel=100, reduction=8):
+        super().__init__()
+        self.avg_pool = nn.AdaptiveAvgPool3d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Sigmoid()
+        )
+
+    def init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                init.kaiming_normal_(m.weight, mode='fan_out')
+                if m.bias is not None:
+                    init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                init.constant_(m.weight, 1)
+                init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                init.normal_(m.weight, std=0.001)
+                if m.bias is not None:
+                    init.constant_(m.bias, 0)
+
+    def forward(self, x):
+        b, t, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, t)
+        y = self.fc(y).view(b, t, 1, 1, 1)
+        return x * y.expand_as(x)
+
+
+class ConvLSTMFull_ME(nn.Module):
+    def __init__(self, input_dim, hidden_dim, kernel_size, num_layers,
+                 batch_first=False, bias=True, return_all_layers=False):
+        super(ConvLSTMFull_ME, self).__init__()
+        self.feature_azi = ConvLSTM(input_dim, hidden_dim, kernel_size, num_layers,
+                                    batch_first, bias, return_all_layers)
+        self.feature_ele = ConvLSTM(input_dim, hidden_dim, kernel_size, num_layers,
+                                    batch_first, bias, return_all_layers)
+        self.temporal = TemporalAttention(channel=100, reduction=8)
+
+        self.r_azi = torch.nn.Parameter(torch.ones((1, 100, 1, 1, 1)))
+        self.r_ele = torch.nn.Parameter(torch.ones((1, 100, 1, 1, 1)))
+
+        self.eps = 1e-5
+
+    def forward(self, azi, ele):
+        # azi
+        azi_out, _ = self.feature_azi(azi)
+        # azi_x = self.temporal(azi_out[0])
+        azi_x = (azi_out[0] - torch.mean(azi_out[0], dim=(2, 3, 4), keepdim=True)) / torch.sqrt(
+            torch.var(azi_out[0], dim=(2, 3, 4), unbiased=False, keepdim=True) + self.eps) * self.r_azi
+
+        # azi_x = (azi_out[0] - torch.mean(azi_out[0], dim=1, keepdim=True)) / torch.sqrt(
+        #     torch.var(azi_out[0], dim=1, unbiased=False, keepdim=True) + self.eps) * self.r_azi
+
+        # azi_x = torch.sum(azi_out[0], dim=1)
+        # azi_x1, _ = torch.max(azi_out[0], dim=1)
+        # azi_x2 = torch.mean(azi_out[0], dim=1)
+
+        azi_x = torch.sum(azi_x, dim=1)
+        # azi_x1, _ = torch.max(azi_x, dim=1)
+        # azi_x2 = torch.mean(azi_x, dim=1)
+        # azi_x = azi_x1 + azi_x2
+        azi_x = F.normalize(azi_x)
+
+        # ele
+        ele_out, _ = self.feature_ele(ele)
+        # ele_x = self.temporal(ele_out[0])
+        ele_x = (ele_out[0] - torch.mean(ele_out[0], dim=(2, 3, 4), keepdim=True)) / torch.sqrt(
+            torch.var(ele_out[0], dim=(2, 3, 4), keepdim=True) + self.eps) * self.r_ele
+        # ele_x = (ele_out[0] - torch.mean(ele_out[0], dim=1, keepdim=True)) / torch.sqrt(
+        #     torch.var(ele_out[0], dim=1, keepdim=True) + self.eps) * self.r_ele
+        # ele_x = torch.sum(ele_out[0], dim=1)
+        # ele_x1, _ = torch.max(ele_out[0], dim=1)
+        # ele_x2 = torch.mean(ele_out[0], dim=1)
+
+        ele_x = torch.sum(ele_x, dim=1)
+        # ele_x1, _ = torch.max(ele_x, dim=1)
+        # ele_x2 = torch.mean(ele_x, dim=1)
+        # ele_x = ele_x1 + ele_x2
+        ele_x = F.normalize(ele_x)
+
+        return azi_x, ele_x
+
+
 if __name__ == "__main__":
     device = torch.device('cuda')
     channels = 1
@@ -300,16 +390,16 @@ if __name__ == "__main__":
     #     print(last[0].size())
     #     print(last[1].size())
 
-    model = ConvLSTMFull_v1(input_dim=channels,
-                            hidden_dim=[2, 4, 8],
-                            kernel_size=(7, 3),
-                            num_layers=3,
-                            num_classes=7,
+    model = ConvLSTMFull_ME(input_dim=channels,
+                            hidden_dim=[3],
+                            kernel_size=(1, 1),
+                            num_layers=1,
                             batch_first=True,
                             bias=True,
                             return_all_layers=False)
 
     model = model.to(device)
 
-    out = model(input1, input2)
-    print(out.size())
+    out1, out2 = model(input1, input2)
+    print(out1.size())
+    print(out2.size())

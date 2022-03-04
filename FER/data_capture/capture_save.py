@@ -40,8 +40,10 @@ import json
 
 # AOP 3s
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_5s.cfg'
-# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.cfg'
-configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/radarProfile.cfg'
+configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.cfg'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s_10fps.cfg'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s_50fps.cfg'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/radarProfile.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/Front.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/xwr18xx_profile_front.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_10s.cfg'
@@ -414,8 +416,9 @@ if __name__ == "__main__":
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S5"
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S6"
     file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Test"
+    # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S7"
 
-    prefix = "Test4_{}"
+    prefix = "LR_100fps_{}"
 
     config = parseConfigFile(configFileName)
 

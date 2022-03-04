@@ -169,7 +169,9 @@ def train(teacher_model, student_model, data_loader, criterion, optimizer, epoch
         # attention_loss = [at_loss(x, y) for x, y in zip(g_s, g_t)]
         # loss_groups = [v.sum() for v in attention_loss]
         # kd_loss = sum(loss_groups) * config['lambda_kd']
-        kd_loss = at_loss(s_fmap, t_fmap) * config['lambda_kd']
+        # kd_loss = at_loss(s_fmap, t_fmap) * config['lambda_kd']
+        kd_loss = pair_loss(s_fmap, t_fmap)
+        # kd_loss = at_loss(s_fmap, t_fmap) * config['lambda_kd']
         # cls_loss = criterion_cls(outputs, targets)
         cls_loss = distillation(outputs, pseudo_targets, targets, config['softmax_temperature'])
         loss = cls_loss + kd_loss
@@ -327,8 +329,26 @@ def at(x):
         return F.normalize(x.pow(2).mean((1, 3, 4)).view(x.size(0), -1))
 
 
+def at_v1(x):
+    if len(x.shape) != 5:
+        return F.normalize(x.pow(2).mean((2, 3)).view(x.size(0), -1))
+    else:
+        return F.normalize(x.pow(2).mean((1, 3, 4)).view(x.size(0), -1))
+
+
 def at_loss(x, y):
     return (at(x) - at(y)).pow(2).mean()
+
+
+def at_loss_v1(x, y):
+    return (at_v1(x) - at_v1(y)).pow(2).mean()
+
+
+def pair_loss(x, y):
+    x = at(x)
+    y = at(y)
+    diff = pdist(x, y).pow(2).mean()
+    return diff
 
 
 if __name__ == "__main__":
@@ -354,7 +374,7 @@ if __name__ == "__main__":
 
     # results dir
     result_dir = "FER/results"
-    path = dir_path("Supervision_image2D_Transformer", result_dir)
+    path = dir_path("Supervision_image2D_Transformer_distance_update", result_dir)
 
     # save training config
     save_to_json(config, path['config'])
@@ -436,13 +456,18 @@ if __name__ == "__main__":
     # criterion_cls = nn.CrossEntropyLoss()
     # criterion_kd = nn.CosineEmbeddingLoss(margin=config['loss_margin']).to(device)
     criterion_kd = NST().to(device)
+    pdist = nn.PairwiseDistance()
 
     criterion_cls = _make_criterion(alpha=config['weight_alpha'], T=config['softmax_temperature'],
                                     mode=config['loss_mode'])
 
     criterions = {'criterionCls': criterion_cls, 'criterionKD': criterion_kd}
 
-    optimizer = torch.optim.Adam(student_model.parameters(), lr=config['lr'])
+    # optimizer = torch.optim.Adam(student_model.parameters(), lr=config['lr'])
+
+    optimizer = torch.optim.Adam(
+        list(student_model.parameters()) + list(tf_block.parameters()) + list(student_classifier.parameters()),
+        lr=config['lr'])
 
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=config['lr_step_size'],
                                                    gamma=config['lr_decay_gamma'])

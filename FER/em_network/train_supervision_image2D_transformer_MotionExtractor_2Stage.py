@@ -13,6 +13,7 @@ from utils import accuracy, device, AverageMeter, dir_path, write_log, save_chec
 from models.resnet import resnet18, Classifier, ResNetFull_Teacher
 from models.Conv2D import ImageSingle_Student, ImageSingle_v1, ImageDualNet_Single_v1, ImageNet_Large_v1, \
     Classifier_Transformer
+from models.ConvLSTM import ConvLSTMFull_ME
 import pandas as pd
 
 import os
@@ -102,6 +103,26 @@ def _make_criterion(alpha=0.5, T=4.0, mode='cse'):
     return criterion
 
 
+def pair_loss(x, y):
+    x = at(x)
+    y = at(y)
+    diff = pdist(x, y).mean()
+    return diff
+
+
+def pair_loss_old(x, y):
+    x = at(x)
+    y = at(y)
+    diff = pdist(x, y).pow(2).mean()
+    return diff
+
+
+def freeze_net(model):
+    for param in model.parameters():
+        param.requires_grad = False
+    return model
+
+
 def train(teacher_model, student_model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_freq=25):
     # create Average Meters
     batch_time = AverageMeter()
@@ -115,7 +136,16 @@ def train(teacher_model, student_model, data_loader, criterion, optimizer, epoch
 
     # switch to train mode
     teacher_model.eval()
-    student_model.train()
+    if config['stage'] == 's1':
+        student_model.train()
+        tf_block.train()
+        extractor.train()
+    else:
+        student_model.eval()
+        student_classifier.train()
+        tf_block.eval()
+        extractor.eval()
+
     # record start time
     start = time.time()
 
@@ -128,6 +158,8 @@ def train(teacher_model, student_model, data_loader, criterion, optimizer, epoch
         v_inputs, _ = v_data
 
         # prepare input and target
+        azi = torch.permute(azi, (0, 2, 1, 3, 4))
+        ele = torch.permute(ele, (0, 2, 1, 3, 4))
         azi = azi.to(device, dtype=torch.float)
         ele = ele.to(device, dtype=torch.float)
         # v_inputs = torch.permute(v_inputs, (0, 2, 1, 3, 4)).to(device)
@@ -142,7 +174,8 @@ def train(teacher_model, student_model, data_loader, criterion, optimizer, epoch
 
         # gradient and do SGD step
         pseudo_targets, g_t = teacher_model(v_inputs)
-        outputs, g_s = student_model(azi, ele)
+        azi_out, ele_out = extractor(azi, ele)
+        _, g_s = student_model(azi_out, ele_out)
 
         t1, t2, t3, t4 = g_t
         s1, s2, s3, s4 = g_s
@@ -157,10 +190,20 @@ def train(teacher_model, student_model, data_loader, criterion, optimizer, epoch
         # s_fmap = torch.squeeze(s_fmap)
         # s_fmap = F.normalize(s_fmap)
         s_fmap = tf_block(s_fmap)
+        kd_loss = pair_loss(s_fmap, t_fmap)
 
         s_input = s_fmap.view((s_fmap.size(0), -1))
-        outputs = student_classifier(s_input)
-
+        if config['stage'] == 's2':
+            outputs = student_classifier(s_input)
+            cls_loss = distillation(outputs, pseudo_targets, targets, config['softmax_temperature'])
+            cls_losses.update(cls_loss.item(), data_loader.batch_size)
+            kd_losses.update(kd_loss.item(), data_loader.batch_size)
+            loss = cls_loss
+        else:
+            cls_losses.update(kd_loss.item(), data_loader.batch_size)
+            kd_losses.update(kd_loss.item(), data_loader.batch_size)
+            outputs = student_classifier(s_input)
+            loss = kd_loss
         # normalize embeddings
         # t_out1 = embedding_fun(t_out1)
         # s_out1 = embedding_fun(s_out1)
@@ -169,12 +212,15 @@ def train(teacher_model, student_model, data_loader, criterion, optimizer, epoch
         # attention_loss = [at_loss(x, y) for x, y in zip(g_s, g_t)]
         # loss_groups = [v.sum() for v in attention_loss]
         # kd_loss = sum(loss_groups) * config['lambda_kd']
-        kd_loss = at_loss(s_fmap, t_fmap) * config['lambda_kd']
+        # kd_loss = at_loss(s_fmap, t_fmap) * config['lambda_kd']
         # cls_loss = criterion_cls(outputs, targets)
-        cls_loss = distillation(outputs, pseudo_targets, targets, config['softmax_temperature'])
-        loss = cls_loss + kd_loss
+        # cls_loss = distillation(outputs, pseudo_targets, targets, config['softmax_temperature'])
+        # loss = cls_loss + kd_loss
 
         # loss = criterion(outputs, pseudo_targets, targets)
+        # loss = criterion_kd(new_outputs, pseudo_targets) * config['lambda_kd']
+        # kd_loss = pair_loss(s_fmap, t_fmap)
+        # loss = cls_loss
 
         train_loss.append(loss.item())
         loss.backward()
@@ -182,8 +228,10 @@ def train(teacher_model, student_model, data_loader, criterion, optimizer, epoch
 
         # measure accuracy and record loss
         prec1, prec5 = accuracy(outputs.data, targets, topk=(1, 5))
-        cls_losses.update(cls_loss.item(), data_loader.batch_size)
-        kd_losses.update(kd_loss.item(), data_loader.batch_size)
+        # cls_losses.update(cls_loss.item(), data_loader.batch_size)
+        # cls_losses.update(loss.item(), data_loader.batch_size)
+        # kd_losses.update(loss.item(), data_loader.batch_size)
+        # kd_losses.update(kd_loss.item(), data_loader.batch_size)
         losses.update(loss.item(), data_loader.batch_size)
         top1.update(prec1.item(), data_loader.batch_size)
         top5.update(prec5.item(), data_loader.batch_size)
@@ -212,40 +260,105 @@ def train(teacher_model, student_model, data_loader, criterion, optimizer, epoch
     return train_loss
 
 
-def test(model, test_loader, criterion, to_log=None):
-    model.eval()
+# def test(s_model, t_model, test_loader, criterion, to_log=None):
+#     s_model.eval()
+#     t_model.eval()
+#     test_loss = 0
+#     correct = 0
+#     acc = 0
+#     with torch.no_grad():
+#         for i, conc_data in enumerate(test_loader):
+#             h_data, v_data = conc_data
+#             azi, ele, targets = h_data
+#             v_inputs, _ = v_data
+#
+#             # prepare input and target
+#             azi = azi.to(device, dtype=torch.float)
+#             ele = ele.to(device, dtype=torch.float)
+#             # v_inputs = torch.permute(v_inputs, (0, 2, 1, 3, 4)).to(device)
+#             v_inputs = v_inputs.to(device)
+#             targets = targets.to(device, dtype=torch.long)
+#
+#             # gradient and do SGD step
+#             pseudo_targets, g_t = t_model(v_inputs)
+#             outputs, g_s = s_model(azi, ele)
+#
+#             t1, t2, t3, t4 = g_t
+#             s1, s2, s3, s4 = g_s
+#
+#             t_fmap = t4
+#             s_fmap = s4
+#             s_fmap = tf_block(s_fmap)
+#             loss = pair_loss(s_fmap, t_fmap)
+#
+#             # output = student_classifier(s_fmap)
+#             # loss = criterion(output, target)
+#             test_loss += loss
+#             # pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+#             # correct += pred.eq(target.view_as(pred)).sum().item()
+#
+#         test_loss /= len(test_loader.sampler)
+#         test_loss *= test_loader.batch_size
+#         # acc = 100. * correct / len(test_loader.sampler)
+#         format_str = 'Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
+#             test_loss, 0, len(test_loader.sampler), acc
+#         )
+#         print(format_str)
+#         if to_log is not None:
+#             write_log(format_str, to_log)
+#         return test_loss.item(), acc
+
+
+def test(s_model, t_model, test_loader, criterion, to_log=None):
+    s_model.eval()
+    t_model.eval()
+    student_classifier.eval()
+    tf_block.eval()
     test_loss = 0
     correct = 0
+    # acc = 0
     with torch.no_grad():
-        for (azi, ele, target) in test_loader:
-            # prepare input and target to device
+        for i, conc_data in enumerate(test_loader):
+            h_data, v_data = conc_data
+            azi, ele, target = h_data
+            v_inputs, _ = v_data
+
+            # prepare input and target
+            azi = torch.permute(azi, (0, 2, 1, 3, 4))
+            ele = torch.permute(ele, (0, 2, 1, 3, 4))
             azi = azi.to(device, dtype=torch.float)
             ele = ele.to(device, dtype=torch.float)
+            # v_inputs = torch.permute(v_inputs, (0, 2, 1, 3, 4)).to(device)
+            v_inputs = v_inputs.to(device)
             target = target.to(device, dtype=torch.long)
 
-            # output, _ = model(azi, ele)
-            outputs, g_s = model(azi, ele)
+            # gradient and do SGD step
+            pseudo_targets, g_t = t_model(v_inputs)
+            azi_out, ele_out = extractor(azi, ele)
+            _, g_s = student_model(azi_out, ele_out)
 
+            t1, t2, t3, t4 = g_t
             s1, s2, s3, s4 = g_s
-            s_fmap = s4
-            # s_fmap = avgpool(s4)
-            # # s_fmap = torch.squeeze(s_fmap)
-            # s_fmap = F.normalize(s_fmap)
-            s_fmap = tf_block(s_fmap)
 
-            s_fmap = s_fmap.view((s_fmap.size(0), -1))
-            output = student_classifier(s_fmap)
-            loss = criterion(output, target)
-            test_loss += loss
+            t_fmap = t4
+            s_fmap = s4
+            s_fmap = tf_block(s_fmap)
+            loss = pair_loss(s_fmap, t_fmap)
+            s_input = s_fmap.view((s_fmap.size(0), -1))
+            output = student_classifier(s_input)
+            if config['stage'] == 's2':
+                loss = criterion(output, target)
+
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
-
+            # output = student_classifier(s_fmap)
+            # loss = criterion(output, target)
+            test_loss += loss
         test_loss /= len(test_loader.sampler)
         test_loss *= test_loader.batch_size
         acc = 100. * correct / len(test_loader.sampler)
         format_str = 'Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
-            test_loss, correct, len(test_loader.sampler), acc
-        )
+            test_loss, correct, len(test_loader.sampler), acc)
         print(format_str)
         if to_log is not None:
             write_log(format_str, to_log)
@@ -273,29 +386,6 @@ def _make_criterion(alpha=0.5, T=4.0, mode='cse'):
     return criterion
 
 
-class SP(nn.Module):
-    '''
-    Similarity-Preserving Knowledge Distillation
-    https://arxiv.org/pdf/1907.09682.pdf
-    '''
-
-    def __init__(self):
-        super(SP, self).__init__()
-
-    def forward(self, fm_s, fm_t):
-        fm_s = fm_s.view(fm_s.size(0), -1)
-        G_s = torch.mm(fm_s, fm_s.t())
-        norm_G_s = F.normalize(G_s, p=2, dim=1)
-
-        fm_t = fm_t.view(fm_t.size(0), -1)
-        G_t = torch.mm(fm_t, fm_t.t())
-        norm_G_t = F.normalize(G_t, p=2, dim=1)
-
-        loss = F.mse_loss(norm_G_s, norm_G_t)
-
-        return loss
-
-
 class TFblock(nn.Module):
     def __init__(self, dim_in=521, dim_inter=128):
         super(TFblock, self).__init__()
@@ -307,6 +397,24 @@ class TFblock(nn.Module):
 
     def forward(self, x):
         x = self.encoder(x)
+        x = self.decoder(x)
+
+        return x
+
+
+class TFblock_v2(nn.Module):
+    def __init__(self, dim_in=521, dim_inter=128):
+        super(TFblock_v2, self).__init__()
+        # self.encoder = nn.Linear(dim_in, dim_inter)
+        # self.decoder = nn.Linear(dim_inter, dim_in)
+
+        self.encoder = nn.Conv2d(dim_in, dim_inter, 1)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.decoder = nn.Conv2d(dim_inter, dim_in, 1)
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.avgpool(x)
         x = self.decoder(x)
 
         return x
@@ -333,7 +441,7 @@ def at_loss(x, y):
 
 if __name__ == "__main__":
 
-    config = dict(num_epochs=60,
+    config = dict(num_epochs=40,
                   lr=0.0006,
                   lr_step_size=20,
                   lr_decay_gamma=0.2,
@@ -349,12 +457,15 @@ if __name__ == "__main__":
                   loss_margin=0.1,
                   weight_alpha=0.7,
                   softmax_temperature=8.0,
-                  loss_mode='cse'
+                  loss_mode='cse',
+                  stage='s2',
                   )
 
     # results dir
     result_dir = "FER/results"
-    path = dir_path("Supervision_image2D_Transformer", result_dir)
+    path = dir_path("Supervision_image2D_Transformer_extractor_stage2_update_v2", result_dir)
+
+    best_folder = "Supervision_image2D_Transformer_extractor_stage1_update_20220220-154647"
 
     # save training config
     save_to_json(config, path['config'])
@@ -397,19 +508,22 @@ if __name__ == "__main__":
     )
 
     # heatmap datasets
-    heatmap_train = HeatmapDataset(heatmap_root, h_train_ann, cumulated=True, num_frames=config['h_num_frames'])
-    heatmap_test = HeatmapDataset(heatmap_root, h_test_ann, cumulated=True, num_frames=config['h_num_frames'])
+    heatmap_train = HeatmapDataset(heatmap_root, h_train_ann, cumulated=False, num_frames=config['h_num_frames'])
+    heatmap_test = HeatmapDataset(heatmap_root, h_test_ann, cumulated=False, num_frames=config['h_num_frames'])
 
     dataset_train = ConcatDataset(heatmap_train, video_train)
+    dataset_test = ConcatDataset(heatmap_test, video_test)
 
     train_loader = DataLoader(dataset_train, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
-    test_loader = DataLoader(heatmap_test, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
+    test_loader = DataLoader(dataset_test, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
 
     # create model
     fmodel = resnet18()
     cmodel = Classifier(num_classes=7)
     teacher_model = ResNetFull_Teacher(fmodel, cmodel)
     avgpool = nn.AdaptiveAvgPool2d((1, 1))
+
+    pdist = nn.PairwiseDistance()
 
     # teacher model
     checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_v1_20220122-002807", 'best.pth.tar')
@@ -420,13 +534,35 @@ if __name__ == "__main__":
     # student model
     student_model = ImageSingle_v1(num_classes=config['num_classes'], block=ImageDualNet_Single_v1,
                                    subblock=ImageNet_Large_v1)
+
+    if config['stage'] == 's2':
+        s_checkpoint = os.path.join(result_dir, best_folder,
+                                    'model_best.pth.tar')
+        student_model.load_state_dict(torch.load(s_checkpoint))
     student_model = student_model.to(device)
 
-    student_classifier = Classifier_Transformer(input_dim=512 * 4 * 2, num_classes=config['num_classes'])
+    student_classifier = Classifier_Transformer(input_dim=512, num_classes=config['num_classes'])
     student_classifier = student_classifier.to(device)
 
+    # create motion extractor model
+    extractor = ConvLSTMFull_ME(input_dim=1,
+                                hidden_dim=[3],
+                                kernel_size=(1, 1),
+                                num_layers=1,
+                                batch_first=True,
+                                bias=True,
+                                return_all_layers=False)
+    if config['stage'] == 's2':
+        extractor_checkpoint = os.path.join(result_dir, best_folder, 'extractor_best.pth.tar')
+        extractor.load_state_dict(torch.load(extractor_checkpoint))
+    extractor = extractor.to(device)
+
     # tf block
-    tf_block = TFblock(dim_in=512, dim_inter=128)
+    # tf_block = TFblock(dim_in=512, dim_inter=128)
+    tf_block = TFblock_v2(dim_in=512, dim_inter=128)
+    if config['stage'] == 's2':
+        tf_checkpoint = os.path.join(result_dir, best_folder, 'block_best.pth.tar')
+        tf_block.load_state_dict(torch.load(tf_checkpoint))
     tf_block = tf_block.to(device)
 
     # initialize critierion and optimizer
@@ -442,7 +578,17 @@ if __name__ == "__main__":
 
     criterions = {'criterionCls': criterion_cls, 'criterionKD': criterion_kd}
 
-    optimizer = torch.optim.Adam(student_model.parameters(), lr=config['lr'])
+    if config['stage'] == 's1':
+        optimizer = torch.optim.Adam(
+            list(student_model.parameters()) + list(tf_block.parameters()) + list(extractor.parameters()),
+            lr=config['lr'])
+    else:
+        # optimizer = torch.optim.Adam(
+        #     list(student_model.parameters()) + list(tf_block.parameters()) + list(student_classifier.parameters()),
+        #     lr=config['lr'])
+        # optimizer = torch.optim.Adam(list(student_model.parameters()) + list(student_classifier.parameters()),
+        #                              lr=config['lr'])
+        optimizer = torch.optim.Adam(list(student_classifier.parameters()), lr=config['lr'])
 
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=config['lr_step_size'],
                                                    gamma=config['lr_decay_gamma'])
@@ -453,19 +599,22 @@ if __name__ == "__main__":
     }
 
     best_acc = 0
+    best_loss = 100
     for epoch in range(config['num_epochs']):
         train_loss = train(teacher_model, student_model, data_loader=train_loader, criterion=criterions,
-                           optimizer=optimizer, epoch=epoch,
-                           to_log=path['log'])
-        test_loss, acc = test(student_model, test_loader=test_loader, criterion=criterion_test, to_log=path['log'])
-        if acc >= best_acc:
-            best_acc = acc
-            save_checkpoint(student_model.state_dict(), is_best=True, checkpoint=path['dir'], name="student_model")
+                           optimizer=optimizer, epoch=epoch, to_log=path['log'])
+        test_loss, acc = test(student_model, teacher_model, test_loader=test_loader, criterion=criterion_test,
+                              to_log=path['log'])
+        # if acc >= best_acc:
+        if best_loss >= test_loss:
+            # best_acc = acc
+            best_loss = test_loss
+            save_checkpoint(student_model.state_dict(), is_best=True, checkpoint=path['dir'], name="model")
             save_checkpoint(tf_block.state_dict(), is_best=True, checkpoint=path['dir'], name="block")
             save_checkpoint(student_classifier.state_dict(), is_best=True, checkpoint=path['dir'],
                             name="classifier")
-            save_checkpoint(teacher_model.state_dict(), is_best=True, checkpoint=path['dir'],
-                            name="teacher_model")
+            save_checkpoint(extractor.state_dict(), is_best=True, checkpoint=path['dir'],
+                            name="extractor")
         elif (epoch + 1) % 5 == 0:
             save_checkpoint(student_model.state_dict(), is_best=False, checkpoint=path['dir'], epoch=epoch,
                             name="model")
@@ -473,8 +622,8 @@ if __name__ == "__main__":
                             epoch=epoch)
             save_checkpoint(student_model.state_dict(), is_best=False, checkpoint=path['dir'],
                             name="classifier", epoch=epoch)
-            save_checkpoint(teacher_model.state_dict(), is_best=False, checkpoint=path['dir'],
-                            name="teacher_model", epoch=epoch)
+            save_checkpoint(extractor.state_dict(), is_best=False, checkpoint=path['dir'],
+                            name="extractor", epoch=epoch)
 
         lr_scheduler.step()
 

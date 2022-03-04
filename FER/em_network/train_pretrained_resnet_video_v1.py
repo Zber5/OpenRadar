@@ -36,7 +36,8 @@ def train(model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_
     train_loss = []
 
     # switch to train mode
-    model.train()
+    model.classifier.train()
+    model.feature.eval()
     # record start time
     start = time.time()
 
@@ -133,7 +134,7 @@ def denormalize(video_tensor):
 
 if __name__ == "__main__":
 
-    config = dict(num_epochs=5,
+    config = dict(num_epochs=30,
                   lr=0.0003,
                   lr_step_size=30,
                   lr_decay_gamma=0.2,
@@ -146,7 +147,7 @@ if __name__ == "__main__":
 
     # results dir
     result_dir = "FER/results"
-    path = dir_path("Pretrained_ResNet_video_v1", result_dir)
+    path = dir_path("Pretrained_ResNet_video_v1_1", result_dir)
 
     # save training config
     save_to_json(config, path['config'])
@@ -219,9 +220,15 @@ if __name__ == "__main__":
         test_loss, acc = test(model, test_loader=test_loader, criterion=criterion, to_log=path['log'])
         if acc >= best_acc:
             best_acc = acc
-            save_checkpoint(model.state_dict(), is_best=True, checkpoint=path['dir'])
+            save_checkpoint(model.state_dict(), is_best=True, checkpoint=path['dir'], name='model')
+            save_checkpoint(model.feature.state_dict(), is_best=True, checkpoint=path['dir'], name='feature')
+            save_checkpoint(model.classifier.state_dict(), is_best=True, checkpoint=path['dir'], name='classifier')
         else:
-            save_checkpoint(model.state_dict(), is_best=False, checkpoint=path['dir'])
+            save_checkpoint(model.state_dict(), is_best=False, checkpoint=path['dir'], name='model', epoch=epoch)
+            save_checkpoint(model.feature.state_dict(), is_best=False, checkpoint=path['dir'], name='feature',
+                            epoch=epoch)
+            save_checkpoint(model.classifier.state_dict(), is_best=False, checkpoint=path['dir'], name='classifier',
+                            epoch=epoch)
 
         lr_scheduler.step()
 
