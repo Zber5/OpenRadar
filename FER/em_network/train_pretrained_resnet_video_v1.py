@@ -135,7 +135,7 @@ def denormalize(video_tensor):
 if __name__ == "__main__":
 
     config = dict(num_epochs=30,
-                  lr=0.0003,
+                  lr=0.0006,
                   lr_step_size=30,
                   lr_decay_gamma=0.2,
                   batch_size=16,
@@ -147,15 +147,17 @@ if __name__ == "__main__":
 
     # results dir
     result_dir = "FER/results"
-    path = dir_path("Pretrained_ResNet_video_v1_1", result_dir)
+    path = dir_path("Pretrained_ResNet_video_S8_classifierBP", result_dir)
 
     # save training config
     save_to_json(config, path['config'])
 
     # data path and annotation files
     videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-    annotation_train = os.path.join(videos_root, 'annotations_att_train.txt')
-    annotation_test = os.path.join(videos_root, 'annotations_att_test.txt')
+    annotation_train = os.path.join(videos_root, 'video_annotation_train_S8.txt')
+    # annotation_train = os.path.join(videos_root, 'annotations_att_train.txt')
+    annotation_test = os.path.join(videos_root, 'video_annotation_test_S8.txt')
+    # annotation_test = os.path.join(videos_root, 'annotations_att_test.txt')
 
     # dataloader
     preprocess = transforms.Compose([
@@ -202,7 +204,8 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss()
 
     # initialize optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
+    # optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
+    optimizer = torch.optim.Adam(cmodel.parameters(), lr=config['lr'])
 
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=config['lr_step_size'],
                                                    gamma=config['lr_decay_gamma'])
@@ -223,12 +226,12 @@ if __name__ == "__main__":
             save_checkpoint(model.state_dict(), is_best=True, checkpoint=path['dir'], name='model')
             save_checkpoint(model.feature.state_dict(), is_best=True, checkpoint=path['dir'], name='feature')
             save_checkpoint(model.classifier.state_dict(), is_best=True, checkpoint=path['dir'], name='classifier')
-        else:
-            save_checkpoint(model.state_dict(), is_best=False, checkpoint=path['dir'], name='model', epoch=epoch)
-            save_checkpoint(model.feature.state_dict(), is_best=False, checkpoint=path['dir'], name='feature',
-                            epoch=epoch)
-            save_checkpoint(model.classifier.state_dict(), is_best=False, checkpoint=path['dir'], name='classifier',
-                            epoch=epoch)
+
+        save_checkpoint(model.state_dict(), is_best=False, checkpoint=path['dir'], name='model', epoch=epoch)
+        save_checkpoint(model.feature.state_dict(), is_best=False, checkpoint=path['dir'], name='feature',
+                        epoch=epoch)
+        save_checkpoint(model.classifier.state_dict(), is_best=False, checkpoint=path['dir'], name='classifier',
+                        epoch=epoch)
 
         lr_scheduler.step()
 

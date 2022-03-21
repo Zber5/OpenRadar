@@ -325,17 +325,17 @@ class ConvLSTMFull_ME(nn.Module):
         # azi
         azi_out, _ = self.feature_azi(azi)
         # azi_x = self.temporal(azi_out[0])
-        azi_x = (azi_out[0] - torch.mean(azi_out[0], dim=(2, 3, 4), keepdim=True)) / torch.sqrt(
-            torch.var(azi_out[0], dim=(2, 3, 4), unbiased=False, keepdim=True) + self.eps) * self.r_azi
+        # azi_x = (azi_out[0] - torch.mean(azi_out[0], dim=(2, 3, 4), keepdim=True)) / torch.sqrt(
+        #     torch.var(azi_out[0], dim=(2, 3, 4), unbiased=False, keepdim=True) + self.eps) * self.r_azi
 
         # azi_x = (azi_out[0] - torch.mean(azi_out[0], dim=1, keepdim=True)) / torch.sqrt(
         #     torch.var(azi_out[0], dim=1, unbiased=False, keepdim=True) + self.eps) * self.r_azi
 
-        # azi_x = torch.sum(azi_out[0], dim=1)
+        azi_x = torch.sum(azi_out[0], dim=1)
         # azi_x1, _ = torch.max(azi_out[0], dim=1)
         # azi_x2 = torch.mean(azi_out[0], dim=1)
 
-        azi_x = torch.sum(azi_x, dim=1)
+        # azi_x = torch.sum(azi_x, dim=1)
         # azi_x1, _ = torch.max(azi_x, dim=1)
         # azi_x2 = torch.mean(azi_x, dim=1)
         # azi_x = azi_x1 + azi_x2
@@ -344,15 +344,16 @@ class ConvLSTMFull_ME(nn.Module):
         # ele
         ele_out, _ = self.feature_ele(ele)
         # ele_x = self.temporal(ele_out[0])
-        ele_x = (ele_out[0] - torch.mean(ele_out[0], dim=(2, 3, 4), keepdim=True)) / torch.sqrt(
-            torch.var(ele_out[0], dim=(2, 3, 4), keepdim=True) + self.eps) * self.r_ele
+        # ele_x = (ele_out[0] - torch.mean(ele_out[0], dim=(2, 3, 4), keepdim=True)) / torch.sqrt(
+        #     torch.var(ele_out[0], dim=(2, 3, 4), keepdim=True) + self.eps) * self.r_ele
         # ele_x = (ele_out[0] - torch.mean(ele_out[0], dim=1, keepdim=True)) / torch.sqrt(
         #     torch.var(ele_out[0], dim=1, keepdim=True) + self.eps) * self.r_ele
         # ele_x = torch.sum(ele_out[0], dim=1)
         # ele_x1, _ = torch.max(ele_out[0], dim=1)
         # ele_x2 = torch.mean(ele_out[0], dim=1)
 
-        ele_x = torch.sum(ele_x, dim=1)
+        ele_x = torch.sum(ele_out[0], dim=1)
+        # ele_x = torch.sum(ele_x, dim=1)
         # ele_x1, _ = torch.max(ele_x, dim=1)
         # ele_x2 = torch.mean(ele_x, dim=1)
         # ele_x = ele_x1 + ele_x2

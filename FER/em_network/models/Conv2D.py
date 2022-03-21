@@ -86,7 +86,7 @@ class ImageNet(nn.Module):
 
 
 class ImageNet_Large_v1(nn.Module):
-    def __init__(self, num_channel=3):
+    def __init__(self, num_channel=1):
         super(ImageNet_Large_v1, self).__init__()
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
@@ -123,6 +123,55 @@ class ImageNet_Large_v1(nn.Module):
             nn.ReLU(inplace=True),
             nn.MaxPool2d((1, 1)),
         )
+
+    def forward(self, x):
+        x = self.group1(x)
+        g1 = self.group2(x)
+        g2 = self.group3(g1)
+        g3 = self.group4(g2)
+        g4 = self.group5(g3)
+        # x = self.avgpool(x)
+        return g1, g2, g3, g4
+
+
+class ImageNet_Large_Frames(nn.Module):
+    def __init__(self, num_channel=1):
+        super(ImageNet_Large_Frames, self).__init__()
+
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+
+        self.group1 = TimeDistributed(nn.Sequential(
+            nn.Conv2d(num_channel, 16, kernel_size=(5, 3), stride=1, padding=(1, 1)),
+            nn.BatchNorm2d(16),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d((2, 1))))
+
+        self.group2 = TimeDistributed(nn.Sequential(
+            nn.Conv2d(16, 32, kernel_size=(5, 3), stride=1, padding=(1, 1)),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d((2, 2))))
+
+        self.group3 = TimeDistributed(nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=(5, 3), stride=1, padding=(1, 1)),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d((2, 1)),
+        ))
+
+        self.group4 = TimeDistributed(nn.Sequential(
+            nn.Conv2d(64, 128, kernel_size=(3, 3), stride=1, padding=(1, 1)),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d((2, 2)),
+        ))
+
+        self.group5 = TimeDistributed(nn.Sequential(
+            nn.Conv2d(128, 256, kernel_size=(3, 3), stride=1, padding=(1, 1)),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d((1, 1)),
+        ))
 
     def forward(self, x):
         x = self.group1(x)
@@ -424,6 +473,27 @@ class ImageDualNet_Single_v1(nn.Module):
         return out_azi, out_ele, (g1, g2, g3, g4)
 
 
+class ImageDualNet_Frames(nn.Module):
+    def __init__(self, block=ImageNet):
+        super(ImageDualNet_Frames, self).__init__()
+
+        self.azi_net = block()
+        self.ele_net = block()
+
+    def forward(self, azi, ele):
+        g1_azi, g2_azi, g3_azi, g4_azi = self.azi_net(azi)
+        g1_ele, g2_ele, g3_ele, g4_ele = self.ele_net(ele)
+        g1 = torch.cat((g1_azi, g1_ele), dim=2)
+        g2 = torch.cat((g2_azi, g2_ele), dim=2)
+        g3 = torch.cat((g3_azi, g3_ele), dim=2)
+        g4 = torch.cat((g4_azi, g4_ele), dim=2)
+        out_azi = torch.mean(g4_azi, dim=1)
+        out_ele = torch.mean(g4_ele, dim=1)
+        out_azi = out_azi.view((out_azi.size(0), -1))
+        out_ele = out_ele.view((out_ele.size(0), -1))
+        return out_azi, out_ele, (g1, g2, g3, g4)
+
+
 class ImageDualNet_Attention_Single(nn.Module):
     def __init__(self, block=ImageNet_Attention):
         super(ImageDualNet_Attention_Single, self).__init__()
@@ -559,6 +629,7 @@ class ImageSingle_v1(nn.Module):
     def forward(self, azi, ele):
         azi, ele, g = self.azi_ele_net(azi, ele)
         out = torch.cat((azi, ele), dim=1)
+
         out = self.fc1(out)
         out = self.fc2(out)
         out = self.fc3(out)

@@ -396,8 +396,8 @@ def at_loss(x, y):
 
 if __name__ == "__main__":
 
-    config = dict(num_epochs=60,
-                  lr=0.001,
+    config = dict(num_epochs=30,
+                  lr=0.0006,
                   lr_step_size=20,
                   lr_decay_gamma=0.2,
                   batch_size=16,
@@ -464,8 +464,10 @@ if __name__ == "__main__":
     )
 
     # heatmap datasets
-    heatmap_train = HeatmapDataset(heatmap_root, h_train_ann, cumulated=False, num_frames=config['h_num_frames'])
-    heatmap_test = HeatmapDataset(heatmap_root, h_test_ann, cumulated=False, num_frames=config['h_num_frames'])
+    heatmap_train = HeatmapDataset(heatmap_root, h_train_ann, cumulated=False, frame_cumulated=False,
+                                   num_frames=config['h_num_frames'])
+    heatmap_test = HeatmapDataset(heatmap_root, h_test_ann, cumulated=False, frame_cumulated=False,
+                                  num_frames=config['h_num_frames'])
 
     dataset_train = ConcatDataset(heatmap_train, video_train)
     dataset_test = ConcatDataset(heatmap_test, video_test)
@@ -569,7 +571,7 @@ if __name__ == "__main__":
                             name="model")
             save_checkpoint(tf_block.state_dict(), is_best=False, checkpoint=path['dir'], name="block",
                             epoch=epoch)
-            save_checkpoint(student_model.state_dict(), is_best=False, checkpoint=path['dir'],
+            save_checkpoint(student_classifier.state_dict(), is_best=False, checkpoint=path['dir'],
                             name="classifier", epoch=epoch)
             save_checkpoint(extractor.state_dict(), is_best=False, checkpoint=path['dir'],
                             name="extractor", epoch=epoch)

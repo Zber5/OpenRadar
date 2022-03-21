@@ -109,6 +109,7 @@ class HeatmapDataset(torch.utils.data.Dataset):
                  root_path: str,
                  annotationfile_path: str,
                  cumulated=False,
+                 frame_cumulated=False,
                  aug=False,
                  num_frames=100):
         super(HeatmapDataset, self).__init__()
@@ -122,6 +123,7 @@ class HeatmapDataset(torch.utils.data.Dataset):
         self.crop_ele = np.s_[:, :, :]
         self.diff = False
         self.cumulated = cumulated
+        self.frame_cumulated = frame_cumulated
         self.num_frames = num_frames
         self.total = 100
         self.num_cumulated = self.total // num_frames
@@ -149,6 +151,10 @@ class HeatmapDataset(torch.utils.data.Dataset):
 
     def _get(self, record):
         azi = np.load(record.path.format("azi"))
+
+        # replace -inf with 0
+        # azi[np.isneginf(azi)] = 0
+
         azi = azi[self.crop_azi]
         if self.diff:
             record.onset = record.onset - 1
@@ -161,9 +167,17 @@ class HeatmapDataset(torch.utils.data.Dataset):
             azi = np.squeeze(azi)
             azi = np.sum(azi, axis=self.sum_axis)
             azi /= self.num_cumulated
+        if self.frame_cumulated:
+            azi = np.cumsum(azi, axis=0)
+            azi_seed = np.expand_dims(np.arange(1, 101, 1), axis=(1, 2))
+            azi = azi / azi_seed
         azi = np.expand_dims(azi, axis=0)
 
         ele = np.load(record.path.format("ele"))
+
+        # replace -inf with 0
+        # ele[np.isneginf(ele)] = 0
+
         ele = ele[self.crop_ele]
         ele = ele[record.onset:record.peak + 1]
         ele = self._normalize(ele, is_azi=False)
@@ -174,6 +188,10 @@ class HeatmapDataset(torch.utils.data.Dataset):
             ele = np.squeeze(ele)
             ele = np.sum(ele, axis=self.sum_axis)
             ele /= self.num_cumulated
+        if self.frame_cumulated:
+            ele = np.cumsum(ele, axis=0)
+            ele_seed = np.expand_dims(np.arange(1, 101, 1), axis=(1, 2))
+            ele = ele / ele_seed
         ele = np.expand_dims(ele, axis=0)
 
         if self.aug:

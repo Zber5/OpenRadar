@@ -279,3 +279,45 @@ class DCA1000:
         ret[0::2] = raw_frame[0::4] + 1j * raw_frame[2::4]
         ret[1::2] = raw_frame[1::4] + 1j * raw_frame[3::4]
         return ret.reshape((num_chirps, num_rx, num_samples))
+
+    @staticmethod
+    def organize_studio(raw_frame, num_chirps, num_rx, num_samples):
+        """Reorganizes raw ADC data into a full frame
+
+        Args:
+            raw_frame (ndarray): Data to format
+            num_chirps: Number of chirps included in the frame
+            num_rx: Number of receivers used in the frame
+            num_samples: Number of ADC samples included in each chirp
+
+        Returns:
+            ndarray: Reformatted frame of raw data of shape (num_chirps, num_rx, num_samples)
+
+        """
+        ret = np.zeros(len(raw_frame) // 2, dtype=complex)
+
+        # Separate IQ data
+        ret[0::2] = raw_frame[0::4] + 1j * raw_frame[2::4]
+        ret[1::2] = raw_frame[1::4] + 1j * raw_frame[3::4]
+        return ret.reshape((num_chirps, num_rx, num_samples))
+
+    @staticmethod
+    def organize_cli(raw_frame, num_chirps, num_rx, num_samples):
+        """Reorganizes raw ADC data into a full frame
+
+        Args:
+            raw_frame (ndarray): Data to format
+            num_chirps: Number of chirps included in the frame
+            num_rx: Number of receivers used in the frame
+            num_samples: Number of ADC samples included in each chirp
+
+        Returns:
+            ndarray: Reformatted frame of raw data of shape (num_chirps, num_rx, num_samples)
+
+        """
+        ret = np.zeros(len(raw_frame) // 2, dtype=complex)
+
+        # Separate IQ data
+
+        ret[0::1] = 1j * raw_frame[0::2] + raw_frame[1::2]
+        return ret.reshape((num_chirps, num_rx, num_samples))

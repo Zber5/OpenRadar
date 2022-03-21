@@ -145,7 +145,8 @@ if __name__ == "__main__":
     all = np.asarray(all)
 
     # subs = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5']
-    subs = ['S0']
+    # subs = ['S0']
+    subs = ['S6', 'S7']
     size = 800000
 
     data_folder = 'D:\\Subjects\\'
@@ -167,7 +168,6 @@ if __name__ == "__main__":
             queue.put(tp)
 
     # thread_job(queue, output_folder)
-
 
     # multi threadings
     NUM_THREADS = 20

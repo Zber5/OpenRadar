@@ -8,6 +8,7 @@ extra_color = ['#acc2d9', '#56ae57', '#b2996e', '#a8ff04']
 colors = tab_color + extra_color
 ROOT_PATH = "C:/Users/Zber/Documents/Dev_program/OpenRadar"
 
+
 def get_label(name):
     labels = {'Joy': 1, 'Surprise': 2, 'Anger': 3, 'Sadness': 4, 'Fear': 5, 'Disgust': 6, 'Neutral': 0}
     for key in labels.keys():
@@ -84,6 +85,7 @@ def parseConfigFile(configFileName, numTxAnt=3):
     configParameters["maxRange"] = (300 * 0.9 * digOutSampleRate) / (2 * freqSlopeConst * 1e3)
     configParameters["maxVelocity"] = 3e8 / (4 * startFreq * 1e9 * (idleTime + rampEndTime) * 1e-6 * numTxAnt)
 
+
     return configParameters
 
 
@@ -119,7 +121,6 @@ def correction_factor(win_type='Hanning', numADCSamples=256):
     cf = 20 * math.log10(2 ** (numBits - 1)) + 20 * math.log10(numADCSamples * WIN_EC[win_type]) - 20 * math.log10(
         math.sqrt(2))
     return cf
-
 
 
 class MapRecord(object):

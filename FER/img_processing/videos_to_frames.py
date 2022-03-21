@@ -60,10 +60,10 @@ def video_to_rgb_face(video_filename, out_dir, resize_shape):
 
     # detect face cv
 
-    x, y, w, h = detect_face_cv(frame)
+    x, y, w, h, isok = detect_face_cv(frame)
 
     count = 0
-    while success:
+    while success and isok:
         out_filepath = os.path.join(out_dir, file_template.format(count))
         frame = frame[y:y + h, x:x + w]
         frame = cv2.resize(frame, resize_shape)
@@ -96,25 +96,24 @@ def thread_job(queue, video_path, rgb_out_path, file_extension='.webm'):
 
 if __name__ == '__main__':
     # the path to the folder which contains all video files (mp4, webm, or other)
-    video_path = 'C:\\Users\\Zber\\Desktop\\Subjects_Video\\S0\\Anger_26'
+    video_path = 'C:\\Users\\Zber\\Desktop\\Subjects_Video\\S7'
     # the root output path where RGB frame folders should be created
-    rgb_out_path = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\S0'
+    rgb_out_path = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\S7'
     # the file extension that the videos have
     file_extension = '.avi'
-
 
     video_filenames = os.listdir(video_path)
     queue = Queue()
     [queue.put(video_filename) for video_filename in video_filenames]
 
-    thread_job(queue, video_path, rgb_out_path, file_extension)
+    # thread_job(queue, video_path, rgb_out_path, file_extension)
 
-    # NUM_THREADS = 16
-    # for i in range(NUM_THREADS):
-    #     worker = threading.Thread(target=thread_job, args=(queue, video_path, rgb_out_path, file_extension))
-    #     worker.start()
-    #
-    # print('waiting for all videos to be completed.', queue.qsize(), 'videos')
-    # print('This can take an hour or two depending on dataset size')
-    # queue.join()
-    # print('all done')
+    NUM_THREADS = 16
+    for i in range(NUM_THREADS):
+        worker = threading.Thread(target=thread_job, args=(queue, video_path, rgb_out_path, file_extension))
+        worker.start()
+
+    print('waiting for all videos to be completed.', queue.qsize(), 'videos')
+    print('This can take an hour or two depending on dataset size')
+    queue.join()
+    print('all done')

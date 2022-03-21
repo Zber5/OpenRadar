@@ -37,7 +37,7 @@ def doppler_resolution(band_width, start_freq_const=77, ramp_end_time=62, idle_t
     center_frequency = start_freq_const * 1e9 + band_width / 2
     chirp_interval = (ramp_end_time + idle_time_const) * 1e-6
     doppler_resolution = light_speed_meter_per_sec / (
-                2 * num_loops_per_frame * num_tx_antennas * center_frequency * chirp_interval)
+            2 * num_loops_per_frame * num_tx_antennas * center_frequency * chirp_interval)
 
     return doppler_resolution
 
@@ -102,13 +102,13 @@ def doppler_processing(radar_cube,
 
     if interleaved:
         # radar_cube is interleaved in the first dimension (for 2 tx and 0-based indexing, odd are the chirps from tx1,
-        # and even are from tx2) so it becomes ( , numVirtualAntennas, numADCSamples), where 
+        # and even are from tx2) so it becomes ( , numVirtualAntennas, numADCSamples), where
         # numChirpsPerFrame = num_doppler_bins * num_tx_antennas as designed.
         # Antennas associated to tx1 (Ping) are 0:4 and to tx2 (Pong) are 5:8.
         fft2d_in = separate_tx(radar_cube, num_tx_antennas, vx_axis=1, axis=0)
     else:
         fft2d_in = radar_cube
-        
+
     # (Optional) Static Clutter Removal = sig - mean
     if clutter_removal_enabled:
         fft2d_in = compensation.clutter_removal(fft2d_in, axis=0)
@@ -134,6 +134,70 @@ def doppler_processing(radar_cube,
     # Accumulate
     if accumulate:
         return np.sum(fft2d_log_abs, axis=1), aoa_input
+    else:
+        return fft2d_log_abs, aoa_input
+
+
+def doppler_processing_frame(radar_cube,
+                             num_tx_antennas=2,
+                             clutter_removal_enabled=False,
+                             window_type_2d=None,
+                             accumulate=True):
+    """Perform 2D FFT on the radar_cube.
+
+    Interleave the radar_cube, perform optional windowing and 2D FFT on the radar_cube. Optional antenna couping
+    signature removal can also be performed right before 2D FFT. In constrast to the original TI codes, CFAR and peak
+    grouping are intentionally separated with 2D FFT for the easiness of debugging.
+
+    Args:
+        radar_cube (ndarray): Output of the 1D FFT. If not interleaved beforehand, it has the shape of
+            (numChirpsPerFrame, numRxAntennas, numRangeBins). Otherwise, it has the shape of
+            (numRangeBins, numVirtualAntennas, num_doppler_bins). It is assumed that after interleaving the doppler
+            dimension is located at the last axis.
+        num_tx_antennas (int): Number of transmitter antennas. This affects how interleaving is performed.
+        clutter_removal_enabled (boolean): Flag to enable naive clutter removal.
+        interleaved (boolean): If the input radar_cube is interleaved before passing in. The default radar_cube is not
+            interleaved, i.e. has the shape of (numChirpsPerFrame, numRxAntennas, numRangeBins). The interleaving
+            process will transform it such that it becomes (numRangeBins, numVirtualAntennas, num_doppler_bins). Note
+            that this interleaving is only applicable to TDM radar, i.e. each tx emits the chirp sequentially.
+        window_type_2d (mmwave.dsp.utils.Window): Optional windowing type before doppler FFT.
+        accumulate (boolean): Flag to reduce the numVirtualAntennas dimension.
+
+    Returns:
+        detMatrix (ndarray): (numRangeBins, num_doppler_bins) complete range-dopper information. Original datatype is
+                             uint16_t. Note that azimuthStaticHeatMap can be extracted from zero-doppler index for
+                             visualization.
+        aoa_input (ndarray): (numRangeBins, numVirtualAntennas, num_doppler_bins) ADC data reorganized by vrx instead of
+                             physical rx.
+    """
+
+    fft2d_in = radar_cube
+
+    # (Optional) Static Clutter Removal = sig - mean
+    if clutter_removal_enabled:
+        fft2d_in = fft2d_in - fft2d_in.mean(1, keepdims=True)
+
+    # transpose to (numRangeBins, numVirtualAntennas, num_doppler_bins)
+    fft2d_in = np.transpose(fft2d_in, axes=(0, 3, 2, 1))
+
+    # Windowing 16x32
+    if window_type_2d:
+        fft2d_in = utils.windowing(fft2d_in, window_type_2d, axis=-1)
+
+    # It is assumed that doppler is at the last axis.
+    # FFT 32x32
+    fft2d_out = np.fft.fft(fft2d_in)
+    aoa_input = fft2d_out
+
+    # Save zero-Doppler as azimuthStaticHeatMap, watch out for the bit shift in
+    # original code.
+
+    # Log_2 Absolute Value
+    fft2d_log_abs = np.log2(np.abs(fft2d_out))
+
+    # Accumulate
+    if accumulate:
+        return np.sum(fft2d_log_abs, axis=2), aoa_input
     else:
         return fft2d_log_abs, aoa_input
 

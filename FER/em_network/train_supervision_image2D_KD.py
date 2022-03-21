@@ -268,10 +268,11 @@ class SP(nn.Module):
         return loss
 
 
-def distillation(y, teacher_scores, labels, T, alpha=0):
+def distillation(y, teacher_scores, labels, T, alpha=0.5):
     p = F.log_softmax(y / T, dim=1)
     q = F.softmax(teacher_scores / T, dim=1)
     l_kl = F.kl_div(p, q, size_average=False) * (T ** 2) / y.shape[0]
+    # l_kl = F.kl_div(p, q, size_average=False)
     l_ce = F.cross_entropy(y, labels)
     return l_kl * alpha + l_ce * (1. - alpha)
 
@@ -310,7 +311,7 @@ if __name__ == "__main__":
 
     # results dir
     result_dir = "FER/results"
-    path = dir_path("Supervision_image2D_KD", result_dir)
+    path = dir_path("Supervision_SUM_image2D_KD_baseline", result_dir)
 
     # save training config
     save_to_json(config, path['config'])
@@ -408,10 +409,13 @@ if __name__ == "__main__":
                            to_log=path['log'])
         test_loss, acc = test(student_model, test_loader=test_loader, criterion=criterion_test, to_log=path['log'])
         if acc >= best_acc:
+            # if best_loss >= test_loss:
             best_acc = acc
-            save_checkpoint(student_model.state_dict(), is_best=True, checkpoint=path['dir'])
-        else:
-            save_checkpoint(student_model.state_dict(), is_best=False, checkpoint=path['dir'])
+            # best_loss = test_loss
+            save_checkpoint(student_model.state_dict(), is_best=True, checkpoint=path['dir'], name="model")
+        elif (epoch + 1) % 5 == 0:
+            save_checkpoint(student_model.state_dict(), is_best=False, checkpoint=path['dir'], epoch=epoch,
+                            name="model")
 
         lr_scheduler.step()
 
@@ -426,4 +430,4 @@ if __name__ == "__main__":
     df.to_csv(path['metrics'], sep='\t', encoding='utf-8')
 
     # after running shutdown computer
-    os.system("shutdown /s /t 1")
+    # os.system("shutdown /s /t 1")

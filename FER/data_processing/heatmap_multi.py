@@ -63,8 +63,10 @@ def plot_heatmap_capon(adc_data_path, save_path, bin_start=4, bin_end=14, diff=F
 
         """ 3 (Object Detection) """
         if is_log:
-            heatmap_azi = 20 * np.log10(range_azimuth[:, bin_start:bin_end])
-            heatmap_ele = 20 * np.log10(range_elevation[:, bin_start:bin_end])
+            # heatmap_azi = 20 * np.log10(range_azimuth[:, bin_start:bin_end])
+            heatmap_azi = 20 * np.log10(range_azimuth[:, bin_start:bin_end] + 1)
+            # heatmap_ele = 20 * np.log10(range_elevation[:, bin_start:bin_end])
+            heatmap_ele = 20 * np.log10(range_elevation[:, bin_start:bin_end] + 1)
         else:
             heatmap_azi = range_azimuth[:, bin_start:bin_end]
             heatmap_ele = range_elevation[:, bin_start:bin_end]
@@ -215,7 +217,8 @@ if __name__ == '__main__':
     ANGLE_RANGE = 45
     ANGLE_BINS = (ANGLE_RANGE * 2) // ANGLE_RES + 1
     BINS_PROCESSED = 60
-
+    #     9 10 11 12
+    # 1 2 3 4  5  6  7 8
     # VIRT_ANT_AZI_INDEX = [i for i in range(8)]
     VIRT_ANT_AZI_INDEX = [i for i in range(0, 8)]
     VIRT_ANT_ELE_INDEX = VIRT_ELE_PAIRS[2]
@@ -236,7 +239,6 @@ if __name__ == '__main__':
     is_diff = False
     is_log = True
 
-
     # range resolutiona and doppler resolution
     range_resolution, bandwidth = dsp.range_resolution(numADCSamples,
                                                        dig_out_sample_rate=configParameters['digOutSampleRate'],
@@ -254,25 +256,28 @@ if __name__ == '__main__':
 
     root_path = "D:\\Subjects\\"
     data_path = '{}_{}_Raw_0.bin'
-    output_data_path = "C:\\Users\\Zber\\Desktop\\Subjects_Heatmap_Large"
+    output_data_path = "C:\\Users\\Zber\\Desktop\\Subjects_Heatmap"
+    json_file_name = "config.json"
 
     # D Differences (current - pre), S (static clutter removal), L (log2 calculation),
     # N (Normalization), B (Bin index from # to #), I (Data Index from # to #)
     # A Angle Range, AR Angle Resolution, CO coherent
 
     # start index
-    subs = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5']
-    # subs = ['S0']
+    # subs = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5']
+    # subs = ['S7']
+    subs = ['W1']
     emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust', 'Neutral']
     # emotion_list = ['Neutral']
     start_index = 0
-    end_index = 30
+    end_index = 10
     save_txt = False
     save_config = False
 
     # data
     bin_start = 4
-    bin_end = 54
+    # bin_end = 54
+    bin_end = 14
     num_bins = bin_end - bin_start
     index = 0
     queue = Queue()
@@ -290,7 +295,7 @@ if __name__ == '__main__':
 
     if save_txt:
         with open(os.path.join(output_data_path, "heatmap_annotation.txt"), 'a') as f:
-            f.writelines('\n'.join(str_arr)+'\n')
+            f.writelines('\n'.join(str_arr) + '\n')
         print("Write {} Records to txt file".format(len(str_arr)))
 
     if save_config:
@@ -311,7 +316,7 @@ if __name__ == '__main__':
             "Angle Resolution": ANGLE_RES,
         }
 
-        with open(os.path.join(output_data_path, 'config.json'), 'w') as f:
+        with open(os.path.join(output_data_path, json_file_name), 'w') as f:
             json.dump(config, f, indent=4)
 
     # thread_job(queue, root_path, output_data_path)

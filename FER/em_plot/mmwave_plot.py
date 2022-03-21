@@ -58,7 +58,7 @@ figpath = "C:/Users/Zber/Desktop/SavedFigure"
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_10s.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/tx1_rx4_2.cfg'
 configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.cfg'
-configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/radarProfile.cfg'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/radarProfile.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_5s.cfg'
 
 # pad cover face v
@@ -101,10 +101,12 @@ bin_index = 7
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/S1/Anger_1_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/S2/Joy_3_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/S2/Joy_2_31_Raw_0.bin"
-adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Test4_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Test4_0_Raw_0.bin"
 # adc_data_path = "D:/Subjects/S2/Joy_31_Raw_0.bin"
+adc_data_path = "D:/Subjects/S4/Joy_20_Raw_0.bin"
 
-video_path = "C:/Users/Zber/Desktop/Subjects_Video/S2/Joy_31.avi"
+# video_path = "C:/Users/Zber/Desktop/Subjects_Video/S2/Joy_31/Joy_31.avi"
+video_path = "C:/Users/Zber/Desktop/Subjects_Video/S4/Joy_20/Joy_20.avi"
 
 plotRangeDopp = True
 plot2DscatterXY = False
@@ -193,7 +195,7 @@ def parseConfigFile(configFileName, numTxAnt=3):
 
     # Combine the read data to obtain the configuration parameters
     numChirpsPerFrame = (chirpEndIdx - chirpStartIdx + 1) * numLoops
-    configParameters["numDopplerBins"] = numChirpsPerFrame / numTxAnt
+    configParameters["numDopplerBins"] = int(numChirpsPerFrame / numTxAnt)
     configParameters["numRangeBins"] = numAdcSamplesRoundTo2
     configParameters["rangeResolutionMeters"] = (3e8 * digOutSampleRate * 1e3) / (
             2 * freqSlopeConst * 1e12 * numAdcSamples)
@@ -444,7 +446,7 @@ def get_phase_change_npy(range_data, bin_index=0, is_diff=True, loop_index=5):
 
     # fig1, axes1 = plt.subplots(1, 1, figsize=(12, 5))
     # v_order = [8, 10, 7, 9, 6, 4, 5, 3]
-    sig = range_data[:, loop_index, :]
+    sig = range_data[:, loop_index, :, :]
 
     # num_va = numTxAntennas * numRxAntennas
     num_va_list = [2, 3, 4, 5, 8, 9, 10, 11]
@@ -452,13 +454,13 @@ def get_phase_change_npy(range_data, bin_index=0, is_diff=True, loop_index=5):
     sig = np.angle(sig)
     sig = np.unwrap(sig, axis=0)
 
-    sii = 20
+    sii = 0
 
     sig = sig[sii:, num_va_list]
 
     if is_diff:
         sig = np.abs(np.diff(sig, axis=0))
-        sig = np.mean(sig, axis=1)
+        sig = np.mean(sig, axis=(1, 2))
         sig = sig / np.max(sig)
     else:
         sig = np.mean(sig, axis=1)
@@ -466,10 +468,10 @@ def get_phase_change_npy(range_data, bin_index=0, is_diff=True, loop_index=5):
 
     # landmark generation
     all_FLms = flm_detector(video_path, None, output_as_video=False, output_flm_video=False)
-    key_score = distance(all_FLms)
+    key_score = distance(all_FLms, normalise=False)
     lm_difference = np.sum(key_score, axis=1)
 
-    si = 6
+    si = 0
     lm = lm_difference[si:] / np.max(lm_difference[si:])
 
     x_lm = np.linspace(0, 10, len(lm))
@@ -909,10 +911,14 @@ def phase_temporal_attentionv2(range_data, bin_index=0, is_diff=True, loop_index
     #     fig.savefig("{}_multiphase_in_one_{}_unwrap.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
 
 
+def micro_doppler():
+    return 0
+
+
 if __name__ == '__main__':
 
     # num Antennas
-    numTxAntennas = 1
+    numTxAntennas = 3
     numRxAntennas = 4
     # load configure parameters
     configParameters = parseConfigFile(configFileName)
@@ -920,15 +926,8 @@ if __name__ == '__main__':
     # mmWave radar settings
     numFrames = configParameters['numFrames']
     numADCSamples = configParameters['numAdcSamples']
-
     numLoopsPerFrame = configParameters['numLoops']
     numChirpsPerFrame = numTxAntennas * numLoopsPerFrame
-
-    numRangeBins = numADCSamples
-
-    # numDopplerBins = numLoopsPerFrame
-    numDopplerBins = numLoopsPerFrame
-
     numAngleBins = 64
 
     # data processing parameter
@@ -940,17 +939,20 @@ if __name__ == '__main__':
                                                 idle_time_const=configParameters['idleTime'],
                                                 num_loops_per_frame=configParameters['numLoops'],
                                                 num_tx_antennas=numTxAntennas)
-    print(
-        'Range Resolution: {:.2f} cm, Bandwidth: {:.2f} Ghz, Doppler Resolution: {:.2f}'.format(range_resolution * 100,
-                                                                                                bandwidth / 1000000000,
-                                                                                                doppler_resolution))
+
+    print('Range Resolution: {:.2f}cm, Bandwidth: {:.2f}Ghz, Doppler Resolution: {:.2f}m/s'.format(
+        range_resolution * 100, bandwidth / 1000000000, doppler_resolution))
 
     # (1) Reading in adc data
     if loadData:
         adc_data = np.fromfile(adc_data_path, dtype=np.int16)
         adc_data = adc_data.reshape(numFrames, -1)
-        adc_data = np.apply_along_axis(DCA1000.organize, 1, adc_data, num_chirps=numChirpsPerFrame,
+        # adc_data = np.apply_along_axis(DCA1000.organize, 1, adc_data, num_chirps=numChirpsPerFrame,
+        #                                num_rx=numRxAntennas, num_samples=numADCSamples)
+
+        adc_data = np.apply_along_axis(DCA1000.organize_cli, 1, adc_data, num_chirps=numChirpsPerFrame,
                                        num_rx=numRxAntennas, num_samples=numADCSamples)
+
         dataCube = np.copy(adc_data)
         print("Data Loaded!")
 
@@ -958,8 +960,27 @@ if __name__ == '__main__':
     # window types : Bartlett, Blackman p, Hanning p and Hamming
     # range_data = dsp.range_processing(adc_data)
     range_data = dsp.range_processing(adc_data, window_type_1d=Window.HANNING)
-    # range_data = range_data.reshape((-1,32,3,4,256))
     range_data = arange_tx(range_data, num_tx=numTxAntennas)
+
+    det_matrix, aoa_input = dsp.doppler_processing_frame(range_data, num_tx_antennas=numTxAntennas,
+                                                         clutter_removal_enabled=True,
+                                                         window_type_2d=Window.HAMMING,
+                                                         accumulate=True)
+
+    det_matrix_vis = np.fft.fftshift(det_matrix, axes=2)
+
+    print("")
+    # for i in range(numFrames):
+    #     radar_frame = range_data[i]
+    #
+    #     det_matrix, aoa_input = dsp.doppler_processing(radar_frame, num_tx_antennas=numTxAntennas,
+    #                                                    clutter_removal_enabled=True, interleaved=False,
+    #                                                    window_type_2d=Window.HAMMING,
+    #                                                    accumulate=True)
+
+    # numRangeBins, numVirtualAntennas, num_doppler_bins
+
+    # range_data = range_data.reshape((-1,32,3,4,256))
 
     # plot_phase_map(range_data, num_bins=30, v_antenna=5, loop_index=5, is_phase=True, is_diff=True)
 
@@ -1001,7 +1022,7 @@ if __name__ == '__main__':
     # plot range profile
     for i in range(start_bin_index, end_bin_index):
         b_index = i
-        plot_range_profile(range_data, b_index)
+        # plot_range_profile(range_data, b_index)
         # plot change of amplitude
         # plot_amplitude_change_multi_in_one(range_data[..., b_index], b_index)
         # plot_amplitude_change_multi_in_one(range_data[..., b_index], b_index, is_diff=False)
@@ -1010,8 +1031,8 @@ if __name__ == '__main__':
         # plot_phase_change_in_one(range_data[..., b_index], b_index, is_diff=False)
         # plot_phase_change_in_one(range_data[..., b_index], b_index, is_diff=False)
         # phase_temporal_attention(range_data[..., b_index], b_index, is_diff=True)
-        phase_temporal_attentionv2(range_data[..., b_index], b_index, is_diff=True)
-        # get_phase_change_npy(range_data[..., b_index], b_index, is_diff=True)
+        # phase_temporal_attentionv2(range_data[..., b_index], b_index, is_diff=True)
+        get_phase_change_npy(range_data[..., 8:11], b_index, is_diff=True)
 
     if phase_only:
         sys.exit(0)
@@ -1115,10 +1136,10 @@ if __name__ == '__main__':
         # plot_raw_detection(detObj2DRaw, type='SNR')
 
         # Further peak pruning. This increases the point cloud density but helps avoid having too many detections around one object.
-        detObj2DRaw = dsp.prune_to_peaks(detObj2DRaw, det_matrix, numDopplerBins, reserve_neighbor=True)
+        detObj2DRaw = dsp.prune_to_peaks(detObj2DRaw, det_matrix, numLoopsPerFrame, reserve_neighbor=True)
 
         # --- Peak Grouping
-        detObj2D = dsp.peak_grouping_along_doppler(detObj2DRaw, det_matrix, numDopplerBins)
+        detObj2D = dsp.peak_grouping_along_doppler(detObj2DRaw, det_matrix, numLoopsPerFrame)
         SNRThresholds2 = np.array([[2, 23], [10, 11.5], [35, 16.0]])
 
         peakThreshold = np.mean(detObj2DRaw['peakVal']) - 1 * np.std(detObj2DRaw['peakVal'])

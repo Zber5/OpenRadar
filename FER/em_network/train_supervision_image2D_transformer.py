@@ -312,7 +312,7 @@ class TFblock(nn.Module):
         return x
 
 
-def distillation(y, teacher_scores, labels, T, alpha=0):
+def distillation(y, teacher_scores, labels, T, alpha=0.5):
     p = F.log_softmax(y / T, dim=1)
     q = F.softmax(teacher_scores / T, dim=1)
     l_kl = F.kl_div(p, q, size_average=False) * (T ** 2) / y.shape[0]
@@ -333,7 +333,7 @@ def at_loss(x, y):
 
 if __name__ == "__main__":
 
-    config = dict(num_epochs=60,
+    config = dict(num_epochs=40,
                   lr=0.0006,
                   lr_step_size=20,
                   lr_decay_gamma=0.2,
@@ -354,7 +354,8 @@ if __name__ == "__main__":
 
     # results dir
     result_dir = "FER/results"
-    path = dir_path("Supervision_image2D_Transformer", result_dir)
+    # path = dir_path("Supervision_image2D_Transformer", result_dir)
+    path = dir_path("Supervision_image2D_Transformer_allBN", result_dir)
 
     # save training config
     save_to_json(config, path['config'])
@@ -442,7 +443,9 @@ if __name__ == "__main__":
 
     criterions = {'criterionCls': criterion_cls, 'criterionKD': criterion_kd}
 
-    optimizer = torch.optim.Adam(student_model.parameters(), lr=config['lr'])
+    optimizer = torch.optim.Adam(
+        list(student_model.parameters()) + list(tf_block.parameters()) + list(student_classifier.parameters()),
+        lr=config['lr'])
 
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=config['lr_step_size'],
                                                    gamma=config['lr_decay_gamma'])

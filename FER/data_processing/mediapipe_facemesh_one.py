@@ -15,7 +15,6 @@ import seaborn as sns
 
 sns.set_theme()
 
-
 frame_id = 0
 camera_fps = 30
 width = 1280
@@ -165,8 +164,17 @@ def flm_score(all_flm):
     return all_dis
 
 
-def distance(all_flm):
+def distance(all_flm, normalise=True):
+
+    # landmark normalization
+    nose_index=33
+    if normalise:
+        for frame_index in range(all_flm.shape[0]):
+            nose_lm = all_flm[frame_index, nose_index]
+            all_flm[frame_index] = all_flm[frame_index] - nose_lm
+
     all_dis = np.zeros((all_flm.shape[0] - 1, all_flm.shape[1]))
+
     pre = None
     for fid, cur in enumerate(all_flm):
         if pre is not None:
@@ -176,7 +184,6 @@ def distance(all_flm):
         pre = cur
 
     return all_dis
-
 
 
 def key_average_score(scores, num_frame=89):
@@ -197,6 +204,7 @@ def key_average_score(scores, num_frame=89):
 
 def flm_detector(video_path, output_path, output_as_video=False, output_flm_video=False, output_flm_npy=False, dim=2):
     cv_plot = False
+    total_FLms = 468
 
     # face mesh settings
     mpDraw = mp.solutions.drawing_utils
@@ -277,7 +285,6 @@ def flm_detector(video_path, output_path, output_as_video=False, output_flm_vide
     if output_as_video or output_flm_video:
         # Close the video writer
         video_writer.release()
-
 
     if output_flm_npy:
         flm_npy_path = os.path.join(output_path,

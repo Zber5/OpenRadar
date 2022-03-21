@@ -416,7 +416,7 @@ def at_loss(x, y):
 
 if __name__ == "__main__":
 
-    config = dict(num_epochs=20,
+    config = dict(num_epochs=50,
                   lr=0.0006,
                   lr_step_size=20,
                   lr_decay_gamma=0.2,

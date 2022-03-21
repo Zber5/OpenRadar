@@ -17,7 +17,34 @@ def annotation_attention(record_list, width=30):
     return record_list
 
 
+
+
 if __name__ =="__main__":
+    # Eliminate
+    text_path = "C:\\Users\\Zber\Desktop\\invalid_data.txt"
+    annotaton_path = "C:\\Users\\Zber\\Desktop\\Subjects_Heatmap\\heatmap_annotation_train_S8.txt"
+    root_path = ""
+
+    record_list = [MapRecord(x.strip().split(), root_path) for x in open(annotaton_path)]
+
+    print(len(record_list))
+    with open(text_path) as f:
+        lines = f.readlines()
+
+    count = 0
+    for l in lines:
+        l = l[:-1]
+        for index, r in enumerate(record_list):
+            if l in r.path:
+                print(r.path)
+                record_list.pop(index)
+                count += 1
+    print(count)
+
+
+
+
+
     root_path = "C:\\Users\\Zber\\Desktop\\Subjects_Frames"
     # annotaton_path = "D:\\Subjects\\annotations_v2.txt"
     # annotaton_path = "C:\\Users\\Zber\\Desktop\\Subjects_Heatmap\\heatmap_annotation.txt"

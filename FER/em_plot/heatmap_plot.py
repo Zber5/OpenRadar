@@ -26,9 +26,60 @@ import os
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+from collections import deque
+
 plt.close('all')
 
 DebugMode = True
+
+# ===============
+from matplotlib.colors import LinearSegmentedColormap
+
+cm_data = [[0.2081, 0.1663, 0.5292], [0.2116238095, 0.1897809524, 0.5776761905],
+           [0.212252381, 0.2137714286, 0.6269714286], [0.2081, 0.2386, 0.6770857143],
+           [0.1959047619, 0.2644571429, 0.7279], [0.1707285714, 0.2919380952,
+                                                  0.779247619], [0.1252714286, 0.3242428571, 0.8302714286],
+           [0.0591333333, 0.3598333333, 0.8683333333], [0.0116952381, 0.3875095238,
+                                                        0.8819571429], [0.0059571429, 0.4086142857, 0.8828428571],
+           [0.0165142857, 0.4266, 0.8786333333], [0.032852381, 0.4430428571,
+                                                  0.8719571429], [0.0498142857, 0.4585714286, 0.8640571429],
+           [0.0629333333, 0.4736904762, 0.8554380952], [0.0722666667, 0.4886666667,
+                                                        0.8467], [0.0779428571, 0.5039857143, 0.8383714286],
+           [0.079347619, 0.5200238095, 0.8311809524], [0.0749428571, 0.5375428571,
+                                                       0.8262714286], [0.0640571429, 0.5569857143, 0.8239571429],
+           [0.0487714286, 0.5772238095, 0.8228285714], [0.0343428571, 0.5965809524,
+                                                        0.819852381], [0.0265, 0.6137, 0.8135],
+           [0.0238904762, 0.6286619048,
+            0.8037619048], [0.0230904762, 0.6417857143, 0.7912666667],
+           [0.0227714286, 0.6534857143, 0.7767571429], [0.0266619048, 0.6641952381,
+                                                        0.7607190476], [0.0383714286, 0.6742714286, 0.743552381],
+           [0.0589714286, 0.6837571429, 0.7253857143],
+           [0.0843, 0.6928333333, 0.7061666667], [0.1132952381, 0.7015, 0.6858571429],
+           [0.1452714286, 0.7097571429, 0.6646285714], [0.1801333333, 0.7176571429,
+                                                        0.6424333333], [0.2178285714, 0.7250428571, 0.6192619048],
+           [0.2586428571, 0.7317142857, 0.5954285714], [0.3021714286, 0.7376047619,
+                                                        0.5711857143], [0.3481666667, 0.7424333333, 0.5472666667],
+           [0.3952571429, 0.7459, 0.5244428571], [0.4420095238, 0.7480809524,
+                                                  0.5033142857], [0.4871238095, 0.7490619048, 0.4839761905],
+           [0.5300285714, 0.7491142857, 0.4661142857], [0.5708571429, 0.7485190476,
+                                                        0.4493904762], [0.609852381, 0.7473142857, 0.4336857143],
+           [0.6473, 0.7456, 0.4188], [0.6834190476, 0.7434761905, 0.4044333333],
+           [0.7184095238, 0.7411333333, 0.3904761905],
+           [0.7524857143, 0.7384, 0.3768142857], [0.7858428571, 0.7355666667,
+                                                  0.3632714286], [0.8185047619, 0.7327333333, 0.3497904762],
+           [0.8506571429, 0.7299, 0.3360285714], [0.8824333333, 0.7274333333, 0.3217],
+           [0.9139333333, 0.7257857143, 0.3062761905], [0.9449571429, 0.7261142857,
+                                                        0.2886428571], [0.9738952381, 0.7313952381, 0.266647619],
+           [0.9937714286, 0.7454571429, 0.240347619], [0.9990428571, 0.7653142857,
+                                                       0.2164142857], [0.9955333333, 0.7860571429, 0.196652381],
+           [0.988, 0.8066, 0.1793666667], [0.9788571429, 0.8271428571, 0.1633142857],
+           [0.9697, 0.8481380952, 0.147452381], [0.9625857143, 0.8705142857, 0.1309],
+           [0.9588714286, 0.8949, 0.1132428571], [0.9598238095, 0.9218333333,
+                                                  0.0948380952], [0.9661, 0.9514428571, 0.0755333333],
+           [0.9763, 0.9831, 0.0538]]
+
+parula_map = LinearSegmentedColormap.from_list('parula', cm_data)
+# ==============================
 
 if not DebugMode:
     import matplotlib
@@ -56,9 +107,11 @@ device_v = True
 # adc_data_path = "C:\\Users\\Zber\\Desktop\\mmWave_plot\\Neutral_0_Raw_0.bin"
 # adc_data_path = "C:\\Users\\Zber\\Desktop\\mmWave_plot\\Neutral_11_Raw_0.bin"
 # adc_data_path = "C:\\Users\\Zber\\Desktop\\mmWave_plot\\Neutral_4_Raw_0.bin"
+adc_data_path = "D:\\Subjects\\S2\\Joy_26_Raw_0.bin"
 # adc_data_path = "D:\\Subjects\\S0\\Neutral_26_Raw_0.bin"
 
-adc_data_path = "D:\\Subjects\\S0\\Joy_26_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Notable_1_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Enable_0_Raw_0.bin"
 
 plotRangeDopp = True
 plot2DscatterXY = False
@@ -468,7 +521,7 @@ def arange_tx(signal, num_tx, vx_axis=2, axis=1):
     return out.transpose(reordering)
 
 
-def cago_cfar(heatmap):
+def cago_cfar(heatmap, l_bound=15):
     """
     :param heatmap: axis 0 is angle and axis 1 is range
     :return:
@@ -477,18 +530,18 @@ def cago_cfar(heatmap):
     thresholdAngle, noiseFloorAngle = np.apply_along_axis(func1d=dsp.cago_,
                                                           axis=0,
                                                           arr=heatmap,
-                                                          l_bound=0.05,
+                                                          l_bound=l_bound,
                                                           mode='constant',
-                                                          guard_len=2,
-                                                          noise_len=8)
+                                                          guard_len=3,
+                                                          noise_len=10)
 
     thresholdRange, noiseFloorRange = np.apply_along_axis(func1d=dsp.cago_,
                                                           axis=0,
                                                           arr=heatmap.T,
-                                                          l_bound=0.05,
+                                                          l_bound=l_bound,
                                                           mode='constant',
-                                                          guard_len=2,
-                                                          noise_len=8)
+                                                          guard_len=3,
+                                                          noise_len=5)
 
     # thresholdAngle, noiseFloorAngle = np.apply_along_axis(func1d=dsp.ca_,
     #                                                       axis=0,
@@ -619,11 +672,11 @@ if __name__ == '__main__':
     # VIRT_AZI_PAIRS = [[i for i in range(0, 4)], [i for i in range(4, 8)], [i for i in range(8, 12)]]
     VIRT_AZI_PAIRS = [[i for i in range(0, 8)]]
     SKIP_SIZE = 4
-    ANGLE_RES = 1
-    ANGLE_RANGE = 45
+    ANGLE_RES = 5
+    ANGLE_RANGE = 60
     ANGLE_BINS = (ANGLE_RANGE * 2) // ANGLE_RES + 1
-    BIN_RANG_S = 4
-    BIN_RANG_E = 14
+    BIN_RANG_S = 0
+    BIN_RANG_E = 256
     BINS_PROCESSED = BIN_RANG_E - BIN_RANG_S
     # VIRT_ANT_AZI_INDEX = [i for i in range(8)]
     VIRT_ANT_AZI_INDEX = [i for i in range(0, 8)]
@@ -669,17 +722,21 @@ if __name__ == '__main__':
     if loadData:
         adc_data = np.fromfile(adc_data_path, dtype=np.int16)
         adc_data = adc_data.reshape(numFrames, -1)
-        adc_data = np.apply_along_axis(DCA1000.organize, 1, adc_data, num_chirps=numChirpsPerFrame,
+        # adc_data = np.apply_along_axis(DCA1000.organize, 1, adc_data, num_chirps=numChirpsPerFrame,
+        #                                num_rx=numRxAntennas, num_samples=numADCSamples)
+
+        adc_data = np.apply_along_axis(DCA1000.organize_cli, 1, adc_data, num_chirps=numChirpsPerFrame,
                                        num_rx=numRxAntennas, num_samples=numADCSamples)
-        dataCube = np.copy(adc_data)
+
+        # dataCube = np.copy(adc_data)
         print("Data Loaded!")
 
     # Start DSP processing
     num_vec, steering_vec = dsp.gen_steering_vec(ANGLE_RANGE, ANGLE_RES, VIRT_ANT_AZI)
     num_vec_ele, steering_vec_ele = dsp.gen_steering_vec(ANGLE_RANGE, ANGLE_RES, VIRT_ANT_ELE)
 
-    fig, axes = plt.subplots(1, 4, figsize=(ANGLE_BINS // 5, BINS_PROCESSED // 5 * 4))
-    # fig, axes = plt.subplots(1, 2, figsize=(ANGLE_BINS // 5, BINS_PROCESSED // 5 * 2))
+    # fig, axes = plt.subplots(1, 4, figsize=(ANGLE_BINS // 5, BINS_PROCESSED // 5 * 4))
+    fig, axes = plt.subplots(1, 2, figsize=(ANGLE_BINS // 5, BINS_PROCESSED // 5 * 2))
     frame_index = 0
 
     # stored np array
@@ -692,16 +749,24 @@ if __name__ == '__main__':
     pre_h = np.zeros((ANGLE_BINS, BINS_PROCESSED))
     pre_e = np.zeros((ANGLE_BINS, BINS_PROCESSED))
 
+    maxl = 20
+
+    queue = deque(maxlen=maxl)
+
     # for frame_index in range(1, 150):
-    for frame_index in range(numFrames):
-        # for frame_index in range(50, 100):
+    # for frame_index in range(numFrames):
+    for frame_index in range(300):
         # frame_index += 1
         """ 1 (Range Processing) """
 
         frame = adc_data[frame_index]
 
         # --- range fft
-        radar_cube = dsp.range_processing(frame)
+        radar_cube = dsp.range_processing(frame, axis=-1)
+
+        if static_clutter_removal:
+            mean = radar_cube.mean(axis=2, keepdims=True)
+            radar_cube = radar_cube - mean
 
         # virtual antenna arrangement
         radar_cube = arange_tx(radar_cube, num_tx=numTxAntennas, vx_axis=1, axis=0)
@@ -709,9 +774,9 @@ if __name__ == '__main__':
         """ 2 (Beamformer Processing) """
         # --- static clutter removal
         # --- Do we need ?
-        if static_clutter_removal:
-            mean = radar_cube.mean(0)
-            radar_cube = radar_cube - mean
+        # if static_clutter_removal:
+        #     mean = radar_cube.mean(axis=2, keepdims=True)
+        #     radar_cube = radar_cube - mean
 
         # --- capon beamforming
 
@@ -774,7 +839,9 @@ if __name__ == '__main__':
         """ 3 (Object Detection) """
         if is_log:
             range_azimuth = 20 * np.log10(range_azimuth)
+            # range_azimuth = np.log2(range_azimuth)
             range_elevation = 20 * np.log10(range_elevation)
+            # range_elevation = np.log2(range_elevation)
 
             # range_azimuth = np.log2(range_azimuth)
             # range_elevation = np.log2(range_elevation)
@@ -796,7 +863,20 @@ if __name__ == '__main__':
         axes[0].set_xlabel('Range')
         axes[0].set_ylabel('Azimuth')
 
-        axes[0].imshow(range_azimuth / range_azimuth.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
+        axes[1].set_xlabel('Range')
+        axes[1].set_ylabel('Elevation')
+
+        # if len(queue) == maxl:
+        #     list_heatmap = list(queue)
+        #     sum_heatmap = np.sum(list_heatmap, axis=0)/maxl
+        #     axes[0].imshow(sum_heatmap, interpolation='nearest', aspect='auto', cmap=parula_map)
+        #     peaks, mask = cago_cfar(sum_heatmap, l_bound=14)
+        #     axes[1].imshow(mask, interpolation='nearest', aspect='auto', cmap=parula_map)
+        #
+        # queue.append(range_azimuth)
+
+        # axes[0].imshow(range_azimuth / range_azimuth.max(), interpolation='nearest', aspect='auto', cmap=parula_map)
+        axes[0].imshow(range_azimuth[:, 0:55], interpolation='nearest', aspect='auto', cmap=parula_map)
         # axes[0].imshow(range_azimuth, interpolation='nearest', aspect='auto', cmap='coolwarm')
 
         # axes[0].imshow(np.angle(range_azimuth), interpolation='nearest', aspect='auto')
@@ -804,13 +884,15 @@ if __name__ == '__main__':
         # cago
         # peaks = cago_cfar(range_azimuth)
 
-        axes[1].set_xlabel('Range')
-        axes[1].set_ylabel('Elevation')
-        axes[1].imshow(range_elevation / range_elevation.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
+        # axes[1].set_xlabel('Range')
+        # axes[1].set_ylabel('Elevation')
+        # axes[1].imshow(range_elevation / range_elevation.max(), interpolation='nearest', aspect='auto', cmap=parula_map)
+        # axes[1].imshow(range_elevation - range_elevation.min(), interpolation='nearest', aspect='auto', cmap=parula_map)
         # axes[1].imshow(range_elevation, interpolation='nearest', aspect='auto', cmap='coolwarm')
 
-        # axes[0].imshow(range_elevation, interpolation='nearest', aspect='auto', cmap='coolwarm')
+        axes[1].imshow(range_elevation[:, 0:55], interpolation='nearest', aspect='auto', cmap=parula_map)
         # peaks, mask = cago_cfar(range_azimuth)
+        # axes[1].imshow(mask, interpolation='nearest', aspect='auto', cmap=parula_map)
 
         # peaks, mask = cago_cfar(range_elevation)
 
@@ -823,13 +905,13 @@ if __name__ == '__main__':
         # axes[1].imshow(mask, interpolation='nearest', aspect='auto', cmap='coolwarm')
         # axes[1].imshow(np.angle(range_elevation), interpolation='nearest', aspect='auto')
         #
-        axes[2].set_xlabel('Range')
-        axes[2].set_ylabel('Azimuth')
-        axes[2].imshow(cum_h / cum_h.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
+        # axes[2].set_xlabel('Range')
+        # axes[2].set_ylabel('Azimuth')
+        # axes[2].imshow(cum_h / cum_h.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
         #
-        axes[3].set_xlabel('Range')
-        axes[3].set_ylabel('Elevation')
-        axes[3].imshow(cum_e / cum_e.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
+        # axes[3].set_xlabel('Range')
+        # axes[3].set_ylabel('Elevation')
+        # axes[3].imshow(cum_e / cum_e.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
 
         plt.title("Range-Angle Heatmap " + str(frame_index), loc='center')
         plt.pause(0.02)

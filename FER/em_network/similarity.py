@@ -206,9 +206,9 @@ if __name__ == "__main__":
     test_loader = DataLoader(heatmap_test, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
 
     # folder path
-    # best_folder = "Supervision_image2D_Transformer_power_20220214-155040"
+    best_folder = "Supervision_image2D_Transformer_power_20220214-155040"
     # best_folder = "Supervision_image2D_Transformer_20220213-100217"
-    best_folder = "Supervision_image2D_Transformer_stage2_updated_20220216-152105"
+    # best_folder = "Supervision_image2D_Transformer_stage2_updated_20220216-152105"
     # best_folder = "Supervision_image2D_Transformer_allBP_20220215-215409"
 
     # load teacher model

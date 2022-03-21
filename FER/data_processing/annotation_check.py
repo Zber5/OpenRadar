@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
 from FER.utils import parseConfigFile, get_label, arange_tx, MapRecord
+from data_processing.mediapipe_facemesh_one import flm_detector, distance
 
 plt.close('all')
 
@@ -201,6 +202,7 @@ if __name__ == '__main__':
     # root_path = "D:\\Subjects"
     # root_path = "C:\\Users\\Zber\\Desktop\\Subjects_Heatmap"
     root_path = "C:\\Users\\Zber\\Desktop\\Subjects_Frames"
+    video_path = "C:\\Users\\Zber\\Desktop\\Subjects_Video\\{}\\{}.avi"
     annotaton_path = "D:\\Subjects\\annotations.txt"
 
     record_list = [MapRecord(x.strip().split(), root_path) for x in open(annotaton_path)]
