@@ -34,7 +34,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 plt.close('all')
 
-DebugMode = True
+DebugMode = False
 
 if not DebugMode:
     import matplotlib
@@ -103,7 +103,15 @@ bin_index = 7
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/S2/Joy_2_31_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Test4_0_Raw_0.bin"
 # adc_data_path = "D:/Subjects/S2/Joy_31_Raw_0.bin"
-adc_data_path = "D:/Subjects/S4/Joy_20_Raw_0.bin"
+# adc_data_path = "D:/Subjects/S4/Joy_20_Raw_0.bin"
+# adc_data_path = "D:/Subjects/S4/Joy_20_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OpenEyes_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OpenMouth_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/RaiseCheek_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlySurprise_0_Raw_0.bin"
+adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlyBodyMotion_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/SurpriseAndBodyMotion_0_Raw_0.bin"
+
 
 # video_path = "C:/Users/Zber/Desktop/Subjects_Video/S2/Joy_31/Joy_31.avi"
 video_path = "C:/Users/Zber/Desktop/Subjects_Video/S4/Joy_20/Joy_20.avi"
@@ -120,7 +128,8 @@ makeMovieTitle = ""
 makeMovieDirectory = "C:/Users/Zber/Documents/Dev_program/OpenRadar/demo/visualizer/movie/test_plotRDM.mp4"
 
 # antenna_order = [8, 10, 7, 9, 6, 4, 5, 3] if device_v else [5, 6, 7, 8, 3, 4, 9, 10]
-antenna_order = [i for i in range(0, 4)] + [i for i in range(8, 12)] + [i for i in range(4, 8)]
+# antenna_order = [i for i in range(0, 4)] + [i for i in range(8, 12)] + [i for i in range(4, 8)]
+antenna_order = [i for i in range(0, 12)]
 
 visTrigger = plot2DscatterXY + plot2DscatterXZ + plot3Dscatter + plotRangeDopp + plotCustomPlt
 assert visTrigger < 2, "Can only choose to plot one type of plot at once"
@@ -280,51 +289,70 @@ def plot_amplitude_change(range_data, bin_index):
     fig.savefig("{}_amp_change_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
 
 
-def plot_amplitude_change_multi(range_data, bin_index, is_diff=True):
-    if device_v:
-        fig, axes = plt.subplots(4, 2, figsize=(50, 90))
-    else:
-        fig, axes = plt.subplots(2, 4, figsize=(90, 50))
+def plot_amplitude_change_multi(range_data, bin_index, is_diff=True, is_phase=False, is_fft=True):
+    # if device_v:
+    fig, axes = plt.subplots(3, 4, figsize=(160, 90))
+    # else:
+    #     fig, axes = plt.subplots(2, 4, figsize=(90, 50))
     # v_order = [8, 10, 7, 9, 6, 4, 5, 3]
-    sig = range_data.reshape((-1, numTxAntennas, numLoopsPerFrame, numRxAntennas))
-    sig = sig[:, :, 5, :]
+    # sig = range_data.reshape((-1, numTxAntennas, numLoopsPerFrame, numRxAntennas))
+    sig = range_data[:, 5, :, bin_index]
 
     for ax, o, color in zip(fig.axes, antenna_order, tab_color):
-        va_order = o - 1
-        t, r = virtual_array[va_order]
+        va_order = o
+        # t, r = virtual_array[va_order]
         # t, r = tx_map[t], r - 1
-        va_sig = sig[:, t, r]
-        va_sum = np.abs(va_sig)
+        va_sig = sig[:, va_order]
+
+        if is_phase:
+            va_sum = np.angle(va_sig)
+            va_sum = np.unwrap(va_sum)
+        else:
+            va_sum = np.abs(va_sig)
+
         if is_diff:
             va_sum = np.diff(va_sum)
-        ax.plot(va_sum, linewidth=15, c=color)
-        ax.set_title('Virtual Antenna {}'.format(o), fontdict={'fontsize': 80, 'fontweight': 25})
+
+            # va_sum  fft
+            if is_fft:
+                # va_sum = np.fft.fftfreq(va_sum, d=5)
+
+                va_sum = np.fft.fft(va_sum, axis=0)
+                va_sum = np.abs(va_sum)
+
+        ax.plot(va_sum, linewidth=5, c=color)
+        ax.set_title('Virtual Antenna {}'.format(o), fontdict={'fontsize': 40, 'fontweight': 40})
         # ax.set_ylim([-4, 4])
+
     fig.tight_layout()
     fig.subplots_adjust(hspace=0.3, wspace=0.05, top=0.97, bottom=0.03, left=0.03)
+    # fig.legend()
 
     plt.show() if DebugMode else None
-    fig.savefig("{}_amp_change_multi_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
+    # fig.savefig("{}_amp_change_multi_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
+    # fig.savefig("{}_phase_change_multi_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
+    fig.savefig("{}_phase_diff_multi_fft_{}.pdf".format(os.path.join(figpath, fig_prefix), bin_index))
 
 
 def plot_amplitude_change_multi_in_one(range_data, bin_index, is_diff=True):
     fig, axes = plt.subplots(1, 1, figsize=(12, 5))
-    sig = range_data.reshape((-1, numTxAntennas, numLoopsPerFrame, numRxAntennas))
-    sig = sig[:, :, 5, :]
+    # sig = range_data.reshape((-1, numTxAntennas, numLoopsPerFrame, numRxAntennas))
+    sig = range_data[:, 5, :, bin_index]
 
     for o, color in zip(antenna_order, tab_color):
-        va_order = o - 1
+        va_order = o
         t, r = virtual_array[va_order]
         # t, r = tx_map[t], r - 1
-        va_sig = sig[:, t, r]
+        va_sig = sig[:, va_order]
         va_sum = np.abs(va_sig)
         if is_diff:
             va_sum = np.diff(va_sum)
-        axes.plot(va_sum, linewidth=2, c=color)
-        axes.set_title('Virtual Antenna {}'.format(o), fontdict={'fontsize': 80, 'fontweight': 25})
+        axes.plot(va_sum, linewidth=2, c=color, label='Virtual Antenna {}'.format(o + 1))
+        # axes.set_title('Virtual Antenna {}'.format(o), fontdict={'fontsize': 8, 'fontweight': 8})
         # ax.set_ylim([-4, 4])
     fig.tight_layout()
     fig.subplots_adjust(hspace=0.3, wspace=0.05, top=0.97, bottom=0.03, left=0.03)
+    fig.legend()
 
     plt.show() if DebugMode else None
     if is_diff:
@@ -962,14 +990,14 @@ if __name__ == '__main__':
     range_data = dsp.range_processing(adc_data, window_type_1d=Window.HANNING)
     range_data = arange_tx(range_data, num_tx=numTxAntennas)
 
-    det_matrix, aoa_input = dsp.doppler_processing_frame(range_data, num_tx_antennas=numTxAntennas,
-                                                         clutter_removal_enabled=True,
-                                                         window_type_2d=Window.HAMMING,
-                                                         accumulate=True)
+    # det_matrix, aoa_input = dsp.doppler_processing_frame(range_data, num_tx_antennas=numTxAntennas,
+    #                                                      clutter_removal_enabled=True,
+    #                                                      window_type_2d=Window.HAMMING,
+    #                                                      accumulate=True)
 
-    det_matrix_vis = np.fft.fftshift(det_matrix, axes=2)
+    # det_matrix_vis = np.fft.fftshift(det_matrix, axes=2)
 
-    print("")
+    # print("")
     # for i in range(numFrames):
     #     radar_frame = range_data[i]
     #
@@ -1032,7 +1060,10 @@ if __name__ == '__main__':
         # plot_phase_change_in_one(range_data[..., b_index], b_index, is_diff=False)
         # phase_temporal_attention(range_data[..., b_index], b_index, is_diff=True)
         # phase_temporal_attentionv2(range_data[..., b_index], b_index, is_diff=True)
-        get_phase_change_npy(range_data[..., 8:11], b_index, is_diff=True)
+        # get_phase_change_npy(range_data[..., 8:11], b_index, is_diff=True)
+        # plot_amplitude_change_multi(range_data, bin_index, is_diff=False)
+        plot_amplitude_change_multi(range_data, b_index, is_diff=True, is_phase=True, is_fft=True)
+        # plot_amplitude_change_multi_in_one(range_data, bin_index, is_diff=False)
 
     if phase_only:
         sys.exit(0)

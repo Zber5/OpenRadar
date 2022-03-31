@@ -40,8 +40,8 @@ import json
 
 # AOP 3s
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_5s.cfg'
-# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.cfg'
-configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_20s_50fps_2.cfg'
+configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.cfg'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_20s_50fps_2.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s_10fps.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s_50fps.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/radarProfile.cfg'
@@ -420,7 +420,7 @@ if __name__ == "__main__":
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\W1"
     file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Test"
 
-    prefix = "Chirps_{}"
+    prefix = "SurpriseAndBodyMotion_{}"
 
     config = parseConfigFile(configFileName)
 

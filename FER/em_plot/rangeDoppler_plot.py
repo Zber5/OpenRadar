@@ -40,7 +40,6 @@ tab_color = tab_color + extra_color
 # figpath = "C:/Users/Zber/Desktop/mmWave_figure"
 figpath = "C:/Users/Zber/Desktop/SavedFigure"
 
-
 # Data and ConfigFile
 # 64 chirps
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_20s_50fps_2.cfg'
@@ -53,12 +52,9 @@ configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.c
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OpenMouth_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/RaiseCheek_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlySurprise_0_Raw_0.bin"
-# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlyBodyMotion_0_Raw_0.bin"
-adc_data_path = "D:\\Subjects\\S2\\Neutral_10_Raw_0.bin"
+adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlyBodyMotion_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/SurpriseAndBodyMotion_0_Raw_0.bin"
 # adc_data_path = "D:\\Subjects\\S2\\Joy_33_Raw_0.bin"
-
-
 
 
 if __name__ == '__main__':
@@ -111,9 +107,10 @@ if __name__ == '__main__':
     bin_s = 7
     bin_e = 9
 
-    det_matrix_vis_mean = np.mean(det_matrix_vis[:, bin_s:bin_e, :], axis=1)
+    det_matrix_vis_mean = np.mean(det_matrix_vis[:, :, :], axis=0)
 
-    plt.imshow(np.abs(det_matrix_vis_mean.T), cmap=plt.cm.jet)
+    # plt.imshow(np.abs(det_matrix_vis_mean.T), cmap=plt.cm.jet)
+    plt.imshow(np.abs(det_matrix_vis_mean.T), cmap=plt.get_cmap('jet'))
     plt.show()
 
     print("")
