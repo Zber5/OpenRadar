@@ -54,11 +54,14 @@ configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.c
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/RaiseCheek_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlySurprise_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlyBodyMotion_0_Raw_0.bin"
-adc_data_path = "D:\\Subjects\\S2\\Neutral_10_Raw_0.bin"
+# adc_data_path = "D:\\Subjects\\S2\\Neutral_10_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/SurpriseAndBodyMotion_0_Raw_0.bin"
 # adc_data_path = "D:\\Subjects\\S2\\Joy_33_Raw_0.bin"
 
-
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Surprise0.5m_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Surprise1m_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Surprise1.5m_0_Raw_0.bin"
+adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_standing2ground_0_Raw_0.bin"
 
 
 if __name__ == '__main__':
@@ -79,6 +82,7 @@ if __name__ == '__main__':
     range_resolution, bandwidth = dsp.range_resolution(config['numAdcSamples'],
                                                        dig_out_sample_rate=config['digOutSampleRate'],
                                                        freq_slope_const=config['freqSlopeConst'])
+
     doppler_resolution = dsp.doppler_resolution(bandwidth, start_freq_const=config['startFreq'],
                                                 ramp_end_time=config['rampEndTime'],
                                                 idle_time_const=config['idleTime'],
@@ -108,8 +112,8 @@ if __name__ == '__main__':
 
     det_matrix_vis = np.fft.fftshift(det_matrix, axes=2)
 
-    bin_s = 7
-    bin_e = 9
+    bin_s = 25
+    bin_e = 28
 
     det_matrix_vis_mean = np.mean(det_matrix_vis[:, bin_s:bin_e, :], axis=1)
 

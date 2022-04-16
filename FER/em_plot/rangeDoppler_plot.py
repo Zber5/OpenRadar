@@ -10,6 +10,7 @@ import os
 from mmwave.dsp.utils import Window
 import math
 from FER.utils import parseConfigFile, arange_tx
+from mmwave.dsp.cfar import ca
 
 from itertools import accumulate
 from operator import add
@@ -52,7 +53,18 @@ configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.c
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OpenMouth_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/RaiseCheek_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlySurprise_0_Raw_0.bin"
-adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlyBodyMotion_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlyBodyMotion_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Surprise0.5m_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_ground_0_Raw_0.bin"
+adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/ground_1m_1_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_sit_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_standing_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Standing_1_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_standing2ground_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_standing&surprise_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_standing&alwaysmove_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Surprise1m_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Surprise1.5m_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/SurpriseAndBodyMotion_0_Raw_0.bin"
 # adc_data_path = "D:\\Subjects\\S2\\Joy_33_Raw_0.bin"
 
@@ -104,10 +116,15 @@ if __name__ == '__main__':
 
     det_matrix_vis = np.fft.fftshift(det_matrix, axes=2)
 
-    bin_s = 7
-    bin_e = 9
+    bin_s = 10
+    bin_e = 15
 
     det_matrix_vis_mean = np.mean(det_matrix_vis[:, :, :], axis=0)
+    bin_data = det_matrix_vis_mean[:, 17] + det_matrix_vis_mean[:, 15]
+
+    peak_data = ca(bin_data, guard_len=2, noise_len=4, l_bound=8)
+
+    plt.plot(peak_data)
 
     # plt.imshow(np.abs(det_matrix_vis_mean.T), cmap=plt.cm.jet)
     plt.imshow(np.abs(det_matrix_vis_mean.T), cmap=plt.get_cmap('jet'))

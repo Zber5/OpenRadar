@@ -186,7 +186,7 @@ def doppler_processing_frame(radar_cube,
 
     # It is assumed that doppler is at the last axis.
     # FFT 32x32
-    fft2d_out = np.fft.fft(fft2d_in)
+    fft2d_out = np.fft.fft(fft2d_in+1)
     aoa_input = fft2d_out
 
     # Save zero-Doppler as azimuthStaticHeatMap, watch out for the bit shift in

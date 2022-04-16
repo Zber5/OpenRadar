@@ -40,6 +40,7 @@ def aoa_music_1D(steering_vec, rx_chirps, num_sources):
     noise_subspace = _noise_subspace(R, num_sources)
     v = noise_subspace.T.conj() @ steering_vec.T
     spectrum = np.reciprocal(np.sum(v * v.conj(), axis=0).real)
+    # spectrum = np.reciprocal(np.angle(np.sum(v * v.conj(), axis=0)))
 
     return spectrum
 
@@ -116,6 +117,7 @@ def aoa_spatial_smoothing(covariance_matrix, num_subarrays, forward_backward=Fal
     else:
         return 0.5 * (result + np.flip(result))
 
+
 def aoa_esprit(steering_vec, rx_chirps, num_sources, displacement):
     """ Perform Estimation of Signal Parameters via Rotation Invariance Techniques (ESPIRIT) for Angle of Arrival.
     
@@ -132,8 +134,8 @@ def aoa_esprit(steering_vec, rx_chirps, num_sources, displacement):
         (~np.ndarray): the spectrum of the ESPRIT. Objects should be holes for the equation and thus sharp peaks.
     """
     num_antennas = rx_chirps.shape[0]
-    if displacement > num_antennas/2 or displacement <= 0:
-        raise ValueError("The separation between two subarrays can only range from 1 to half of the original array size.")
+    # if displacement > num_antennas/2 or displacement <= 0:
+    #     raise ValueError("The separation between two subarrays can only range from 1 to half of the original array size.")
         
     subarray1 = rx_chirps[:num_antennas - displacement]
     subarray2 = rx_chirps[displacement:]

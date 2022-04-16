@@ -133,7 +133,18 @@ def thread_job(queue, output_folder):
 
 
 if __name__ == "__main__":
+    # video_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_standing&surprise_0.svo"
+    # video_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_sit_0.svo"
+    # video_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_ground_0.svo"
+    # video_path = "C:/Users/Zber/Desktop/Subjects/Test/ground_1m_1.svo"
+    # video_path = "C:/Users/Zber/Desktop/Subjects/Test/Standing_1.svo"
+    # video_path = "C:/Users/Zber/Desktop/Subjects/Test/sit_1m_move_1.svo"
+    video_path = "C:/Users/Zber/Desktop/Subjects/Test/sit_1m_3.svo"
+    # video_path = "C:/Users/Zber/Desktop/Subjects/Test/stand_1m_head_move_0.svo"
+    output_path = "C:/Users/Zber/Desktop/Subjects/Test/"
+    svo_to_npy(video_path, output_path, output_as_video=True)
 
+"""
     all = []
     start_index = 0
     end_index = 30
@@ -179,3 +190,4 @@ if __name__ == "__main__":
     print('This can take an hour or two depending on dataset size')
     queue.join()
     print('all done')
+"""

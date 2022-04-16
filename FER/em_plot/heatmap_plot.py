@@ -36,7 +36,7 @@ figpath = "C:/Users/Zber/Desktop/SavedFigure"
 # mmWave studio configure
 configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.cfg'
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OpenEyes_0_Raw_0.bin"
-adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlySurprise_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlySurprise_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlyBodyMotion_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/SurpriseAndBodyMotion_0_Raw_0.bin"
 
@@ -51,7 +51,13 @@ adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlySurprise_0_Raw_0.bin"
 # adc_data_path = "C:\\Users\\Zber\\Desktop\\mmWave_plot\\Neutral_11_Raw_0.bin"
 # adc_data_path = "C:\\Users\\Zber\\Desktop\\mmWave_plot\\Neutral_4_Raw_0.bin"
 # adc_data_path = "D:\\Subjects\\S2\\Joy_26_Raw_0.bin"
-adc_data_path = "D:\\Subjects\\S2\\Neutral_10_Raw_0.bin"
+# adc_data_path = "D:\\Subjects\\S2\\Neutral_10_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Surprise.5m_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Surprise1m_0_Raw_0.bin"
+
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_standing_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_sit_0_Raw_0.bin"
+adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_ground_0_Raw_0.bin"
 
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Notable_1_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/Enable_0_Raw_0.bin"
@@ -243,7 +249,7 @@ if __name__ == '__main__':
     # surprise
     # for frame_index in range(88, 105):
     # neutral
-    for frame_index in range(50, 100):
+    for frame_index in range(106, 134):
 
         # for frame_index in range(300):
         # eye
@@ -408,7 +414,7 @@ if __name__ == '__main__':
         # axes[3].imshow(cum_e / cum_e.max(), interpolation='nearest', aspect='auto', cmap='coolwarm')
 
         plt.title("Range-Angle Heatmap " + str(frame_index), loc='center')
-        if frame_index == 99:
+        if frame_index == 133:
             print("")
         plt.pause(0.02)
         axes[0].clear()

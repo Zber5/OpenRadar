@@ -419,16 +419,17 @@ if __name__ == "__main__":
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S7"
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\W1"
     file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Test"
+    # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Distance_1m"
 
-    prefix = "SurpriseAndBodyMotion_{}"
+    prefix = "sit_1m_{}"
 
     config = parseConfigFile(configFileName)
 
     record_time = config['numFrames'] / (1000 / config['framePeriodicity'])
 
     interval = 5
-    start_record_index = 0
-    end_record_index = 1
+    start_record_index = 3
+    end_record_index = 4
 
     # preparing camera
     init = sl.InitParameters()
