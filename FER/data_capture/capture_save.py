@@ -41,6 +41,7 @@ import json
 # AOP 3s
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_5s.cfg'
 configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s.cfg'
+# configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_30s_20fps.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_20s_50fps_2.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s_10fps.cfg'
 # configFileName = 'C:/Users/Zber/Desktop/mmWave Configuration/profile_3d_aop_3s_50fps.cfg'
@@ -418,18 +419,34 @@ if __name__ == "__main__":
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S6"
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\S7"
     ## file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\W1"
-    file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Test"
+    # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Test"
+    # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Distance_1m_stand"
+    # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Distance_1m_ground"
+    # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Multi_People_3"
+    # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Multi_People"
+    # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Distance_1m_Nancy"
     # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Distance_1m"
+    # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Distance_70cm"
+    # file_basepath = "D:\\Subjects\\Distance_150cm"
+    # file_basepath = "D:\\Subjects\\Standing_Jesse"
+    # file_basepath = "D:\\Subjects\\Ground_Nancy"
+    # file_basepath = "D:\\Subjects\\W3"
+    # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Distance_200cm"
+    # file_basepath = "D:\\Subjects\\Distance_300cm"
+    # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Multi_People"
 
-    prefix = "sit_1m_{}"
+    file_basepath = "D:\\Subjects\\300cm_90d"
+
+    # prefix = "200cm_Stand_Surprise{}"
+    prefix = "Neutral_{}"
 
     config = parseConfigFile(configFileName)
 
     record_time = config['numFrames'] / (1000 / config['framePeriodicity'])
 
     interval = 5
-    start_record_index = 3
-    end_record_index = 4
+    start_record_index = 0
+    end_record_index = 10
 
     # preparing camera
     init = sl.InitParameters()

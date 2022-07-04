@@ -163,6 +163,69 @@ def pair_distance(x, y):
     return diff
 
 
+def test_metric(test_loader, student_model, teacher_model):
+    student_model.eval()
+    teacher_model.eval()
+    avgpool = nn.AdaptiveAvgPool2d((1, 1))
+    pdist = nn.PairwiseDistance()
+    sampler = TupleSampler('npair')
+
+    total_distance_mmd = []
+    total_distance_mmd_rbf = []
+    total_distance_pdist = []
+    total_distance_wad = []
+    total_distance = []
+    total_cross_negative_distance = []
+    total_self_negative_distance = []
+
+    # get data
+    for i, conc_data in enumerate(test_loader):
+        h_data, v_data = conc_data
+        azi, ele, targets = h_data
+        v_inputs, _ = v_data
+
+        # prepare input and target
+        azi = azi.to(device, dtype=torch.float)
+        ele = ele.to(device, dtype=torch.float)
+        # v_inputs = torch.permute(v_inputs, (0, 2, 1, 3, 4)).to(device)
+        v_inputs = v_inputs.to(device)
+        targets = targets.to(device, dtype=torch.long)
+
+        pseudo_targets, g_t = teacher_model(v_inputs)
+        outputs, g_s = student_model(azi, ele)
+
+        t1, t2, t3, t4 = g_t
+        s1, s2, s3, s4 = g_s
+
+        t_fmap = t4
+        s_fmap = tf_block(s4)
+        s_fmap = at(s_fmap)
+        t_fmap = at(t_fmap)
+
+        sampled_npairs = sampler.give(s_fmap, targets)
+
+        for npair in sampled_npairs:
+            anchor = s_fmap[npair[0]:npair[0] + 1, :]
+            cross_negatives = t_fmap[npair[2:], :]
+            self_negatives = s_fmap[npair[2:], :]
+
+            anchors = torch.cat([anchor for i in range(cross_negatives.size(0))], dim=0)
+            cross_nega_dist = pair_distance(anchors, cross_negatives)
+            self_nega_dist = pair_distance(anchors, self_negatives)
+            total_cross_negative_distance.append(float(cross_nega_dist))
+            total_self_negative_distance.append(float(self_nega_dist))
+
+        dists = pair_distance(s_fmap, t_fmap)
+
+        total_distance_pdist.append(float(dists))
+    test_pdist = np.mean(total_distance_pdist)
+    test_cpdist = np.mean(total_distance_pdist)
+    test_spdist = np.mean(total_self_negative_distance)
+
+    print("Pairwise Distance: {:0.4f}".format(np.mean(total_distance_pdist)))
+    print("Cross Negative Pairwise Distance: {:0.4f}".format(np.mean(total_cross_negative_distance)))
+    print("Self Negative Pairwise Distance: {:0.4f}".format(np.mean(total_self_negative_distance)))
+    return test_pdist, test_cpdist, test_spdist
 
 
 # def normalise_at(x):
@@ -200,23 +263,25 @@ if __name__ == "__main__":
 
     # AE
     # mode = "ae_baseline"
+    # unsupervised
     # best_folder = "Supervision_SUM_image2D_TransformerLarge_L3_Baseline3_20220310-114042"
 
     # cross
-    mode = "cross_npair"
+    # mode = "cross_npair"
     # best_folder = "Supervision_SUM_image2D_TransformerLarge_L3_HeterNpairLoss_20220309-174556"
-    best_folder = "Supervision_SUM_image2D_TransformerLarge_L3_CrossNpairLossWeighted_20220311-182907"
+    # best_folder = "Supervision_SUM_image2D_TransformerLarge_L3_CrossNpairLossWeighted_20220311-182907"
 
     # self
     # mode = "self_npair"
     # best_folder = "Supervision_SUM_image2D_TransformerLarge_L3_NpairLoss_20220309-165846"
 
     # self+cross
-    # mode = "cross+self_npair"
-    # best_folder = "Supervision_SUM_image2D_TransformerLargeWithBN_L3_Cross+SelfNpairLoss_LargeClassifier_20220309-230901"
+    mode = "cross+self_npair"
+    best_folder = "Supervision_SUM_image2D_TransformerLargeWithBN_L3_Cross+SelfNpairLoss_LargeClassifier_20220309-230901"
 
     # results dir
-    result_dir = "FER/results"
+    # result_dir = "FER/results"
+    result_dir = "D:\\mmWave_FER_results\\results"
 
     # load data
     videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
@@ -260,9 +325,10 @@ if __name__ == "__main__":
     heatmap_test = HeatmapDataset(heatmap_root, h_test_ann, cumulated=True, num_frames=config['h_num_frames'])
 
     dataset_train = ConcatDataset(heatmap_train, video_train)
+    dataset_test = ConcatDataset(heatmap_test, video_test)
 
     train_loader = DataLoader(dataset_train, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
-    test_loader = DataLoader(heatmap_test, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
+    test_loader = DataLoader(dataset_test, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
 
     # load teacher model
     fmodel = resnet18()
@@ -313,7 +379,8 @@ if __name__ == "__main__":
     total_self_negative_distance = []
 
     # get data
-    for i, conc_data in enumerate(train_loader):
+    # for i, conc_data in enumerate(train_loader):
+    for i, conc_data in enumerate(test_loader):
         h_data, v_data = conc_data
         azi, ele, targets = h_data
         v_inputs, _ = v_data

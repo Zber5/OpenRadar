@@ -289,7 +289,7 @@ if __name__ == "__main__":
 
     # results dir
     result_dir = "FER/results"
-    path = dir_path("Supervision_image2D_", result_dir)
+    path = dir_path("Supervision_image2D", result_dir)
 
     # save training config
     save_to_json(config, path['config'])

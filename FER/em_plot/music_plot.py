@@ -248,12 +248,12 @@ if __name__ == '__main__':
             # chirp_data = np.angle(chirp_data)
             # steering_vec = np.angle(steering_vec)
             # chirp_data = va_data[50, :, VIRT_ANT_AZI_INDEX, i]
-            time_angle[:, i] += music.aoa_music_1D(steering_vec, chirp_data, 1)
+            # time_angle[:, i] += music.aoa_music_1D(steering_vec, chirp_data, 1)
 
             # time_angle[:, i] += music.aoa_root_music_1D(steering_vec, chirp_data, 1)
 
-            # capon_angle, beamWeights = dsp.aoa_capon(chirp_data, steering_vec, magnitude=True)
-            # time_angle[:, i] = time_angle[:, i] + capon_angle
+            capon_angle, beamWeights = dsp.aoa_capon(chirp_data, steering_vec, magnitude=True)
+            time_angle[:, i] = time_angle[:, i] + capon_angle
 
         # music_specturm = music.aoa_root_music_1D(steering_vec, chirp_data, 1)
         # music_specturm = music.aoa_esprit(steering_vec.T, chirp_data, 2, 2)

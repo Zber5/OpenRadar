@@ -134,9 +134,9 @@ def denormalize(video_tensor):
 
 if __name__ == "__main__":
 
-    config = dict(num_epochs=30,
+    config = dict(num_epochs=20,
                   lr=0.0006,
-                  lr_step_size=30,
+                  lr_step_size=20,
                   lr_decay_gamma=0.2,
                   batch_size=16,
                   num_classes=7,
@@ -147,17 +147,29 @@ if __name__ == "__main__":
 
     # results dir
     result_dir = "FER/results"
-    path = dir_path("Pretrained_ResNet_video_S8_classifierBP", result_dir)
+    # path = dir_path("Pretrained_ResNet_video_S8_classifierBP", result_dir)
+    path = dir_path("Pretrained_ResNet_30cmD", result_dir)
 
     # save training config
     save_to_json(config, path['config'])
 
     # data path and annotation files
     videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-    annotation_train = os.path.join(videos_root, 'video_annotation_train_S8.txt')
+    # annotation_train = os.path.join(videos_root, 'video_annotation_train_S8.txt')
+    # annotation_test = os.path.join(videos_root, 'video_annotation_test_S8.txt')
+
     # annotation_train = os.path.join(videos_root, 'annotations_att_train.txt')
-    annotation_test = os.path.join(videos_root, 'video_annotation_test_S8.txt')
     # annotation_test = os.path.join(videos_root, 'annotations_att_test.txt')
+
+    # annotation_train = os.path.join(videos_root, 'frames_train_S10a.txt')
+    # annotation_test = os.path.join(videos_root, 'frames_test_S10a.txt')
+
+    # annotation_train = os.path.join(videos_root, 'frames_train_Distance_300cm.txt')
+    # annotation_test = os.path.join(videos_root, 'frames_test_Distance_300cm.txt')
+
+    annotation_train = os.path.join(videos_root, 'frames_train_30cm_d.txt')
+    annotation_test = os.path.join(videos_root, 'frames_test_30cm_d.txt')
+
 
     # dataloader
     preprocess = transforms.Compose([
@@ -187,8 +199,8 @@ if __name__ == "__main__":
         test_mode=True
     )
 
-    train_loader = DataLoader(dataset_train, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
-    test_loader = DataLoader(dataset_test, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
+    train_loader = DataLoader(dataset_train, shuffle=True, num_workers=3, pin_memory=False, batch_size=config['batch_size'])
+    test_loader = DataLoader(dataset_test, num_workers=1, pin_memory=True, batch_size=config['batch_size'])
 
     # create model
     _structure = resnet18()
@@ -227,11 +239,11 @@ if __name__ == "__main__":
             save_checkpoint(model.feature.state_dict(), is_best=True, checkpoint=path['dir'], name='feature')
             save_checkpoint(model.classifier.state_dict(), is_best=True, checkpoint=path['dir'], name='classifier')
 
-        save_checkpoint(model.state_dict(), is_best=False, checkpoint=path['dir'], name='model', epoch=epoch)
-        save_checkpoint(model.feature.state_dict(), is_best=False, checkpoint=path['dir'], name='feature',
-                        epoch=epoch)
-        save_checkpoint(model.classifier.state_dict(), is_best=False, checkpoint=path['dir'], name='classifier',
-                        epoch=epoch)
+        # save_checkpoint(model.state_dict(), is_best=False, checkpoint=path['dir'], name='model', epoch=epoch)
+        # save_checkpoint(model.feature.state_dict(), is_best=False, checkpoint=path['dir'], name='feature',
+        #                 epoch=epoch)
+        # save_checkpoint(model.classifier.state_dict(), is_best=False, checkpoint=path['dir'], name='classifier',
+        #                 epoch=epoch)
 
         lr_scheduler.step()
 

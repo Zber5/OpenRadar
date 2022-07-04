@@ -109,18 +109,22 @@ bin_index = 7
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OpenMouth_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/RaiseCheek_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlySurprise_0_Raw_0.bin"
-adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlyBodyMotion_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlyBodyMotion_0_Raw_0.bin"
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/OnlyBodyMotion_0_Raw_0.bin"
 # adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/SurpriseAndBodyMotion_0_Raw_0.bin"
 
+# adc_data_path = "C:/Users/Zber/Desktop/Subjects/Test/SurpriseAndBodyMotion_0_Raw_0.bin"
+
+adc_data_path = "C:/Users/Zber/Desktop/Subjects/Distance_1m/Surprise_1_Raw_0.bin"
 
 # video_path = "C:/Users/Zber/Desktop/Subjects_Video/S2/Joy_31/Joy_31.avi"
 video_path = "C:/Users/Zber/Desktop/Subjects_Video/S4/Joy_20/Joy_20.avi"
 
-plotRangeDopp = True
+plotRangeDopp = False
 plot2DscatterXY = False
 plot2DscatterXZ = False
 plot2DscatterYZ = False
-plot3Dscatter = False
+plot3Dscatter = True
 plotCustomPlt = False
 
 plotMakeMovie = False
@@ -978,17 +982,17 @@ if __name__ == '__main__':
         # adc_data = np.apply_along_axis(DCA1000.organize, 1, adc_data, num_chirps=numChirpsPerFrame,
         #                                num_rx=numRxAntennas, num_samples=numADCSamples)
 
-        adc_data = np.apply_along_axis(DCA1000.organize_cli, 1, adc_data, num_chirps=numChirpsPerFrame,
+        dataCube = np.apply_along_axis(DCA1000.organize_cli, 1, adc_data, num_chirps=numChirpsPerFrame,
                                        num_rx=numRxAntennas, num_samples=numADCSamples)
 
-        dataCube = np.copy(adc_data)
+        # dataCube = np.copy(adc_data)
         print("Data Loaded!")
 
     # (1) processing range data
     # window types : Bartlett, Blackman p, Hanning p and Hamming
     # range_data = dsp.range_processing(adc_data)
-    range_data = dsp.range_processing(adc_data, window_type_1d=Window.HANNING)
-    range_data = arange_tx(range_data, num_tx=numTxAntennas)
+    # range_data = dsp.range_processing(adc_data, window_type_1d=Window.HANNING)
+    # range_data = arange_tx(range_data, num_tx=numTxAntennas)
 
     # det_matrix, aoa_input = dsp.doppler_processing_frame(range_data, num_tx_antennas=numTxAntennas,
     #                                                      clutter_removal_enabled=True,
@@ -1044,29 +1048,29 @@ if __name__ == '__main__':
     #                                                window_type_2d=Window.HAMMING,
     #                                                interleaved=True, accumulate=True)
 
-    start_bin_index = 8
-    end_bin_index = 11
-
-    # plot range profile
-    for i in range(start_bin_index, end_bin_index):
-        b_index = i
-        # plot_range_profile(range_data, b_index)
-        # plot change of amplitude
-        # plot_amplitude_change_multi_in_one(range_data[..., b_index], b_index)
-        # plot_amplitude_change_multi_in_one(range_data[..., b_index], b_index, is_diff=False)
-
-        # phase change
-        # plot_phase_change_in_one(range_data[..., b_index], b_index, is_diff=False)
-        # plot_phase_change_in_one(range_data[..., b_index], b_index, is_diff=False)
-        # phase_temporal_attention(range_data[..., b_index], b_index, is_diff=True)
-        # phase_temporal_attentionv2(range_data[..., b_index], b_index, is_diff=True)
-        # get_phase_change_npy(range_data[..., 8:11], b_index, is_diff=True)
-        # plot_amplitude_change_multi(range_data, bin_index, is_diff=False)
-        plot_amplitude_change_multi(range_data, b_index, is_diff=True, is_phase=True, is_fft=True)
-        # plot_amplitude_change_multi_in_one(range_data, bin_index, is_diff=False)
-
-    if phase_only:
-        sys.exit(0)
+    # start_bin_index = 8
+    # end_bin_index = 11
+    #
+    # # plot range profile
+    # for i in range(start_bin_index, end_bin_index):
+    #     b_index = i
+    #     # plot_range_profile(range_data, b_index)
+    #     # plot change of amplitude
+    #     # plot_amplitude_change_multi_in_one(range_data[..., b_index], b_index)
+    #     # plot_amplitude_change_multi_in_one(range_data[..., b_index], b_index, is_diff=False)
+    #
+    #     # phase change
+    #     # plot_phase_change_in_one(range_data[..., b_index], b_index, is_diff=False)
+    #     # plot_phase_change_in_one(range_data[..., b_index], b_index, is_diff=False)
+    #     # phase_temporal_attention(range_data[..., b_index], b_index, is_diff=True)
+    #     # phase_temporal_attentionv2(range_data[..., b_index], b_index, is_diff=True)
+    #     # get_phase_change_npy(range_data[..., 8:11], b_index, is_diff=True)
+    #     # plot_amplitude_change_multi(range_data, bin_index, is_diff=False)
+    #     plot_amplitude_change_multi(range_data, b_index, is_diff=True, is_phase=True, is_fft=True)
+    #     # plot_amplitude_change_multi_in_one(range_data, bin_index, is_diff=False)
+    #
+    # if phase_only:
+    #     sys.exit(0)
 
     ims = []
     max_size = 0

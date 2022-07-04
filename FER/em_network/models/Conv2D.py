@@ -134,6 +134,47 @@ class ImageNet_Large_v1(nn.Module):
         return g1, g2, g3, g4
 
 
+class ImageNet_Small_v1(nn.Module):
+    def __init__(self, num_channel=1):
+        super(ImageNet_Small_v1, self).__init__()
+
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+
+        self.group1 = nn.Sequential(
+            nn.Conv2d(num_channel, 16, kernel_size=(3, 3), stride=1, padding=(1, 1)),
+            nn.BatchNorm2d(16),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d((1, 1)))
+
+        self.group2 = nn.Sequential(
+            nn.Conv2d(16, 32, kernel_size=(5, 3), stride=1, padding=(1, 1)),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d((2, 2)))
+
+        self.group3 = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=(5, 3), stride=1, padding=(1, 1)),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d((2, 1)),
+        )
+
+        self.group4 = nn.Sequential(
+            nn.Conv2d(64, 128, kernel_size=(3, 3), stride=1, padding=(2, 1)),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d((2, 1)),
+        )
+
+    def forward(self, x):
+        x = self.group1(x)
+        g1 = self.group2(x)
+        g2 = self.group3(g1)
+        g3 = self.group4(g2)
+        return x, g1, g2, g3
+
+
+
 class ImageNet_Large_Frames(nn.Module):
     def __init__(self, num_channel=1):
         super(ImageNet_Large_Frames, self).__init__()
@@ -630,6 +671,7 @@ class ImageSingle_v1(nn.Module):
         azi, ele, g = self.azi_ele_net(azi, ele)
         out = torch.cat((azi, ele), dim=1)
 
+        # kd
         out = self.fc1(out)
         out = self.fc2(out)
         out = self.fc3(out)

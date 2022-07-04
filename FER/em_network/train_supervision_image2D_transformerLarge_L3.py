@@ -373,7 +373,7 @@ def train(teacher_model, student_model, data_loader, criterion, optimizer, epoch
         s_input = s_fmap.view((s_fmap.size(0), -1))
         outputs = student_classifier(s_input)
 
-        cls_loss = distillation(outputs, pseudo_targets, targets, config['softmax_temperature'])
+        # cls_loss = distillation(outputs, pseudo_targets, targets, config['softmax_temperature'])
         cls_loss = kl_loss(outputs, pseudo_targets)
         # loss = cls_loss + 0.5 * npl + 0.5 * kd_loss
         loss = cls_loss + kd_loss
@@ -489,7 +489,7 @@ def test(s_model, t_model, test_loader, criterion, to_log=None):
 
 if __name__ == "__main__":
 
-    config = dict(num_epochs=40,
+    config = dict(num_epochs=50,
                   lr=0.0006,
                   lr_step_size=20,
                   lr_decay_gamma=0.2,

@@ -11,12 +11,16 @@ if __name__ == "__main__":
     # input_loc = "C:/Users/Zber/Desktop/Subjects/Test/1m_standing2ground_0.avi"
     # input_loc = "C:/Users/Zber/Desktop/Subjects/Test/1m_sit_0.avi"
     # input_loc = "C:/Users/Zber/Desktop/Subjects/Test/stand_1m_move_1.avi"
-    input_loc = "C:/Users/Zber/Desktop/Subjects/Test/sit_1m_3.avi"
+    # input_loc = "C:/Users/Zber/Desktop/Subjects/Test/sit_1m_3.avi"
+    # input_loc = "C:/Users/Zber/Desktop/Subjects/Test/Joy_0.avi"
+    # input_loc = "C:/Users/Zber/Desktop/Subjects_Video/M3_0/Surprise_7/Surprise_7.avi"
+    input_loc = "C:/Users/Zber/Desktop/Subjects_Video/M2_1/Joy_0/Joy_0.avi"
     # input_loc = "C:/Users/Zber/Desktop/Subjects/Test/1m_ground_0.avi"
     # input_loc = "C:/Users/Zber/Desktop/Subjects/Test/ground_1m_1.avi"
     # input_loc = "C:/Users/Zber/Desktop/Subjects/Test/Standing_1.avi"
 
-    save_folder = "C:/Users/Zber/Desktop/Subjects/Test/image_angle_sit_1m_3"
+    # save_folder = "C:/Users/Zber/Desktop/Subjects/Test/Surprise_7"
+    save_folder = "C:/Users/Zber/Desktop/Subjects/Test/joy_0"
 
     cap = cv2.VideoCapture(input_loc)
     video_length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) - 1
@@ -33,7 +37,7 @@ if __name__ == "__main__":
         face_cascade = cv2.CascadeClassifier(
             'C:/Users/Zber/Documents/GitHub/face-alignment/emotion/haarcascade_frontalface_alt2.xml')
 
-        faces = face_cascade.detectMultiScale(image=gray, scaleFactor=1.1, minNeighbors=4, minSize=[80, 80])
+        faces = face_cascade.detectMultiScale(image=gray, scaleFactor=1.1, minNeighbors=4, minSize=[90, 90])
         new_x = new_y = pad_w = pad_h = -1
 
         if len(faces) == 0:

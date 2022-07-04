@@ -408,6 +408,8 @@ class NPairLoss(torch.nn.Module):
         """
         # Sample N-Pairs
         sampled_npairs = self.sampler.give(batch, labels)
+        if len(sampled_npairs) == 0:
+            return torch.tensor(0)
         # Compute basic n=pair loss
         loss = torch.stack(
             [self.npair_distance(batch[npair[0]:npair[0] + 1, :], batch[npair[1]:npair[1] + 1, :], batch[npair[2:], :])
@@ -566,6 +568,8 @@ class NPairLoss_CrossModal_Weighted(torch.nn.Module):
         # anchors = torch.unsqueeze(anchors, dim=1)  # (n, 1, embedding_size)
         # positives = torch.unsqueeze(positives, dim=1)  # (n, 1, embedding_size)
         # eps = 1e-6
+        if not len(anchors):
+            return torch.tensor(0)
         many_anchor = torch.cat([anchors for i in range(negatives.size(0))], dim=0)
         # many_anchor = torch.cat([positives for i in range(negatives.size(0))], dim=0)
         # dist = self.softmax(1 / self.pdist(many_anchor, negatives))
@@ -608,7 +612,13 @@ class NPairLoss_CrossModal_Weighted(torch.nn.Module):
             n-pair loss (torch.Tensor(), batch-averaged)
         """
         # Sample N-Pairs
+
         sampled_npairs = self.sampler.give(batch, labels)
+        if len(sampled_npairs) == 0:
+            return torch.tensor(0)
+        for sp in sampled_npairs:
+            if len(sp) == 0:
+                return torch.tensor(0)
         # Compute basic n=pair loss
         loss = torch.stack(
             [self.n_pair_loss_weighted(batch[npair[0]:npair[0] + 1, :], t_batch[npair[1]:npair[1] + 1, :],

@@ -763,23 +763,23 @@ if __name__ == '__main__':
     #                                                window_type_2d=Window.HAMMING,
     #                                                interleaved=True, accumulate=True)
 
-    start_bin_index = 0
-    end_bin_index = 5
-
-    # plot range profile
-    for i in range(start_bin_index, end_bin_index):
-        b_index = i
-        # plot_range_profile(range_data, b_index)
-        # plot change of amplitude
-        # plot_amplitude_change_multi_in_one(range_data[..., b_index], b_index)
-        # plot_amplitude_change_multi_in_one(range_data[..., b_index], b_index, is_diff=False)
-
-        # phase change
-        # plot_phase_change_in_one(range_data[..., b_index], b_index, is_diff=False)
-        plot_phase_change_in_one(range_data[..., b_index], b_index, is_diff=True)
-
-    if phase_only:
-        sys.exit(0)
+    # start_bin_index = 0
+    # end_bin_index = 5
+    #
+    # # plot range profile
+    # for i in range(start_bin_index, end_bin_index):
+    #     b_index = i
+    #     # plot_range_profile(range_data, b_index)
+    #     # plot change of amplitude
+    #     # plot_amplitude_change_multi_in_one(range_data[..., b_index], b_index)
+    #     # plot_amplitude_change_multi_in_one(range_data[..., b_index], b_index, is_diff=False)
+    #
+    #     # phase change
+    #     # plot_phase_change_in_one(range_data[..., b_index], b_index, is_diff=False)
+    #     plot_phase_change_in_one(range_data[..., b_index], b_index, is_diff=True)
+    #
+    # if phase_only:
+    #     sys.exit(0)
 
     ims = []
     max_size = 0

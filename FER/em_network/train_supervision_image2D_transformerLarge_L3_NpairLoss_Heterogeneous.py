@@ -368,8 +368,9 @@ def train(teacher_model, student_model, data_loader, criterion, optimizer, epoch
         s_fmap_avg = F.normalize(s_fmap_avg)
         t_fmap_avg = F.normalize(t_fmap_avg)
 
-        npl_cross = npaircross(s_fmap_avg, t_fmap_avg, targets)
-        npl = npairloss(s_fmap_avg, targets)
+        # npl_cross = npaircross(s_fmap_avg, t_fmap_avg, targets)
+        npl = npaircross(s_fmap_avg, t_fmap_avg, targets)
+        # npl = npairloss(s_fmap_avg, targets)
 
         # s_fmap = avgpool(s_fmap)
 
@@ -382,7 +383,8 @@ def train(teacher_model, student_model, data_loader, criterion, optimizer, epoch
         # loss = cls_loss + 1 * npl_cross + 1 * npl + 2 * kd_loss
         # loss = cls_loss + 1 * npl_cross + 2 * kd_loss
         # loss = cls_loss + 2 * kd_loss
-        loss = cls_loss + config['npair_weight'] * npl_cross + config['kd_weight'] * kd_loss
+        loss = cls_loss + config['npair_weight'] * npl + config['kd_weight'] * kd_loss
+        # loss = cls_loss + config['npair_weight'] * npl_cross + config['kd_weight'] * kd_loss
 
         train_loss.append(loss.item())
         loss.backward()
@@ -393,7 +395,8 @@ def train(teacher_model, student_model, data_loader, criterion, optimizer, epoch
         cls_losses.update(cls_loss.item(), data_loader.batch_size)
         kd_losses.update(kd_loss.item(), data_loader.batch_size)
         npair_losses.update(npl.item(), data_loader.batch_size)
-        npaircross_losses.update(npl_cross.item(), data_loader.batch_size)
+        npaircross_losses.update(npl.item(), data_loader.batch_size)
+        # npaircross_losses.update(npl_cross.item(), data_loader.batch_size)
         # npair_losses.update(0, data_loader.batch_size)
         losses.update(loss.item(), data_loader.batch_size)
         top1.update(prec1.item(), data_loader.batch_size)
@@ -584,7 +587,9 @@ if __name__ == "__main__":
 
     # results dir
     result_dir = "FER/results"
-    path = dir_path("Supervision_SUM_image2D_TransformerLarge_L3_CrossNpairLossWeighted", result_dir)
+    # path = dir_path("Supervision_SUM_image2D_TransformerLarge_L3_CrossNpairLossWeighted", result_dir)
+    # path = dir_path("Ours_oldData_Distance_300cm_v1", result_dir)
+    path = dir_path("Ours_oldData_30cmD", result_dir)
     # path = dir_path("Supervision_SUM_image2D_TransformerLargeWithBN_L3_Cross+SelfNpairLoss_LargeClassifier", result_dir)
 
     # best_folder = "Supervision_image2D_Transformer_extractor_BN_L3_sum_LargeTFblock_20220303-210816"
@@ -593,14 +598,134 @@ if __name__ == "__main__":
     # save training config
     save_to_json(config, path['config'])
 
+    # New version data
+    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
+    # v_train_ann = os.path.join(videos_root, 'video_annotation_train_new.txt')
+    # v_test_ann = os.path.join(videos_root, 'video_annotation_test_new.txt')
+    #
+    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+    # h_train_ann = os.path.join(heatmap_root, "heatmap_annotation_train_new.txt")
+    # h_test_ann = os.path.join(heatmap_root, "heatmap_annotation_test_new.txt")
+
+    # Subject 0,1,2
+    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
+    # v_train_ann = os.path.join(videos_root, 'frames_train_S0_1_2.txt')
+    # v_test_ann = os.path.join(videos_root, 'frames_test_S0_1_2.txt')
+    #
+    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_S0_1_2.txt")
+    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S0_1_2.txt")
+
+    # Subject 3,4,5
+    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
+    # v_train_ann = os.path.join(videos_root, 'frames_train_S3_4_5.txt')
+    # v_test_ann = os.path.join(videos_root, 'frames_test_S3_4_5.txt')
+    #
+    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap_new_v1"
+    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_S3_4_5.txt")
+    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S3_4_5.txt")
+
+    # Subject 6,7,8,9
+    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
+    # v_train_ann = os.path.join(videos_root, 'frames_train_S6_7_8_9_v1.txt')
+    # v_test_ann = os.path.join(videos_root, 'frames_test_S6_7_8_9_v1.txt')
+    #
+    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_S6_7_8_9_v1.txt")
+    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S6_7_8_9_v1.txt")
+
+    # Subject S0 S8
+    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
+    # v_train_ann = os.path.join(videos_root, 'frames_train_S_8_9.txt')
+    # v_test_ann = os.path.join(videos_root, 'frames_test_S0.txt')
+    #
+    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_S_8_9.txt")
+    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S0.txt")
+
     # load data
+    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
+    # v_train_ann = os.path.join(videos_root, 'frames_train_S-2.txt')
+    # v_test_ann = os.path.join(videos_root, 'frames_test_S-2.txt')
+    #
+    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap_new_v1"
+    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_S-2.txt")
+    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S-2.txt")
+
+    # wearing masks
+    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
+    # v_train_ann = os.path.join(videos_root, 'frames_train_W1_2_3.txt')
+    # v_test_ann = os.path.join(videos_root, 'frames_test_W1_2_3.txt')
+    #
+    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_W1_2_3.txt")
+    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_W1_2_3.txt")
+
+    # pose
+    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
+    # v_train_ann = os.path.join(videos_root, 'frames_train_Pose.txt')
+    # v_test_ann = os.path.join(videos_root, 'frames_test_Pose.txt')
+    #
+    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_Pose.txt")
+    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_Pose.txt")
+
+    # standing
+    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
+    # v_train_ann = os.path.join(videos_root, 'frames_train_Standing.txt')
+    # v_test_ann = os.path.join(videos_root, 'frames_test_Standing.txt')
+    # #
+    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+    # # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap_"
+    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_Standing.txt")
+    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_Standing.txt")
+
+    # sitting
+    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
+    # v_train_ann = os.path.join(videos_root, 'frames_train_Sitting.txt')
+    # v_test_ann = os.path.join(videos_root, 'frames_test_Sitting.txt')
+    #
+    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_Sitting.txt")
+    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_Sitting.txt")
+
+    # Ground
+    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
+    # v_train_ann = os.path.join(videos_root, 'frames_train_Ground.txt')
+    # v_test_ann = os.path.join(videos_root, 'frames_test_Ground.txt')
+    #
+    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_Ground.txt")
+    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_Ground.txt")
+
+    # Distance
+    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
+    # v_train_ann = os.path.join(videos_root, 'frames_train_Distance_300cm_v1.txt')
+    # v_test_ann = os.path.join(videos_root, 'frames_test_Distance_300cm_v1.txt')
+    #
+    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_Distance_300cm_v1.txt")
+    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_Distance_300cm_v1.txt")
+
+
+    # 30cm
     videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-    v_train_ann = os.path.join(videos_root, 'video_annotation_train_new.txt')
-    v_test_ann = os.path.join(videos_root, 'video_annotation_test_new.txt')
+    v_train_ann = os.path.join(videos_root, 'frames_train_30cm_d.txt')
+    v_test_ann = os.path.join(videos_root, 'frames_test_30cm_d.txt')
 
     heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-    h_train_ann = os.path.join(heatmap_root, "heatmap_annotation_train_new.txt")
-    h_test_ann = os.path.join(heatmap_root, "heatmap_annotation_test_new.txt")
+    h_train_ann = os.path.join(heatmap_root, "heatmap_train_30cm_d.txt")
+    h_test_ann = os.path.join(heatmap_root, "heatmap_test_30cm_d.txt")
+
+
+    # Motion
+    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
+    # v_train_ann = os.path.join(videos_root, 'frames_train_Motion_v3.txt')
+    # v_test_ann = os.path.join(videos_root, 'frames_test_Motion_v3.txt')
+    #
+    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_Motion_v3.txt")
+    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_Motion_v3.txt")
 
     preprocess = transforms.Compose([
         ImglistToTensor(),  # list of PIL images to (FRAMES x CHANNELS x HEIGHT x WIDTH) tensor
@@ -639,8 +764,12 @@ if __name__ == "__main__":
     dataset_train = ConcatDataset(heatmap_train, video_train)
     dataset_test = ConcatDataset(heatmap_test, video_test)
 
-    train_loader = DataLoader(dataset_train, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
-    test_loader = DataLoader(dataset_test, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
+    # train_loader = DataLoader(dataset_train, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
+    # test_loader = DataLoader(dataset_test, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
+
+    train_loader = DataLoader(dataset_train, num_workers=3, shuffle=True, pin_memory=True,
+                              batch_size=config['batch_size'])
+    test_loader = DataLoader(dataset_test, num_workers=1, pin_memory=True, batch_size=config['batch_size'])
 
     # create model
     fmodel = resnet18()
@@ -651,7 +780,15 @@ if __name__ == "__main__":
     pdist = nn.PairwiseDistance()
 
     # teacher model
-    checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_v1_20220122-002807", 'best.pth.tar')
+    # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_v1_20220122-002807", 'best.pth.tar')
+    # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_Pose_20220531-020655", 'model_best.pth.tar')
+    # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_Distance_20220601-000616", 'model_best.pth.tar')
+    # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_Distance_v1_20220602-011812", 'model_best.pth.tar')
+    # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_distance_100cm_20220602-181436", 'model_best.pth.tar')
+    # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_Distance_300cm_20220607-183207", 'model_best.pth.tar')
+    # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_S10a_20220603-203324", 'model_best.pth.tar')
+    # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_M3_20220603-034340", 'model_best.pth.tar')
+    checkpoint = os.path.join(result_dir, "Pretrained_ResNet_30cmD_20220704-163657", 'model_best.pth.tar')
     assert os.path.exists(checkpoint), 'Error: no checkpoint directory found!'
     teacher_model.load_state_dict(torch.load(checkpoint))
     teacher_model = teacher_model.to(device)
@@ -694,8 +831,8 @@ if __name__ == "__main__":
     tf_block = tf_block.to(device)
 
     npairloss = NPairLoss()
-    # npaircross = NPairLoss_CrossModal()
-    npaircross = NPairLoss_CrossModal_Weighted()
+    npaircross = NPairLoss_CrossModal()
+    # npaircross = NPairLoss_CrossModal_Weighted()
 
     # initialize critierion and optimizer
     # criterion = _make_criterion(alpha=config['weight_alpha'], T=config['softmax_temperature'], mode=config['loss_mode'])

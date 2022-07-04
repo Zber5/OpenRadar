@@ -79,7 +79,7 @@ def svo_to_npy(input_path, output_path, output_as_video=False, output_as_image=F
             # zed.retrieve_image(right_image, sl.VIEW.RIGHT)
 
             filename_left = os.path.join(output_path, ("left%s.png" % str(svo_position).zfill(6)))
-            filename_right = os.path.join(output_path, ("right%s.png" % str(svo_position).zfill(6)))
+            # filename_right = os.path.join(output_path, ("right%s.png" % str(svo_position).zfill(6)))
 
             rgb_left = cv2.cvtColor(left_image.get_data(), cv2.COLOR_RGBA2RGB)
             # rgb_right = cv2.cvtColor(right_image.get_data(), cv2.COLOR_RGBA2RGB)
@@ -133,21 +133,24 @@ def thread_job(queue, output_folder):
 
 
 if __name__ == "__main__":
+
+    # ========= Single file convert =========
     # video_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_standing&surprise_0.svo"
     # video_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_sit_0.svo"
     # video_path = "C:/Users/Zber/Desktop/Subjects/Test/1m_ground_0.svo"
     # video_path = "C:/Users/Zber/Desktop/Subjects/Test/ground_1m_1.svo"
     # video_path = "C:/Users/Zber/Desktop/Subjects/Test/Standing_1.svo"
     # video_path = "C:/Users/Zber/Desktop/Subjects/Test/sit_1m_move_1.svo"
-    video_path = "C:/Users/Zber/Desktop/Subjects/Test/sit_1m_3.svo"
+    # video_path = "C:/Users/Zber/Desktop/Subjects/Test/sit_1m_3.svo"
+    # video_path = "C:/Users/Zber/Desktop/Subjects/Distance_1m_stand/Joy_0.svo"
     # video_path = "C:/Users/Zber/Desktop/Subjects/Test/stand_1m_head_move_0.svo"
-    output_path = "C:/Users/Zber/Desktop/Subjects/Test/"
-    svo_to_npy(video_path, output_path, output_as_video=True)
+    # output_path = "C:/Users/Zber/Desktop/Subjects/Test/"
+    # svo_to_npy(video_path, output_path, output_as_video=True)
 
-"""
+    # ========= Multi file convert =========
     all = []
     start_index = 0
-    end_index = 30
+    end_index = 10
     emotion_list = ['Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust', 'Neutral']
     for em in emotion_list:
         for i in range(start_index, end_index):
@@ -155,9 +158,19 @@ if __name__ == "__main__":
 
     all = np.asarray(all)
 
-    # subs = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5']
-    # subs = ['S0']
-    subs = ['S6', 'S7']
+    # subs = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7']
+    # subs = ['S8', 'S9']
+    # subs = ['Standing_Jesse', 'Standing_Nancy', 'Ground_Jesse', 'Ground_Nancy', 'Distance_100cm']
+    # subs = ['Standing_Jesse', 'Ground_Jesse']
+    # subs = ['Distance_100cm_Nancy']
+    # subs = ['Distance_70cm', 'Distance_100cm', 'Distance_150cm', 'Distance_200cm', 'Distance_250cm']
+    # subs = ['Distance_300cm']
+    # subs = ['Camera']
+    # subs = ['30cm_30d', '30cm_60d', '30cm_90d', '70cm_30d', '70cm_60d', '70cm_90d']
+    # subs = ['100cm_30d', '100cm_60d', '100cm_90d', '150cm_30d', '150cm_60d', '150cm_90d']
+    # subs = ['200cm_30d', '200cm_60d', '200cm_90d', '250cm_30d', '250cm_60d', '250cm_90d']
+    subs = ['300cm_30d', '300cm_60d', '300cm_90d']
+    # subs = ['M1_2', 'M2_2', 'M3_2']
     size = 800000
 
     data_folder = 'D:\\Subjects\\'
@@ -178,16 +191,15 @@ if __name__ == "__main__":
         for tp in tasks_path:
             queue.put(tp)
 
-    # thread_job(queue, output_folder)
+    thread_job(queue, output_folder)
 
     # multi threadings
-    NUM_THREADS = 20
-    for i in range(NUM_THREADS):
-        worker = threading.Thread(target=thread_job, args=(queue, output_folder))
-        worker.start()
-
-    print('waiting for all videos to be completed.', queue.qsize(), 'videos')
-    print('This can take an hour or two depending on dataset size')
-    queue.join()
-    print('all done')
-"""
+    # NUM_THREADS = 4
+    # for i in range(NUM_THREADS):
+    #     worker = threading.Thread(target=thread_job, args=(queue, output_folder))
+    #     worker.start()
+    #
+    # print('waiting for all videos to be completed.', queue.qsize(), 'videos')
+    # print('This can take an hour or two depending on dataset size')
+    # queue.join()
+    # print('all done')

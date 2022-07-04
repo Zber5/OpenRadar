@@ -118,9 +118,20 @@ class HeatmapDataset(torch.utils.data.Dataset):
         self.annotationfile_path = annotationfile_path
         self._parse_list()
         # self.crop_azi = np.s_[:, 20:70, 3:8]
-        # self.crop_azi = np.s_[:, 20:70, 3:8]
+        # self.crop_ele = np.s_[:, 20:70, 3:8]
+
+        # large
+        # self.crop_azi = np.s_[:, 45:136, :]
+        # self.crop_ele = np.s_[:, 45:136, :]
+
+        # small
+        # self.crop_azi = np.s_[:, 30:60, 3:8]
+        # self.crop_ele = np.s_[:, 30:60, 3:8]
+
+        # og
         self.crop_azi = np.s_[:, :, :]
         self.crop_ele = np.s_[:, :, :]
+
         self.diff = False
         self.cumulated = cumulated
         self.frame_cumulated = frame_cumulated
@@ -129,6 +140,9 @@ class HeatmapDataset(torch.utils.data.Dataset):
         self.num_cumulated = self.total // num_frames
         self.sum_axis = 0 if self.num_frames == self.total else 1
         self.aug = aug
+        self.pad = False
+        self.azi_para = None
+        self.ele_para = None
 
         blurer_gaussian = iaa.GaussianBlur(0.5)  # blur images with a sigma between 0 and 3.0
         blurer_mean = iaa.AverageBlur(k=3)  # blur image using local means with kernel sizes between 2 and 7
@@ -197,6 +211,10 @@ class HeatmapDataset(torch.utils.data.Dataset):
         if self.aug:
             azi, ele = self._aug(azi, ele)
 
+        if self.pad:
+            azi = np.pad(azi, ((0, 0), (31, 30), (3, 2)), 'constant', constant_values=((0, 0), (0, 0), (0, 0)))
+            ele = np.pad(ele, ((0, 0), (31, 30), (3, 2)), 'constant', constant_values=((0, 0), (0, 0), (0, 0)))
+
         return azi, ele, record.label
 
     def _normalize(self, data, is_azi=True):
@@ -206,6 +224,18 @@ class HeatmapDataset(torch.utils.data.Dataset):
             return (data - azi_para[0]) / azi_para[1]
         else:
             return (data - ele_para[0]) / ele_para[1]
+
+    # def _normalize(self, data, is_azi=True):
+    #     # if self.azi_para is None and is_azi:
+    #     #     azi_mean = np.mean(data)
+    #     #     azi_std = np.std(data)
+    #     #     self.azi_para =
+    #     # b = np.linalg.norm(data)
+    #     # norm_data = data/b
+    #     mean = np.mean(data)
+    #     std = np.std(data)
+    #     norm_data = (data-mean)/std
+    #     return norm_data
 
     def __len__(self):
         return len(self.map_list)
@@ -244,7 +274,7 @@ class LandmarkDataset(torch.utils.data.Dataset):
         landmark = np.load(record.path)
         landmark = landmark[record.start_frame:record.end_frame + 1]
         landmark = self._normalize(landmark)
-        landmark = landmark[:, :, :self.num_dim]
+        landmark = landmark[-1, :, :self.num_dim]
         return landmark, record.label
 
     def _normalize(self, data):

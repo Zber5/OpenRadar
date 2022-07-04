@@ -4,12 +4,12 @@ from tsfresh import extract_features
 
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
-from tsfresh.examples import load_robot_execution_failures
-from tsfresh.transformers import RelevantFeatureAugmenter
+# from tsfresh.examples import load_robot_execution_failures
+# from tsfresh.transformers import RelevantFeatureAugmenter
 import pandas as pd
 from tsfresh import select_features
-import tsfresh
-from tsfresh.utilities.dataframe_functions import impute
+# import tsfresh
+# from tsfresh.utilities.dataframe_functions import impute
 from sklearn.metrics import classification_report
 from tsfresh.feature_extraction import ComprehensiveFCParameters, MinimalFCParameters, settings
 
