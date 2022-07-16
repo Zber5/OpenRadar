@@ -134,7 +134,7 @@ def denormalize(video_tensor):
 
 if __name__ == "__main__":
 
-    config = dict(num_epochs=20,
+    config = dict(num_epochs=30,
                   lr=0.0006,
                   lr_step_size=20,
                   lr_decay_gamma=0.2,
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     # results dir
     result_dir = "FER/results"
     # path = dir_path("Pretrained_ResNet_video_S8_classifierBP", result_dir)
-    path = dir_path("Pretrained_ResNet_30cmD", result_dir)
+    path = dir_path("Pretrained_ResNet_2-3mD", result_dir)
 
     # save training config
     save_to_json(config, path['config'])
@@ -167,9 +167,8 @@ if __name__ == "__main__":
     # annotation_train = os.path.join(videos_root, 'frames_train_Distance_300cm.txt')
     # annotation_test = os.path.join(videos_root, 'frames_test_Distance_300cm.txt')
 
-    annotation_train = os.path.join(videos_root, 'frames_train_30cm_d.txt')
-    annotation_test = os.path.join(videos_root, 'frames_test_30cm_d.txt')
-
+    annotation_train = os.path.join(videos_root, 'frames_train_2-3m_d.txt')
+    annotation_test = os.path.join(videos_root, 'frames_test_2-3m_d.txt')
 
     # dataloader
     preprocess = transforms.Compose([

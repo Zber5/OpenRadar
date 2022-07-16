@@ -190,8 +190,22 @@ def evaluate():
             all_outputs.append(output)
 
     all_outputs = np.concatenate(all_outputs, axis=0)
-    write_log(classification_report(all_target, all_pred, target_names=emotion_list), logdir)
+    write_log(classification_report(all_target, all_pred, digits=4, target_names=emotion_list), logdir)
     return all_pred, all_target, all_outputs, test_loss
+
+
+def overwrite_temp_file(tf_name, og_name, key):
+    record_list = [x for x in open(og_name)]
+    with open(tf_name, 'w') as f:
+        for rd in record_list:
+            f.write(rd.format(key))
+
+
+def overwrite_temp_file_heatmap(tf_name, og_name, key):
+    record_list = [x for x in open(og_name)]
+    with open(tf_name, 'w') as f:
+        for rd in record_list:
+            f.write(rd.format(key, '{}'))
 
 
 if __name__ == "__main__":
@@ -223,149 +237,87 @@ if __name__ == "__main__":
     # results dir
     result_dir = "FER/results"
 
-    # for mm in ['M1_0', 'M1_1', 'M1_2', 'M2_0', 'M2_1', 'M2_2', 'Distance_100cm']:
-    # for mm in ['M3_0', 'M3_1', 'M3_2']:
-    # for mm in ['Standing_S1', 'Standing_S2', 'Standing_S3']:
-    # for mm in ['Ground_S1', 'Ground_S2', 'Ground_S3']:
-    # for mm in ['Sitting_S1', 'Sitting_S2', 'Sitting_S3']:
-    for mm in ['Distance_300cm', 'Distance_300cm_v1']:
-        i = 0
-        # for bf in ["Ours_oldData_Motion_v5_20220606-025052", "Ours_oldData_Motion_v2_20220602-192438",
-        #            "Ours_oldData_Motion_v3_20220603-083125"]:
-        # for bf in ["Ours_oldData_Standing_20220531-034336", "Ours_oldData_Standing_v1_20220606-234034"]:
-        # for bf in ["Ours_oldData_Ground_20220531-182950", "Ours_oldData_Ground_v1_20220606-231925"]:
-        # for bf in ["Ours_oldData_Sitting_20220531-161425", "Ours_oldData_Motion_v2_20220602-192438"]:
-        for bf in ["Ours_oldData_Distance_300cm_20220607-184411", "Ours_oldData_Distance_300cm_v1_20220607-185855"]:
+    dd = []
+    str_format = '{}cm_{}d'
+    for dist in ['30', '70', '100', '150', '200', '250', '300']:
+        d = []
+        for iid in ['30', '60', '90']:
+            d.append(str_format.format(dist, iid))
+        dd.append(d)
 
-            path = dir_path("Evaluate_ours_{}_v{}".format(mm, i), result_dir)
-            # i += 1
+    # ddf = [
+    #     'Ours_oldData_30cmD_20220704-165229',
+    #     'Ours_oldData_70cmD_20220705-134724',
+    #     'Ours_oldData_100cmD_20220705-141949',
+    #     'Ours_oldData_150cmD_20220705-180704',
+    #     'Ours_oldData_200cmD_20220705-185637',
+    #     'Ours_oldData_250cmD_20220705-203706',
+    #     'Ours_oldData_300cmD_20220705-212437'
+    # ]
 
-            # path = dir_path("Evaluate_ours_M2_1_v2", result_dir)
-            # path = dir_path("Evaluate_oldData_ours_W3_v3", result_dir)
-            # path = dir_path("Evaluate_olddata_ours_W_1_2_3", result_dir)
-            # path = dir_path("Evaluate_ours_S_0_1_2_v1", result_dir)
+    ddf = [
+        'Supervision_SUM_image2D_Ours_20220627-183753',
+        'Ours_oldData_Distance_70cm_20220601-005908',
+        'Ours_oldData_Sitting_20220531-161425',
+        'Ours_oldData_Distance_150cm_20220601-013858',
+        'Ours_oldData_Distance_200cm_20220601-150228',
+        'Ours_oldData_Distance_250cm_20220602-020548',
+        'Ours_oldData_Distance_300cm_20220607-184411'
+    ]
 
-            # subjects
-            # best_folder = "Supervision_SUM_image2D_TransformerLarge_L3_CrossNpairLossWeighted_20220312-132254_best"
-            # best_folder = "Ours_oldData_S_0_1_2_20220527-070014"
-            # best_folder = "Ours_oldData_S_3_4_5_20220527-174224"
-            # best_folder = "Ours_oldData_S_6_7_8_9_20220528-212151"
-            # best_folder = "Ours_newData_S-2_20220528-061653"
-            # best_folder = "Ours_oldData_S_6_7_8_9_20220528-212151"
-            # best_folder = "Ours_oldData_S_6_7_8_9_v1_20220603-213111"
+    for dists, distfile in zip(dd, ddf):
+        best_folder = distfile
+        # create teacher model
+        fmodel = resnet18()
+        cmodel = Classifier(num_classes=7)
+        teacher_model = ResNetFull_Teacher(fmodel, cmodel)
+        checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_v1_20220122-002807", 'best.pth.tar')
+        assert os.path.exists(checkpoint), 'Error: no checkpoint directory found!'
+        teacher_model.load_state_dict(torch.load(checkpoint))
+        teacher_model = teacher_model.to(device)
 
-            # wearing
-            # best_folder = "Ours_oldData_W_1_2_3_20220530-164918"
+        # student model
+        student_model = ImageSingle_v1(num_classes=config['num_classes'], block=ImageDualNet_Single_v1,
+                                       subblock=ImageNet_Large_v1)
 
-            # distance
-            # best_folder = "Ours_oldData_Distance_70cm_20220601-005908"
-            # best_folder = "Ours_oldData_Distance_150cm_20220601-013858"
-            # best_folder = "Ours_oldData_Distance_200cm_20220601-150228"
+        if config['continue_learning']:
+            s_checkpoint = os.path.join(result_dir, best_folder, 'model_best.pth.tar')
+            student_model.load_state_dict(torch.load(s_checkpoint))
+        student_model = student_model.to(device)
 
-            # independent
-            # best_folder = "Ours_oldData_S_0_8_20220605-024135"
-            # best_folder = "Ours_oldData_S_0_9_20220605-025434"
-            # best_folder = "Ours_oldData_S_8_9_20220605-034314"
+        # student classifier
+        student_classifier = Classifier_Transformer(input_dim=512 * 7 * 7, num_classes=config['num_classes'])
+        if config['continue_learning']:
+            classifier_checkpoint = os.path.join(result_dir, best_folder, 'classifier_best.pth.tar')
+            student_classifier.load_state_dict(torch.load(classifier_checkpoint))
+        student_classifier = student_classifier.to(device)
 
-            # motion
-            # best_folder = "Ours_oldData_Motion_v5_20220606-025052"
-            # best_folder = "Ours_oldData_Motion_v2_20220602-192438"
-            # best_folder = "Ours_oldData_Motion_v3_20220603-083125"
-            best_folder = bf
+        # tf block
+        tf_block = TFblock_v4()
+        if config['continue_learning']:
+            block_checkpoint = os.path.join(result_dir, best_folder, 'block_best.pth.tar')
+            tf_block.load_state_dict(torch.load(block_checkpoint))
+        tf_block = tf_block.to(device)
 
-            # pose
-
-            # motion
-            # save training config
+        for doname in dists:
+            path = dir_path("Evaluate_ours_{}".format(doname), result_dir)
             save_to_json(config, path['config'])
 
-            # load data
-            # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-            # v_train_ann = os.path.join(videos_root, 'frames_train_S0_1_2.txt')
-            # v_test_ann = os.path.join(videos_root, 'frames_test_S0_1_2.txt')
-            #
-            # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-            # h_train_ann = os.path.join(heatmap_root, "heatmap_train_S0_1_2.txt")
-            # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S0_1_2.txt")
-
-            # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-            # v_train_ann = os.path.join(videos_root, 'frames_test_S9.txt')
-            # v_test_ann = os.path.join(videos_root, 'frames_test_S9.txt')
-            #
-            # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-            # h_train_ann = os.path.join(heatmap_root, "heatmap_test_S9.txt")
-            # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S9.txt")
-
-            # load data
-            # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-            # v_train_ann = os.path.join(videos_root, 'frames_train_S3_4_5.txt')
-            # v_test_ann = os.path.join(videos_root, 'frames_test_S3_4_5.txt')
-            #
-            # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-            # h_train_ann = os.path.join(heatmap_root, "heatmap_train_S3_4_5.txt")
-            # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S3_4_5.txt")
-
-            # load data
-            # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-            # v_train_ann = os.path.join(videos_root, 'frames_train_S3_4_5.txt')
-            # v_test_ann = os.path.join(videos_root, 'frames_test_S3_4_5.txt')
-            #
-            # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-            # h_train_ann = os.path.join(heatmap_root, "heatmap_train_S3_4_5.txt")
-            # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S3_4_5.txt")
-
-            # wearing
-            # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-            # v_train_ann = os.path.join(videos_root, 'frames_test_W3.txt')
-            # v_test_ann = os.path.join(videos_root, 'frames_test_W3.txt')
-            #
-            # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-            # h_train_ann = os.path.join(heatmap_root, "heatmap_test_W3.txt")
-            # h_test_ann = os.path.join(heatmap_root, "heatmap_test_W3.txt")
-
-            # load data
-            # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-            # v_train_ann = os.path.join(videos_root, 'frames_train_S6_7_8_9.txt')
-            # v_test_ann = os.path.join(videos_root, 'frames_test_S6_7_8_9.txt')
-            #
-            # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-            # h_train_ann = os.path.join(heatmap_root, "heatmap_train_S6_7_8_9.txt")
-            # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S6_7_8_9.txt")
-
-            # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-            # v_train_ann = os.path.join(videos_root, 'frames_test_S2.txt')
-            # v_test_ann = os.path.join(videos_root, 'frames_test_S2.txt')
-            #
-            # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap_new_v1"
-            # h_train_ann = os.path.join(heatmap_root, "heatmap_test_S2.txt")
-            # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S2.txt")
-
-            # wearing
-            # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-            # v_train_ann = os.path.join(videos_root, 'frames_test_S6_7_8_9_v1.txt')
-            # v_test_ann = os.path.join(videos_root, 'frames_test_S6_7_8_9_v1.txt')
-            #
-            # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-            # h_train_ann = os.path.join(heatmap_root, "heatmap_test_S6_7_8_9_v1.txt")
-            # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S6_7_8_9_v1.txt")
-
-            # distance
-            # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-            # v_train_ann = os.path.join(videos_root, 'frames_test_Distance_200cm.txt')
-            # v_test_ann = os.path.join(videos_root, 'frames_test_Distance_200cm.txt')
-            #
-            # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-            # h_train_ann = os.path.join(heatmap_root, "heatmap_test_Distance_200cm.txt")
-            # h_test_ann = os.path.join(heatmap_root, "heatmap_test_Distance_200cm.txt")
-
-            # motion
             videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-            v_train_ann = os.path.join(videos_root, 'frames_test_{}.txt'.format(mm))
-            v_test_ann = os.path.join(videos_root, 'frames_test_{}.txt'.format(mm))
+            f_og = 'frames_test_dd.txt'
+            f_temp = 'frames_test_temp.txt'
 
             heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-            h_train_ann = os.path.join(heatmap_root, "heatmap_test_{}.txt".format(mm))
-            h_test_ann = os.path.join(heatmap_root, "heatmap_test_{}.txt".format(mm))
+            h_og = 'heatmap_test_dd.txt'
+            h_temp = 'heatmap_test_temp.txt'
+
+            overwrite_temp_file(os.path.join(videos_root, f_temp), os.path.join(videos_root, f_og), doname)
+            overwrite_temp_file_heatmap(os.path.join(heatmap_root, h_temp), os.path.join(heatmap_root, h_og), doname)
+
+            # load data
+
+            v_test_ann = os.path.join(videos_root, f_temp)
+            h_test_ann = os.path.join(heatmap_root, h_temp)
 
             preprocess = transforms.Compose([
                 ImglistToTensor(),  # list of PIL images to (FRAMES x CHANNELS x HEIGHT x WIDTH) tensor
@@ -373,16 +325,6 @@ if __name__ == "__main__":
             ])
 
             # video datasets
-            video_train = VideoFrameDataset(
-                root_path=videos_root,
-                annotationfile_path=v_train_ann,
-                num_segments=1,
-                frames_per_segment=config['v_num_frames'],
-                imagefile_template='frame_{0:012d}.jpg',
-                transform=preprocess,
-                random_shift=False,
-                test_mode=False
-            )
 
             video_test = VideoFrameDataset(
                 root_path=videos_root,
@@ -396,55 +338,15 @@ if __name__ == "__main__":
             )
 
             # heatmap datasets
-            heatmap_train = HeatmapDataset(heatmap_root, h_train_ann, cumulated=config['cumulated_frame'],
-                                           frame_cumulated=False, num_frames=config['h_num_frames'])
             heatmap_test = HeatmapDataset(heatmap_root, h_test_ann, cumulated=config['cumulated_frame'],
                                           frame_cumulated=False, num_frames=config['h_num_frames'])
 
-            dataset_train = ConcatDataset(heatmap_train, video_train)
             dataset_test = ConcatDataset(heatmap_test, video_test)
 
-            train_loader = DataLoader(dataset_train, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
             test_loader = DataLoader(dataset_test, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
 
-            # create teacher model
-            fmodel = resnet18()
-            cmodel = Classifier(num_classes=7)
-            teacher_model = ResNetFull_Teacher(fmodel, cmodel)
-            checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_v1_20220122-002807", 'best.pth.tar')
-            assert os.path.exists(checkpoint), 'Error: no checkpoint directory found!'
-            teacher_model.load_state_dict(torch.load(checkpoint))
-            teacher_model = teacher_model.to(device)
-
-            # student model
-            student_model = ImageSingle_v1(num_classes=config['num_classes'], block=ImageDualNet_Single_v1,
-                                           subblock=ImageNet_Large_v1)
-
-            if config['continue_learning']:
-                s_checkpoint = os.path.join(result_dir, best_folder, 'model_best.pth.tar')
-                # s_checkpoint = os.path.join(result_dir, best_folder, 'model_9.pth.tar')
-                student_model.load_state_dict(torch.load(s_checkpoint))
-            student_model = student_model.to(device)
-
-            # student classifier
-            student_classifier = Classifier_Transformer(input_dim=512 * 7 * 7, num_classes=config['num_classes'])
-            if config['continue_learning']:
-                classifier_checkpoint = os.path.join(result_dir, best_folder, 'classifier_best.pth.tar')
-                # classifier_checkpoint = os.path.join(result_dir, best_folder, 'classifier_9.pth.tar')
-                student_classifier.load_state_dict(torch.load(classifier_checkpoint))
-            student_classifier = student_classifier.to(device)
-
-            # tf block
-            tf_block = TFblock_v4()
-            if config['continue_learning']:
-                block_checkpoint = os.path.join(result_dir, best_folder, 'block_best.pth.tar')
-                # block_checkpoint = os.path.join(result_dir, best_folder, 'block_9.pth.tar')
-                tf_block.load_state_dict(torch.load(block_checkpoint))
-            tf_block = tf_block.to(device)
-
-            criterion_test = nn.CrossEntropyLoss()
-
             # function
+            criterion_test = nn.CrossEntropyLoss()
             avgpool = nn.AdaptiveAvgPool2d((1, 1))
             pdist = nn.PairwiseDistance()
 

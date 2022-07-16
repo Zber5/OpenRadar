@@ -436,17 +436,19 @@ if __name__ == "__main__":
     # file_basepath = "C:\\Users\\Zber\\Desktop\\Subjects\\Multi_People"
 
     file_basepath = "D:\\Subjects\\300cm_90d"
+    file_basepath = "D:\\mmFer_Data\\Subjects\\Multi_People"
 
     # prefix = "200cm_Stand_Surprise{}"
-    prefix = "Neutral_{}"
+    # prefix = "Neutral_{}"
+    prefix = "100cm_stand_ground_{}"
 
     config = parseConfigFile(configFileName)
 
     record_time = config['numFrames'] / (1000 / config['framePeriodicity'])
 
     interval = 5
-    start_record_index = 0
-    end_record_index = 10
+    start_record_index = 2
+    end_record_index = 3
 
     # preparing camera
     init = sl.InitParameters()

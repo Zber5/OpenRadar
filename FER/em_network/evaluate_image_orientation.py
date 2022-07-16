@@ -3,24 +3,16 @@ import torch.nn as nn
 import numpy as np
 import random
 import time
-from dataset import ConcatDataset, ImglistToTensor, VideoFrameDataset, HeatmapDataset
+from dataset import ImglistToTensor, VideoFrameDataset
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from FER.utils import ROOT_PATH, save_to_json
-import torch.nn.functional as F
-from sklearn.metrics import classification_report, confusion_matrix
+from FER.em_network.utils import model_parameters
 
 from utils import accuracy, device, AverageMeter, dir_path, write_log, save_checkpoint
-from models.resnet import resnet18, Classifier, ResNetFull_Teacher
-from models.Conv2D import ImageSingle_Student, ImageSingle_v1, ImageDualNet_Single_v1, ImageNet_Large_v1, \
-    Classifier_Transformer
-from models.ConvLSTM import ConvLSTMFull_ME
-from metric_losses import NPairLoss_CrossModal, NPairLoss, NPairLoss_CrossModal_Weighted
+from models.resnet import resnet18, Classifier, ResNetFull, ResNetFull_Teacher
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-# torch.autograd.set_detect_anomaly(True)
+from sklearn.metrics import classification_report, confusion_matrix
 
 import os
 
@@ -35,153 +27,134 @@ torch.cuda.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 
 
-def cross_entropy(logits, target, size_average=True):
-    if size_average:
-        return torch.mean(torch.sum(- target * F.log_softmax(logits, -1), -1))
-    else:
-        return torch.sum(torch.sum(- target * F.log_softmax(logits, -1), -1))
+def train(model, data_loader, criterion, optimizer, epoch=0, to_log=None, print_freq=25):
+    # create Average Meters
+    batch_time = AverageMeter()
+    data_time = AverageMeter()
+    losses = AverageMeter()
+    top1 = AverageMeter()
+    top5 = AverageMeter()
+    train_loss = []
+
+    # switch to train mode
+    model.classifier.train()
+    model.feature.eval()
+    # record start time
+    start = time.time()
+
+    for i, (inputs, target) in enumerate(data_loader):
+        # prepare input and target
+        # inputs = torch.permute(inputs, (0, 2, 1, 3, 4))
+        inputs = inputs.to(device)
+        # target = target.type(torch.LongTensor)
+        target = target.long()
+        target = target.to(device)
+
+        # measure data loading time
+        data_time.update(time.time() - start)
+
+        # zero the parameter gradients
+        optimizer.zero_grad()
+
+        # gradient and do SGD step
+        output, _ = model(inputs)
+        loss = criterion(output, target)
+
+        train_loss.append(loss.item())
+        loss.backward()
+        optimizer.step()
+
+        # measure accuracy and record loss
+        prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
+        losses.update(loss.item(), inputs.size(0))
+        top1.update(prec1.item(), inputs.size(0))
+        top5.update(prec5.item(), inputs.size(0))
+
+        # measure elapsed time
+        batch_time.update(time.time() - start)
+        start = time.time()
+
+        # print training info
+        if i % print_freq == 0:
+            str = ('Epoch: [{0}][{1}/{2}]\t'
+                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                   'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
+                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                   'Prec@1 {top1.val:3.3f} ({top1.avg:3.3f})\t'
+                   'Prec@5 {top5.val:3.3f} ({top5.avg:3.3f})'.format(
+                epoch, i, len(data_loader), batch_time=batch_time,
+                data_time=data_time, loss=losses, top1=top1, top5=top5))
+            print(str)
+
+            if to_log is not None:
+                write_log(str + '\n', to_log)
+
+    return train_loss
 
 
-def _make_criterion(alpha=0.5, T=4.0, mode='cse'):
-    def criterion(outputs, targets, labels):
-        if mode == 'cse':
-            _p = F.log_softmax(outputs / T, dim=1)
-            _q = F.softmax(targets / T, dim=1)
-            _soft_loss = -torch.mean(torch.sum(_q * _p, dim=1))
-        elif mode == 'mse':
-            _p = F.softmax(outputs / T, dim=1)
-            _q = F.softmax(targets / T, dim=1)
-            _soft_loss = nn.MSELoss()(_p, _q) / 2
-        else:
-            raise NotImplementedError()
+def test(model, test_loader, criterion, to_log=None):
+    model.eval()
 
-        _soft_loss = _soft_loss * T * T
-        _hard_loss = F.cross_entropy(outputs, labels)
-        loss = alpha * _soft_loss + (1. - alpha) * _hard_loss
-        return loss
-
-    return criterion
-
-
-class TFblock_v4(nn.Module):
-    def __init__(self, dim_in=512, dim_inter=1024):
-        super(TFblock_v4, self).__init__()
-        # self.encoder = nn.Linear(dim_in, dim_inter)
-        # self.decoder = nn.Linear(dim_inter, dim_in)
-
-        self.encoder = nn.Conv2d(in_channels=dim_in, out_channels=dim_inter, kernel_size=(4, 2))
-        self.bn1 = nn.BatchNorm2d(num_features=dim_inter)
-        self.decoder = nn.ConvTranspose2d(in_channels=dim_inter, out_channels=(dim_in + dim_inter) // 2, kernel_size=(
-            3, 3), stride=(1, 1), padding=(0, 0))
-        self.decoder1 = nn.ConvTranspose2d(in_channels=(dim_in + dim_inter) // 2, out_channels=dim_in, kernel_size=(
-            5, 5), stride=(1, 1), padding=(0, 0))
-
-    def forward(self, x):
-        x = self.encoder(x)
-        # x = self.avgpool(x)
-        x = self.bn1(x)
-        x = self.decoder(x)
-        x = self.decoder1(x)
-        return x
+    test_loss = 0
+    correct = 0
+    with torch.no_grad():
+        for (data, target) in test_loader:
+            target = target.long()
+            # data = torch.permute(data, (0, 2, 1, 3, 4))
+            data, target = data.to(device), target.to(device)
+            output, _ = model(data)
+            loss = criterion(output, target)
+            test_loss += loss
+            pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+            correct += pred.eq(target.view_as(pred)).sum().item()
+        test_loss /= len(test_loader.sampler)
+        test_loss *= test_loader.batch_size
+        acc = 100. * correct / len(test_loader.sampler)
+        format_str = 'Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
+            test_loss, correct, len(test_loader.sampler), acc
+        )
+        print(format_str)
+        if to_log is not None:
+            write_log(format_str, to_log)
+        return test_loss.item(), acc
 
 
-def distillation(y, teacher_scores, labels, T, alpha=0.5):
-    # p = F.log_softmax(y, dim=1)
-    p = F.log_softmax(y / T, dim=1)
-    # q = F.softmax(teacher_scores, dim=1)
-    q = F.softmax(teacher_scores / T, dim=1)
-    l_kl = F.kl_div(p, q, size_average=False) * (T ** 2) / y.shape[0]
-    # l_kl = F.kl_div(p, q, size_average=False)
-    l_ce = F.cross_entropy(y, labels)
-    # return l_kl * alpha + l_ce * (1. - alpha)
-    return config['kl_weight'] * l_kl + config['ce_weight'] * l_ce
-    # return config['ce_weight'] * l_ce
-
-
-def at(x):
-    if len(x.shape) != 5:
-        return F.normalize(x.pow(2).mean((2, 3)).view(x.size(0), -1))
-    else:
-        return F.normalize(x.pow(2).mean((1, 3, 4)).view(x.size(0), -1))
-
-
-def at_loss(x, y):
-    return (at(x) - at(y)).pow(2).mean()
-
-
-def pair_loss(x, y):
-    x = at(x)
-    y = at(y)
-    diff = pdist(x, y).mean()
-    return diff
-
-
-def pair_loss_old(x, y):
-    x = at(x)
-    y = at(y)
-    diff = pdist(x, y).pow(2).mean()
-    return diff
-
-
-def at_v1(x):
-    if len(x.shape) != 5:
-        return F.normalize(x.pow(2).view(x.size(0), -1))
-    else:
-        return F.normalize(x.pow(2).mean(1).view(x.size(0), -1))
-
-
-def at_loss_v1(x, y):
-    return (at_v1(x) - at_v1(y)).pow(2).mean()
-
-
-def pair_loss_old_v1(x, y):
-    x = at_v1(x)
-    y = at_v1(y)
-    diff = pdist(x, y).pow(2).mean()
-    return diff
+def denormalize(video_tensor):
+    """
+    Undoes mean/standard deviation normalization, zero to one scaling,
+    and channel rearrangement for a batch of images.
+    args:
+        video_tensor: a (FRAMES x CHANNELS x HEIGHT x WIDTH) tensor
+    """
+    inverse_normalize = transforms.Normalize(
+        mean=[-0.485 / 0.229, -0.456 / 0.224, -0.406 / 0.225],
+        std=[1 / 0.229, 1 / 0.224, 1 / 0.225]
+    )
+    return (inverse_normalize(video_tensor) * 255.).type(torch.uint8).permute(0, 2, 3, 1).numpy()
 
 
 def evaluate():
-    # turn models to eval mode
-    student_model.eval()
-    student_classifier.eval()
-    tf_block.eval()
-
-    # test
-    all_pred = []
-    all_target = []
-    test_loss = []
-    all_outputs = []
+    model.eval()
 
     # log dir
     logdir = os.path.join(path['dir'], 'log.txt')
 
+    all_pred = []
+    all_target = []
+    all_outputs = []
+
+    test_loss = 0
+    correct = 0
     with torch.no_grad():
-        for i, conc_data in enumerate(test_loader):
-            h_data, v_data = conc_data
-            azi, ele, target = h_data
-            v_inputs, _ = v_data
-
-            # prepare input and target
-            azi = azi.to(device, dtype=torch.float)
-            ele = ele.to(device, dtype=torch.float)
-            v_inputs = v_inputs.to(device)
-            target = target.to(device, dtype=torch.long)
-
-            # forward to model
-            _, g_s = student_model(azi, ele)
-
-            s1, s2, s3, s4 = g_s
-
-            s_fmap = s4
-            s_fmap = tf_block(s_fmap)
-            s_input = s_fmap.view((s_fmap.size(0), -1))
-            output = student_classifier(s_input)
-
-            # loss
-            loss = criterion_test(output, target)
-            test_loss.append(loss.item())
-            pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+        for (data, target) in test_loader:
+            target = target.long()
+            # data = torch.permute(data, (0, 2, 1, 3, 4))
+            data, target = data.to(device), target.to(device)
+            output, _ = model(data)
+            loss = criterion(output, target)
+            test_loss += loss
+            pred = output.argmax(dim=1, keepdim=True)   # get the index of the max log-probability
+            correct += pred.eq(target.view_as(pred)).sum().item()
             pred = pred.cpu().numpy().flatten()
             target = target.cpu().numpy().flatten()
             output = output.cpu().numpy()
@@ -189,43 +162,74 @@ def evaluate():
             all_target = np.concatenate((all_target, target), axis=0)
             all_outputs.append(output)
 
+    test_loss /= len(test_loader.sampler)
+    test_loss *= test_loader.batch_size
+    acc = 100. * correct / len(test_loader.sampler)
+    format_str = 'Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
+        test_loss, correct, len(test_loader.sampler), acc
+    )
+    print(format_str)
     all_outputs = np.concatenate(all_outputs, axis=0)
-    write_log(classification_report(all_target, all_pred, target_names=emotion_list), logdir)
-    return all_pred, all_target, all_outputs, test_loss
+    write_log(classification_report(all_target, all_pred, target_names=emotion_list, digits=4), logdir)
+    return all_pred, all_target, all_outputs
+
+
+def overwrite_temp_file(tf_name, og_name, key):
+    record_list = [x for x in open(og_name)]
+    with open(tf_name, 'w') as f:
+        for rd in record_list:
+            f.write(rd.format(key))
+
+
+def overwrite_temp_file_heatmap(tf_name, og_name, key):
+    record_list = [x for x in open(og_name)]
+    with open(tf_name, 'w') as f:
+        for rd in record_list:
+            f.write(rd.format(key, '{}'))
 
 
 if __name__ == "__main__":
+
+    config = dict(num_epochs=30,
+                  lr=0.0006,
+                  lr_step_size=20,
+                  lr_decay_gamma=0.2,
+                  batch_size=50,
+                  num_classes=7,
+                  v_num_frames=30,
+                  h_num_frames=100,
+                  imag_size=224
+                  )
+
     emotion_list = ['Neutral', 'Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust']
 
     # results dir
     result_dir = "FER/results"
 
+    # dd = []
+    # str_format = '{}cm_{}d'
+    # for dist in ['30', '70', '100', '150', '200', '250', '300']:
+    #     d = []
+    #     for iid in ['30', '60', '90']:
+    #         d.append(str_format.format(dist, iid))
+    #     dd.append(d)
+
     dd = []
-    str_format = '{}cm_{}d'
-    for dist in ['30', '70', '100', '150', '200', '250', '300']:
+    str_format = 'Distance_{}cm'
+    for dist in ['70', '100', '150', '200', '250', '300']:
         d = []
-        for iid in ['30', '60', '90']:
-            d.append(str_format.format(dist, iid))
+        for iid in ['30']:
+            d.append(str_format.format(dist))
         dd.append(d)
 
-    # ddf = [
-    #     'Ours_oldData_30cmD_20220704-165229',
-    #     'Ours_oldData_70cmD_20220705-134724',
-    #     'Ours_oldData_100cmD_20220705-141949',
-    #     'Ours_oldData_150cmD_20220705-180704',
-    #     'Ours_oldData_200cmD_20220705-185637',
-    #     'Ours_oldData_250cmD_20220705-203706',
-    #     'Ours_oldData_300cmD_20220705-212437'
-    # ]
-
     ddf = [
-        'Pretrained_ResNet_video_v1_20220122-002807',
+        # 'Pretrained_ResNet_video_v1_20220122-002807',
         'Pretrained_ResNet_video_v1_20220122-002807',
         'Pretrained_ResNet_video_distance_100cm_20220602-181436',
         'Pretrained_ResNet_video_Distance_20220601-000616',
         'Pretrained_ResNet_video_Distance_20220601-000616',
         'Pretrained_ResNet_video_Distance_20220601-000616',
-        'Ours_oldData_Distance_300cm_20220607-184411'
+        'Pretrained_ResNet_Distance_300cm_20220607-183207'
     ]
 
     for dists, distfile in zip(dd, ddf):
@@ -233,126 +237,64 @@ if __name__ == "__main__":
         # create teacher model
         fmodel = resnet18()
         cmodel = Classifier(num_classes=7)
-        teacher_model = ResNetFull_Teacher(fmodel, cmodel)
-        checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_v1_20220122-002807", 'best.pth.tar')
+        model = ResNetFull_Teacher(fmodel, cmodel)
+        checkpoint = os.path.join(result_dir, best_folder, 'model_best.pth.tar')
         assert os.path.exists(checkpoint), 'Error: no checkpoint directory found!'
-        teacher_model.load_state_dict(torch.load(checkpoint))
-        teacher_model = teacher_model.to(device)
+        model.load_state_dict(torch.load(checkpoint))
+        model = model.to(device)
 
-    emotion_list = ['Neutral', 'Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust']
+        for doname in dists:
+            path = dir_path("Evaluate_Image_{}".format(doname), result_dir)
+            # save_to_json(config, path['config'])
 
+            videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
+            f_og = 'frames_test_dd.txt'
+            f_temp = 'frames_test_temp.txt'
 
+            overwrite_temp_file(os.path.join(videos_root, f_temp), os.path.join(videos_root, f_og), doname)
 
-    # results dir
-    result_dir = "FER/results"
+            annotation_test = os.path.join(videos_root, f_temp)
 
-    path = dir_path("Evaluate_ours", result_dir)
-    best_folder = "Supervision_SUM_image2D_TransformerLarge_L3_HeterNpairLoss_20220309-174556"
+            # dataloader
+            preprocess = transforms.Compose([
+                ImglistToTensor(),  # list of PIL images to (FRAMES x CHANNELS x HEIGHT x WIDTH) tensor
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ])
 
-    # load data
-    videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-    v_train_ann = os.path.join(videos_root, 'video_annotation_train_new.txt')
-    v_test_ann = os.path.join(videos_root, 'video_annotation_test_new.txt')
+            dataset_test = VideoFrameDataset(
+                root_path=videos_root,
+                annotationfile_path=annotation_test,
+                num_segments=1,
+                frames_per_segment=config['v_num_frames'],
+                imagefile_template='frame_{0:012d}.jpg',
+                transform=preprocess,
+                random_shift=True,
+                test_mode=True
+            )
 
-    heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-    h_train_ann = os.path.join(heatmap_root, "heatmap_annotation_train_new.txt")
-    h_test_ann = os.path.join(heatmap_root, "heatmap_annotation_test_new.txt")
+            metrics_dic = {
+                'predict': [],
+                'target': [],
+            }
 
-    preprocess = transforms.Compose([
-        ImglistToTensor(),  # list of PIL images to (FRAMES x CHANNELS x HEIGHT x WIDTH) tensor
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
+            test_loader = DataLoader(dataset_test, num_workers=3, pin_memory=True, batch_size=config['batch_size'])
 
-    # video datasets
-    video_train = VideoFrameDataset(
-        root_path=videos_root,
-        annotationfile_path=v_train_ann,
-        num_segments=1,
-        frames_per_segment=config['v_num_frames'],
-        imagefile_template='frame_{0:012d}.jpg',
-        transform=preprocess,
-        random_shift=False,
-        test_mode=False
-    )
+            # initialize criterion
+            criterion = nn.CrossEntropyLoss()
 
-    video_test = VideoFrameDataset(
-        root_path=videos_root,
-        annotationfile_path=v_test_ann,
-        num_segments=1,
-        frames_per_segment=config['v_num_frames'],
-        imagefile_template='frame_{0:012d}.jpg',
-        transform=preprocess,
-        random_shift=False,
-        test_mode=True
-    )
+            # initialize optimizer
+            # optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
+            optimizer = torch.optim.Adam(cmodel.parameters(), lr=config['lr'])
 
-    # heatmap datasets
-    heatmap_train = HeatmapDataset(heatmap_root, h_train_ann, cumulated=config['cumulated_frame'],
-                                   frame_cumulated=False, num_frames=config['h_num_frames'])
-    heatmap_test = HeatmapDataset(heatmap_root, h_test_ann, cumulated=config['cumulated_frame'],
-                                  frame_cumulated=False, num_frames=config['h_num_frames'])
+            lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=config['lr_step_size'],
+                                                           gamma=config['lr_decay_gamma'])
 
-    dataset_train = ConcatDataset(heatmap_train, video_train)
-    dataset_test = ConcatDataset(heatmap_test, video_test)
+            pred, label, output = evaluate()
 
-    train_loader = DataLoader(dataset_train, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
-    test_loader = DataLoader(dataset_test, num_workers=4, pin_memory=True, batch_size=config['batch_size'])
+            metrics_dic['predict'] = pred
+            metrics_dic['target'] = label
 
-    # create teacher model
-    fmodel = resnet18()
-    cmodel = Classifier(num_classes=7)
-    teacher_model = ResNetFull_Teacher(fmodel, cmodel)
-    checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_v1_20220122-002807", 'best.pth.tar')
-    assert os.path.exists(checkpoint), 'Error: no checkpoint directory found!'
-    teacher_model.load_state_dict(torch.load(checkpoint))
-    teacher_model = teacher_model.to(device)
-
-    # student model
-    student_model = ImageSingle_v1(num_classes=config['num_classes'], block=ImageDualNet_Single_v1,
-                                   subblock=ImageNet_Large_v1)
-
-    if config['continue_learning']:
-        s_checkpoint = os.path.join(result_dir, best_folder, 'model_best.pth.tar')
-        # s_checkpoint = os.path.join(result_dir, best_folder, 'model_9.pth.tar')
-        student_model.load_state_dict(torch.load(s_checkpoint))
-    student_model = student_model.to(device)
-
-    # student classifier
-    student_classifier = Classifier_Transformer(input_dim=512 * 7 * 7, num_classes=config['num_classes'])
-    if config['continue_learning']:
-        classifier_checkpoint = os.path.join(result_dir, best_folder, 'classifier_best.pth.tar')
-        # classifier_checkpoint = os.path.join(result_dir, best_folder, 'classifier_9.pth.tar')
-        student_classifier.load_state_dict(torch.load(classifier_checkpoint))
-    student_classifier = student_classifier.to(device)
-
-    # tf block
-    tf_block = TFblock_v4()
-    if config['continue_learning']:
-        block_checkpoint = os.path.join(result_dir, best_folder, 'block_best.pth.tar')
-        # block_checkpoint = os.path.join(result_dir, best_folder, 'block_9.pth.tar')
-        tf_block.load_state_dict(torch.load(block_checkpoint))
-    tf_block = tf_block.to(device)
-
-    criterion_test = nn.CrossEntropyLoss()
-
-    # function
-    avgpool = nn.AdaptiveAvgPool2d((1, 1))
-    pdist = nn.PairwiseDistance()
-
-    metrics_dic = {
-        'predict': [],
-        'target': [],
-    }
-
-    pred, label, output, loss = evaluate()
-
-    metrics_dic['predict'] = pred
-    metrics_dic['target'] = label
-
-    # save csv log
-    df = pd.DataFrame.from_dict(metrics_dic)
-    df.to_csv(path['metrics'], sep='\t', encoding='utf-8')
-
-    # save output and target to numpy
-    np.save(os.path.join(path['dir'], 'outputs.npy'), output)
-    np.save(os.path.join(path['dir'], 'loss.npy'), np.asarray(loss))
+            # save csv log
+            df = pd.DataFrame.from_dict(metrics_dic)
+            df.to_csv(path['metrics'], sep='\t', encoding='utf-8')
+            np.save(os.path.join(path['dir'], 'outputs.npy'), output)

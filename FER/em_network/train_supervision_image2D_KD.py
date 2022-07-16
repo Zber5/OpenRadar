@@ -230,6 +230,8 @@ def test(model, test_loader, criterion, to_log=None):
     total_self_negative_distance = []
 
     sampler = TupleSampler('npair')
+    epoch_tmap = []
+    epoch_smap = []
 
     with torch.no_grad():
         for i, conc_data in enumerate(test_loader):
@@ -297,6 +299,9 @@ def test(model, test_loader, criterion, to_log=None):
             test_npl_losses.append(npl_loss.item())
             test_cls_losses.append(cls_loss.item())
 
+            epoch_tmap.append(t4.view((t4.size(0), -1)).cpu().numpy())
+            epoch_smap.append(s4.view((s4.size(0), -1)).cpu().numpy())
+
         test_kd_loss = np.mean(test_kd_losses)
         test_dist_loss = np.mean(test_dist_losses)
         test_npl_loss = np.mean(test_npl_losses)
@@ -312,11 +317,13 @@ def test(model, test_loader, criterion, to_log=None):
         format_str = 'Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
             test_loss, correct, len(test_loader.sampler), acc
         )
+        epoch_tmap = np.concatenate(epoch_tmap, axis=0)
+        epoch_smap = np.concatenate(epoch_smap, axis=0)
         print(format_str)
         if to_log is not None:
             write_log(format_str, to_log)
         return test_cls_loss, test_kd_loss, test_dist_loss, test_npl_loss, test_pdist, test_cpdist, \
-               test_spdist, acc
+               test_spdist, acc, epoch_tmap, epoch_smap
 
 
 def _make_criterion(alpha=0.5, T=4.0, mode='cse'):
@@ -533,7 +540,8 @@ if __name__ == "__main__":
         'test_spdist': [],
         'test_acc': [],
     }
-
+    # all_tmap = []
+    # all_smap = []
     best_acc = 0
     for epoch in range(config['num_epochs']):
         train_losses = train(teacher_model, student_model, data_loader=train_loader, criterion=criterions,
@@ -542,7 +550,7 @@ if __name__ == "__main__":
         test_losses = test(student_model, test_loader=test_loader, criterion=criterion_test, to_log=path['log'])
 
         test_cls_loss, test_kd_loss, test_dist_loss, test_npl_loss, test_pdist, test_cpdist, \
-        test_spdist, acc = test_losses
+        test_spdist, acc, e_tmap, e_smap = test_losses
         if acc >= best_acc:
             # if best_loss >= test_loss:
             best_acc = acc
@@ -551,13 +559,13 @@ if __name__ == "__main__":
             save_checkpoint(tf_block.state_dict(), is_best=True, checkpoint=path['dir'], name="block")
             save_checkpoint(student_classifier.state_dict(), is_best=True, checkpoint=path['dir'],
                             name="classifier")
-        if (epoch + 1) % 1 == 0:
-            save_checkpoint(student_model.state_dict(), is_best=False, checkpoint=path['dir'], epoch=epoch,
-                            name="model")
-            save_checkpoint(tf_block.state_dict(), is_best=False, checkpoint=path['dir'], name="block",
-                            epoch=epoch)
-            save_checkpoint(student_classifier.state_dict(), is_best=False, checkpoint=path['dir'],
-                            name="classifier", epoch=epoch)
+        # if (epoch + 1) % 1 == 0:
+        #     save_checkpoint(student_model.state_dict(), is_best=False, checkpoint=path['dir'], epoch=epoch,
+        #                     name="model")
+        #     save_checkpoint(tf_block.state_dict(), is_best=False, checkpoint=path['dir'], name="block",
+        #                     epoch=epoch)
+        #     save_checkpoint(student_classifier.state_dict(), is_best=False, checkpoint=path['dir'],
+        #                     name="classifier", epoch=epoch)
 
         lr_scheduler.step()
 
@@ -573,6 +581,11 @@ if __name__ == "__main__":
         metrics_dic['test_cpdist'].append(test_cpdist)
         metrics_dic['test_spdist'].append(test_spdist)
         metrics_dic['test_acc'].append(acc)
+        # all_tmap.append(e_tmap)
+        # all_smap.append(e_smap)
+
+        np.save(os.path.join(path['dir'], 'tmap_{}'.format(epoch)), e_tmap)
+        np.save(os.path.join(path['dir'], 'smap_{}'.format(epoch)), e_smap)
 
     # print best acc after training
     write_log("<<<<< Best Accuracy = {:.2f} >>>>>".format(best_acc), path['log'])
@@ -580,6 +593,12 @@ if __name__ == "__main__":
     # save csv log
     df = pd.DataFrame.from_dict(metrics_dic)
     df.to_csv(path['metrics'], sep='\t', encoding='utf-8')
+
+    # all_tmap = np.stack(all_tmap)
+    # all_smap = np.stack(all_smap)
+
+    # np.save(os.path.join(path['dir'], 'all_tmap'), all_tmap)
+    # np.save(os.path.join(path['dir'], 'all_smap'), all_smap)
 
     # after running shutdown computer
     # os.system("shutdown /s /t 20")

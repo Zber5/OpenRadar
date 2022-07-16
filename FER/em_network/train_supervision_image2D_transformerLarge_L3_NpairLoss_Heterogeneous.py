@@ -558,7 +558,7 @@ def evaluate(student_model, resdir, testloader):
 
 if __name__ == "__main__":
 
-    config = dict(num_epochs=40,
+    config = dict(num_epochs=20,
                   lr=0.0006,
                   lr_step_size=20,
                   lr_decay_gamma=0.2,
@@ -575,7 +575,7 @@ if __name__ == "__main__":
                   weight_alpha=0.7,
                   softmax_temperature=4.0,
                   loss_mode='cse',
-                  continue_learning=False,
+                  continue_learning=True,
                   cumulated_frame=True,
                   kl_weight=1,
                   ce_weight=1,
@@ -589,16 +589,28 @@ if __name__ == "__main__":
     result_dir = "FER/results"
     # path = dir_path("Supervision_SUM_image2D_TransformerLarge_L3_CrossNpairLossWeighted", result_dir)
     # path = dir_path("Ours_oldData_Distance_300cm_v1", result_dir)
-    path = dir_path("Ours_oldData_30cmD", result_dir)
+    path = dir_path("Ours_finetune_150cm_30d", result_dir)
     # path = dir_path("Supervision_SUM_image2D_TransformerLargeWithBN_L3_Cross+SelfNpairLoss_LargeClassifier", result_dir)
 
-    # best_folder = "Supervision_image2D_Transformer_extractor_BN_L3_sum_LargeTFblock_20220303-210816"
-    best_folder = "Supervision_image2D_Transformer_extractor_BNv2_L3_sum_LargeTFblock_20220304-132937"
+    # 'Ours_oldData_Distance_70cm_20220601-005908',
+    # 'Ours_oldData_Sitting_20220531-161425',
+    # 'Ours_oldData_Distance_150cm_20220601-013858',
+    # 'Ours_oldData_Distance_200cm_20220601-150228',
+    # 'Ours_oldData_Distance_250cm_20220602-020548',
+    # 'Ours_oldData_Distance_300cm_20220607-184411'
+
+    # best_folder = "Supervision_SUM_image2D_Ours_20220627-183753"
+    # best_folder = "Ours_oldData_Distance_70cm_20220601-005908"
+    # best_folder = "Ours_oldData_Sitting_20220531-161425"
+    best_folder = "Ours_oldData_Distance_150cm_20220601-013858"
+    # best_folder = "Ours_oldData_Distance_200cm_20220601-150228"
+    # best_folder = "Ours_oldData_Distance_250cm_20220602-020548"
+    # best_folder = "Ours_oldData_Distance_300cm_20220607-184411"
 
     # save training config
     save_to_json(config, path['config'])
 
-    # New version data
+    # S6 data
     # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
     # v_train_ann = os.path.join(videos_root, 'video_annotation_train_new.txt')
     # v_test_ann = os.path.join(videos_root, 'video_annotation_test_new.txt')
@@ -607,52 +619,16 @@ if __name__ == "__main__":
     # h_train_ann = os.path.join(heatmap_root, "heatmap_annotation_train_new.txt")
     # h_test_ann = os.path.join(heatmap_root, "heatmap_annotation_test_new.txt")
 
-    # Subject 0,1,2
+    # Subject S0_1_2, S3_4_5, S6_7_8_9_v1, S_8_9
     # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
     # v_train_ann = os.path.join(videos_root, 'frames_train_S0_1_2.txt')
     # v_test_ann = os.path.join(videos_root, 'frames_test_S0_1_2.txt')
-    #
+
     # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
     # h_train_ann = os.path.join(heatmap_root, "heatmap_train_S0_1_2.txt")
     # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S0_1_2.txt")
 
-    # Subject 3,4,5
-    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-    # v_train_ann = os.path.join(videos_root, 'frames_train_S3_4_5.txt')
-    # v_test_ann = os.path.join(videos_root, 'frames_test_S3_4_5.txt')
-    #
-    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap_new_v1"
-    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_S3_4_5.txt")
-    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S3_4_5.txt")
-
-    # Subject 6,7,8,9
-    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-    # v_train_ann = os.path.join(videos_root, 'frames_train_S6_7_8_9_v1.txt')
-    # v_test_ann = os.path.join(videos_root, 'frames_test_S6_7_8_9_v1.txt')
-    #
-    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_S6_7_8_9_v1.txt")
-    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S6_7_8_9_v1.txt")
-
-    # Subject S0 S8
-    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-    # v_train_ann = os.path.join(videos_root, 'frames_train_S_8_9.txt')
-    # v_test_ann = os.path.join(videos_root, 'frames_test_S0.txt')
-    #
-    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_S_8_9.txt")
-    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S0.txt")
-
-    # load data
-    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-    # v_train_ann = os.path.join(videos_root, 'frames_train_S-2.txt')
-    # v_test_ann = os.path.join(videos_root, 'frames_test_S-2.txt')
-    #
-    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap_new_v1"
-    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_S-2.txt")
-    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_S-2.txt")
-
-    # wearing masks
+    # Wearing   masks, caps, glasses
     # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
     # v_train_ann = os.path.join(videos_root, 'frames_train_W1_2_3.txt')
     # v_test_ann = os.path.join(videos_root, 'frames_test_W1_2_3.txt')
@@ -661,16 +637,7 @@ if __name__ == "__main__":
     # h_train_ann = os.path.join(heatmap_root, "heatmap_train_W1_2_3.txt")
     # h_test_ann = os.path.join(heatmap_root, "heatmap_test_W1_2_3.txt")
 
-    # pose
-    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-    # v_train_ann = os.path.join(videos_root, 'frames_train_Pose.txt')
-    # v_test_ann = os.path.join(videos_root, 'frames_test_Pose.txt')
-    #
-    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_Pose.txt")
-    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_Pose.txt")
-
-    # standing
+    # Pose, Standing, Sitting, Ground
     # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
     # v_train_ann = os.path.join(videos_root, 'frames_train_Standing.txt')
     # v_test_ann = os.path.join(videos_root, 'frames_test_Standing.txt')
@@ -679,24 +646,6 @@ if __name__ == "__main__":
     # # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap_"
     # h_train_ann = os.path.join(heatmap_root, "heatmap_train_Standing.txt")
     # h_test_ann = os.path.join(heatmap_root, "heatmap_test_Standing.txt")
-
-    # sitting
-    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-    # v_train_ann = os.path.join(videos_root, 'frames_train_Sitting.txt')
-    # v_test_ann = os.path.join(videos_root, 'frames_test_Sitting.txt')
-    #
-    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_Sitting.txt")
-    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_Sitting.txt")
-
-    # Ground
-    # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-    # v_train_ann = os.path.join(videos_root, 'frames_train_Ground.txt')
-    # v_test_ann = os.path.join(videos_root, 'frames_test_Ground.txt')
-    #
-    # heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-    # h_train_ann = os.path.join(heatmap_root, "heatmap_train_Ground.txt")
-    # h_test_ann = os.path.join(heatmap_root, "heatmap_test_Ground.txt")
 
     # Distance
     # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
@@ -707,16 +656,14 @@ if __name__ == "__main__":
     # h_train_ann = os.path.join(heatmap_root, "heatmap_train_Distance_300cm_v1.txt")
     # h_test_ann = os.path.join(heatmap_root, "heatmap_test_Distance_300cm_v1.txt")
 
-
-    # 30cm
+    # Distance and Orientation
     videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
-    v_train_ann = os.path.join(videos_root, 'frames_train_30cm_d.txt')
-    v_test_ann = os.path.join(videos_root, 'frames_test_30cm_d.txt')
+    v_train_ann = os.path.join(videos_root, 'frames_train_150cm_30d.txt')
+    v_test_ann = os.path.join(videos_root, 'frames_test_150cm_30d.txt')
 
     heatmap_root = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-    h_train_ann = os.path.join(heatmap_root, "heatmap_train_30cm_d.txt")
-    h_test_ann = os.path.join(heatmap_root, "heatmap_test_30cm_d.txt")
-
+    h_train_ann = os.path.join(heatmap_root, "heatmap_train_150cm_30d.txt")
+    h_test_ann = os.path.join(heatmap_root, "heatmap_test_150cm_30d.txt")
 
     # Motion
     # videos_root = 'C:\\Users\\Zber\\Desktop\\Subjects_Frames\\'
@@ -788,7 +735,12 @@ if __name__ == "__main__":
     # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_Distance_300cm_20220607-183207", 'model_best.pth.tar')
     # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_S10a_20220603-203324", 'model_best.pth.tar')
     # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_video_M3_20220603-034340", 'model_best.pth.tar')
-    checkpoint = os.path.join(result_dir, "Pretrained_ResNet_30cmD_20220704-163657", 'model_best.pth.tar')
+    # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_30cmD_20220704-163657", 'model_best.pth.tar')
+    # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_70cmD_20220705-133911", 'model_best.pth.tar')
+    # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_100cmD_20220705-141104", 'model_best.pth.tar')
+    # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_150cmD_20220705-175256", 'model_best.pth.tar')
+    # checkpoint = os.path.join(result_dir, "Pretrained_ResNet_200cmD_20220705-184245", 'model_best.pth.tar')
+    checkpoint = os.path.join(result_dir, "Pretrained_ResNet_2-3mD_20220705-201315", 'model_best.pth.tar')
     assert os.path.exists(checkpoint), 'Error: no checkpoint directory found!'
     teacher_model.load_state_dict(torch.load(checkpoint))
     teacher_model = teacher_model.to(device)
@@ -851,6 +803,10 @@ if __name__ == "__main__":
         list(student_model.parameters()) + list(tf_block.parameters()) + list(student_classifier.parameters()) + list(
             extractor.parameters()), lr=config['lr'])
 
+    # optimizer = torch.optim.Adam(
+    #     list(student_classifier.parameters()), lr=config['lr'])
+
+
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=config['lr_step_size'],
                                                    gamma=config['lr_decay_gamma'])
 
@@ -876,15 +832,15 @@ if __name__ == "__main__":
                             name="classifier")
             save_checkpoint(extractor.state_dict(), is_best=True, checkpoint=path['dir'],
                             name="extractor")
-        if (epoch + 1) % 5 == 0:
-            save_checkpoint(student_model.state_dict(), is_best=False, checkpoint=path['dir'], epoch=epoch,
-                            name="model")
-            save_checkpoint(tf_block.state_dict(), is_best=False, checkpoint=path['dir'], name="block",
-                            epoch=epoch)
-            save_checkpoint(student_classifier.state_dict(), is_best=False, checkpoint=path['dir'],
-                            name="classifier", epoch=epoch)
-            save_checkpoint(extractor.state_dict(), is_best=False, checkpoint=path['dir'],
-                            name="extractor", epoch=epoch)
+        # if (epoch + 1) % 5 == 0:
+        #     save_checkpoint(student_model.state_dict(), is_best=False, checkpoint=path['dir'], epoch=epoch,
+        #                     name="model")
+        #     save_checkpoint(tf_block.state_dict(), is_best=False, checkpoint=path['dir'], name="block",
+        #                     epoch=epoch)
+        #     save_checkpoint(student_classifier.state_dict(), is_best=False, checkpoint=path['dir'],
+        #                     name="classifier", epoch=epoch)
+        #     save_checkpoint(extractor.state_dict(), is_best=False, checkpoint=path['dir'],
+        #                     name="extractor", epoch=epoch)
 
         lr_scheduler.step()
 

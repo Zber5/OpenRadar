@@ -12,6 +12,7 @@ from FER.utils import get_label
 from sklearn.mixture import GaussianMixture
 from sklearn.metrics import mean_squared_error
 from scipy import signal
+import time
 
 
 def dot(A, B):
@@ -219,6 +220,7 @@ if __name__ == "__main__":
     # test_root_path = "C:\\Users\\Zber\\Desktop\\Capon_Heatmap\\250cm"
     test_root_path = "C:\\Users\\Zber\\Desktop\\Capon_Heatmap\\300cm"
     for f in os.listdir(test_root_path):
+        start_time = time.time()
         # f = 'Joy_2.npy'
         test_path = os.path.join(test_root_path, f)
         test_npy = np.load(test_path)
@@ -239,7 +241,7 @@ if __name__ == "__main__":
         # plt.ylabel("Probability")
         # plt.xlabel("Angle")
         # plt.show()
-
+        print("--- %s seconds ---" % (time.time() - start_time))
     # calculate error rate
     predict_angle = []
     ta = GT_ANGLE[os.path.basename(test_root_path)]

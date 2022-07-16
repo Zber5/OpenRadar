@@ -157,6 +157,7 @@ class HeatmapDataset(torch.utils.data.Dataset):
         self.aug_option = [blurer_gaussian, crop, blurer_mean, avg_pooling]
 
     def _parse_list(self):
+        # self.map_list = [MapRecord(x.strip().split(), self.root_path) for x in open(self.annotationfile_path)]
         self.map_list = [MapRecord(x.strip().split(), self.root_path) for x in open(self.annotationfile_path)]
 
     def __getitem__(self, index):

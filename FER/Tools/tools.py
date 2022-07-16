@@ -8,10 +8,20 @@ import matplotlib.ticker as ticker
 import seaborn as sns
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from scipy.interpolate import make_interp_spline, BSpline
+from sklearn.metrics.pairwise import paired_distances
 
 os.chdir("C:/Users/Zber/Documents/Dev_program/OpenRadar")
 from FER.utils import MapRecord
 from sklearn.model_selection import train_test_split
+
+
+def get_medoid(data):
+    # get mean
+    mean = np.mean(data, axis=0)
+    means = np.asarray([mean] * len(data))
+    idx = np.argmin(paired_distances(data, means))
+    medoid = data[idx]
+    return medoid
 
 
 def rename(old_name):
@@ -125,6 +135,16 @@ def hm_2_landmark_v1(record_list, frame_path):
 
 
 if __name__ == "__main__":
+    data = np.asarray([
+        [2, 2],
+        [2.25, 2.25],
+        [3, 3]
+    ])
+    m = get_medoid(data)
+    print(m)
+
+
+
     target_subjects = ["S0", "S1", "S2", "S3", "S4"]
     heatmap_dir = "C:\\Users\\Zber\\Desktop\\Subjects_Heatmap"
     full_anno_file = os.path.join(heatmap_dir, "heatmap_annotation_full_S8.txt")

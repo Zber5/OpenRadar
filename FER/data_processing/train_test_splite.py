@@ -202,7 +202,18 @@ if __name__ == "__main__":
     # subs = ['200cm_30d', '200cm_60d', '200cm_90d', '250cm_30d', '250cm_60d', '250cm_90d']
     # subs = ['300cm_30d', '300cm_60d', '300cm_90d']
 
-    target_subjects = ['30cm_30d', '30cm_60d', '30cm_90d']
+    #'30cm_30d', '30cm_60d', '30cm_90d'
+    target_subjectss = [['30cm_30d'],['70cm_30d'],['100cm_30d'],['150cm_30d'],['200cm_30d'],['250cm_30d'],['300cm_30d']]
+    # target_subjects = ['70cm_30d']
+    # target_subjects = ['100cm_30d']
+    # target_subjects = ['150cm_30d']
+    # target_subjects = ['200cm_30d']
+    # target_subjects = ['250cm_30d']
+    # target_subjects = ['300cm_30d']
+
+    # target_subjects = ['300cm_30d', '300cm_60d', '300cm_90d']
+    # target_subjects = ['200cm_30d', '200cm_60d', '200cm_90d', '250cm_30d', '250cm_60d', '250cm_90d',
+    #                    '300cm_30d', '300cm_60d', '300cm_90d']
 
     # target_subjects = ['Ground_Jesse', 'Ground_Jesse']
     # target_subjects = ['Distance_100cm', 'Distance_100cm_Nancy']
@@ -212,67 +223,72 @@ if __name__ == "__main__":
     # train_index = [i for i in range(10)] + [i for i in range(20, 30)]
     # train_index = [i for i in range(0, 10)] + [i for i in range(20, 30)]
     # train_index = [i for i in range(0, 4)] + [i for i in range(7, 10)]
-    train_index = [i for i in range(0, 6)]
+    # train_index = [i for i in range(0, 6)]
     # train_index = [i for i in range(0, 4)] + [i for i in range(7, 10)]
     # test_index = [i for i in range(10, 20)]
     # test_index = [i for i in range(8, 10)]
     # test_index = [i for i in range(30)]
-    test_index = [i for i in range(4, 10)]
-    # test_index = [i for i in range(4, 7)]
-    emotion_list = ['Neutral', 'Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust']
 
-    with open("C:/Users/Zber/Desktop/Subjects_Heatmap_new/bad_file_list.txt") as f:
-        bad_file_list = f.readlines()
+    for target_subjects in target_subjectss:
 
-    # root_path = "C:/Users/Zber/Desktop/Subjects_Heatmap_new"
-    root_path = "C:/Users/Zber/Desktop/Subjects_Heatmap"
-    # train_form = "{}_train_S0_1_2.txt"
-    # test_form = "{}_test_S0_1_2.txt"
+        train_index = [i for i in range(0, 4)]
+        test_index = [i for i in range(4, 10)]
 
-    # train_form = "{}_train_S3_4_5.txt"
-    # test_form = "{}_test_S3_4_5.txt"
+        # test_index = [i for i in range(4, 7)]
+        emotion_list = ['Neutral', 'Joy', 'Surprise', 'Anger', 'Sadness', 'Fear', 'Disgust']
 
-    # train_form = "{}_train_landmark_S5.txt"
-    # test_form = "{}_test_landmark_S5.txt"
+        with open("C:/Users/Zber/Desktop/Subjects_Heatmap_new/bad_file_list.txt") as f:
+            bad_file_list = f.readlines()
 
-    train_form = "{}_train_30cm_d.txt"
-    test_form = "{}_test_30cm_d.txt"
+        # root_path = "C:/Users/Zber/Desktop/Subjects_Heatmap_new"
+        root_path = "C:/Users/Zber/Desktop/Subjects_Heatmap"
+        # train_form = "{}_train_S0_1_2.txt"
+        # test_form = "{}_test_S0_1_2.txt"
+
+        # train_form = "{}_train_S3_4_5.txt"
+        # test_form = "{}_test_S3_4_5.txt"
+
+        # train_form = "{}_train_landmark_S5.txt"
+        # test_form = "{}_test_landmark_S5.txt"
+
+        train_form = "{}_train_{}.txt".format('{}', target_subjects[0])
+        test_form = "{}_test_{}.txt".format('{}', target_subjects[0])
 
 
-    # train_form = "{}_train_M3_2.txt"
-    # test_form = "{}_test_M3_2.txt"
+        # train_form = "{}_train_M3_2.txt"
+        # test_form = "{}_test_M3_2.txt"
 
-    train_path = os.path.join(root_path, train_form.format('heatmap'))
-    test_path = os.path.join(root_path, test_form.format('heatmap'))
+        train_path = os.path.join(root_path, train_form.format('heatmap'))
+        test_path = os.path.join(root_path, test_form.format('heatmap'))
 
-    frame_root_path = "C:/Users/Zber/Desktop/Subjects_Frames"
-    frame_train_path = os.path.join(frame_root_path, train_form.format('frames'))
-    frame_test_path = os.path.join(frame_root_path, test_form.format('frames'))
+        frame_root_path = "C:/Users/Zber/Desktop/Subjects_Frames"
+        frame_train_path = os.path.join(frame_root_path, train_form.format('frames'))
+        frame_test_path = os.path.join(frame_root_path, test_form.format('frames'))
 
-    train_list = []
-    test_list = []
-    for s in target_subjects:
-        for e in emotion_list:
-            label = get_label(e)
-            for train_id in train_index:
-                if not check_is_in_badfile(bad_file_list, s, e, train_id):
-                    train_list.append(format_string.format(s, e, train_id, npy_form, label, ONSET, PEAK))
-            for test_id in test_index:
-                if not check_is_in_badfile(bad_file_list, s, e, test_list):
-                    test_list.append(format_string.format(s, e, test_id, npy_form, label, ONSET, PEAK))
+        train_list = []
+        test_list = []
+        for s in target_subjects:
+            for e in emotion_list:
+                label = get_label(e)
+                for train_id in train_index:
+                    if not check_is_in_badfile(bad_file_list, s, e, train_id):
+                        train_list.append(format_string.format(s, e, train_id, npy_form, label, ONSET, PEAK))
+                for test_id in test_index:
+                    if not check_is_in_badfile(bad_file_list, s, e, test_list):
+                        test_list.append(format_string.format(s, e, test_id, npy_form, label, ONSET, PEAK))
 
-    np.random.shuffle(train_list)
-    np.random.shuffle(test_list)
-    with open(train_path, 'a') as f:
-        f.writelines('\n'.join(train_list))
-    print("Write {} Records to txt file".format(len(train_list)))
+        np.random.shuffle(train_list)
+        np.random.shuffle(test_list)
+        with open(train_path, 'w') as f:
+            f.writelines('\n'.join(train_list))
+        print("Write {} Records to txt file".format(len(train_list)))
 
-    with open(test_path, 'w') as f:
-        f.writelines('\n'.join(test_list))
-    print("Write {} Records to txt file".format(len(test_list)))
+        with open(test_path, 'w') as f:
+            f.writelines('\n'.join(test_list))
+        print("Write {} Records to txt file".format(len(test_list)))
 
-    # heatmap to frame
-    hm_2_frame("", train_path, frame_train_path)
-    hm_2_frame("", test_path, frame_test_path)
+        # heatmap to frame
+        hm_2_frame("", train_path, frame_train_path)
+        hm_2_frame("", test_path, frame_test_path)
 
     # cross ss

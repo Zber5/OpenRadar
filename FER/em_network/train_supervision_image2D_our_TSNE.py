@@ -372,12 +372,12 @@ def test(s_model, t_model, test_loader, criterion, to_log=None):
             kd_test_loss += kd_loss
             # npair_loss += npl
 
-            teacher_out = np.concatenate(t4_total, axis=0)
-            student_out = np.concatenate(s4_total, axis=0)
-            labels_out = np.concatenate(labels, axis=0)
-            np.save(os.path.join(path['dir'], 'image'), teacher_out)
-            np.save(os.path.join(path['dir'], 'kd'), student_out)
-            np.save(os.path.join(path['dir'], 'labels'), labels_out)
+        teacher_out = np.concatenate(t4_total, axis=0)
+        student_out = np.concatenate(s4_total, axis=0)
+        labels_out = np.concatenate(labels, axis=0)
+        np.save(os.path.join(path['dir'], 'image'), teacher_out)
+        np.save(os.path.join(path['dir'], 'kd'), student_out)
+        np.save(os.path.join(path['dir'], 'labels'), labels_out)
 
         test_loss = test_loss / len(test_loader.sampler) * test_loader.batch_size
         kd_loss = kd_loss / len(test_loader.sampler) * test_loader.batch_size
@@ -474,14 +474,15 @@ if __name__ == "__main__":
     # results dir
     result_dir = "FER/results"
     # path = dir_path("Supervision_SUM_image2D_TransformerLarge_L3_CrossNpairLossWeighted", result_dir)
-    path = dir_path("Ours_TSNE_1", result_dir)
+    path = dir_path("Baseline3_TSNE", result_dir)
     # path = dir_path("Supervision_SUM_image2D_TransformerLargeWithBN_L3_Cross+SelfNpairLoss_LargeClassifier", result_dir)
 
     # best_folder = "Supervision_image2D_Transformer_extractor_BN_L3_sum_LargeTFblock_20220303-210816"
     # best_folder = "Supervision_image2D_Transformer_extractor_BNv2_L3_sum_LargeTFblock_20220304-132937"
     # best_folder = "Supervision_SUM_image2D_TransformerLarge_L3_HeterNpairLoss_20220309-174556"
     # best_folder = "Supervision_image2D_Transformer_extractor_L3_sum_LargeTFblock_20220227-132522"
-    best_folder = "Supervision_SUM_image2D_TransformerLargeWithBN_L3_Cross+SelfNpairLoss_LargeClassifier_20220309-230901"
+    # best_folder = "Supervision_SUM_image2D_TransformerLargeWithBN_L3_Cross+SelfNpairLoss_LargeClassifier_20220309-230901"
+    best_folder = "Supervision_SUM_image2D_Baseline3_20220628-234659"
 
     # save training config
     save_to_json(config, path['config'])
@@ -573,9 +574,9 @@ if __name__ == "__main__":
                                 batch_first=True,
                                 bias=True,
                                 return_all_layers=False)
-    if config['continue_learning']:
-        extractor_checkpoint = os.path.join(result_dir, best_folder, 'extractor_best.pth.tar')
-        extractor.load_state_dict(torch.load(extractor_checkpoint))
+    # if config['continue_learning']:
+    #     extractor_checkpoint = os.path.join(result_dir, best_folder, 'extractor_best.pth.tar')
+    #     extractor.load_state_dict(torch.load(extractor_checkpoint))
     extractor = extractor.to(device)
 
     tf_block = TFblock_v4()
